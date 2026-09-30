@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Staff extends Model
+{
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'role',
+        'status',
+    ];
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'email', 'email');
+    }
+}

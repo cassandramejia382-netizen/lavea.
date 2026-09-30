@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    @include('partials.theme-assets')<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Verify Email | LAVEA</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#f4f6fa;color:#111d38;font-family:Arial,sans-serif}.card{width:min(100%,500px);padding:36px;border-radius:16px;background:#fff;box-shadow:0 18px 55px #111d3817;text-align:center}strong{font-size:27px;letter-spacing:3px}h1{margin:24px 0 10px;font-size:24px}p{color:#718099;font-size:14px;line-height:1.65}button{height:44px;padding:0 20px;margin:12px 5px;border:0;border-radius:8px;background:#111d38;color:#fff;font-weight:700;cursor:pointer}.logout{background:#edf1f7;color:#111d38}.msg{margin:18px 0;padding:12px;border-radius:8px;background:#edf4ff;color:#214a8d;font-size:13px}.err{margin:18px 0;padding:12px;border-radius:8px;background:#fff1f0;color:#b42318;font-size:13px}</style></head>
+<body><main class="card"><strong>LAVEA</strong><h1>Check your email</h1><p>Please verify your email address using the link we sent. You’ll need to verify it before opening your customer dashboard.</p>
+@if(session('status'))<div class="msg">{{ session('status') }}</div>@endif
+@if(session('email_error'))<div class="err">{{ session('email_error') }}</div>@endif
+<form method="POST" action="{{ route('verification.send') }}">@csrf<button type="submit">Resend Verification Email</button></form>
+<form method="GET" action="{{ route('logout.confirm') }}"><button class="logout" type="submit">Sign Out</button></form></main></body></html>

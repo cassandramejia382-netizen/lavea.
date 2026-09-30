@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-lavea-theme="{{ request()->cookie('lavea_theme', 'light') }}">
+<head>
+    @include('partials.theme-assets')
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ $title ?? 'Staff Portal' }} | LAVEA</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
+    <style>
+        *{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#172554;font:14px Arial,Helvetica,sans-serif}.dashboard{display:flex;min-height:100vh}.sidebar{width:255px;background:#111d38;color:white;padding:25px 16px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column}.logo-area{padding:5px 15px 35px}.logo{font-size:27px;font-weight:700;letter-spacing:3px}.logo-subtitle{font-size:11px;color:#aebbd3;margin-top:4px}.menu{display:flex;flex-direction:column;gap:6px}.menu a{color:#dce5f7;text-decoration:none;display:flex;align-items:center;gap:14px;padding:13px 15px;border-radius:8px}.menu a:hover,.menu a.active{background:#4169c8;color:white}.menu svg{width:19px;height:19px}.side-foot{margin-top:auto;border-top:1px solid #2a3b5d;padding:17px 10px 0;color:#aebbd3;font-size:12px}.main{margin-left:255px;width:calc(100% - 255px);min-height:100vh}.lavea-admin-topbar{left:255px}.lavea-top-right{gap:14px}.lavea-topbar-title{font-size:17px;font-weight:700;color:#12214a;white-space:nowrap;margin-right:20px}.top-date{flex:1;text-align:right;margin-right:16px;color:#687691;font-size:12px;line-height:1.5}.theme-toggle,.lavea-sign-out{border:1px solid #dfe5ef;background:#fff;color:#34415a;border-radius:7px;padding:9px 11px;cursor:pointer}.content{padding:30px}.page-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 22px}.page-head h1{margin:0 0 6px;font-size:26px;color:#10204a}.muted{color:#7a879d}.card,.stat-card{background:#fff;border:1px solid #e7ebf2;border-radius:10px;padding:20px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;margin-bottom:20px}.stat-card strong{display:block;font-size:27px;margin-top:10px;color:#12214a}.cols{display:grid;grid-template-columns:2fr 1fr;gap:17px;margin-bottom:18px}.card h2{font-size:16px;margin:0 0 17px;color:#12214a}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #edf0f5;font-size:13px}th{font-size:11px;text-transform:uppercase;color:#687691}td{color:#34415a}.btn{display:inline-flex;align-items:center;gap:6px;background:#4169c8;color:#fff;padding:10px 14px;border:0;border-radius:7px;text-decoration:none;cursor:pointer;font-weight:600}.btn.secondary{background:#fff;color:#34415a;border:1px solid #dfe5ef}.btn.danger{background:#a73545}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:600;font-size:13px;color:#34415a}.field input,.field select,.field textarea,.search-input{border:1px solid #dfe5ef;background:white;border-radius:7px;padding:11px;color:#263550;width:100%}.field textarea{min-height:90px}.actions{display:flex;gap:8px;align-items:center}.flash{margin-bottom:17px;padding:12px 15px;background:#e5f8ef;color:#168458;border-radius:7px}.error-list{color:#b42335;margin:0 0 14px;padding-left:20px}.service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.service-card{overflow:hidden;padding:0}.service-card img{width:100%;height:160px;object-fit:cover}.service-card .service-body{padding:17px}.pill{display:inline-block;padding:5px 9px;border-radius:12px;background:#e7efff;color:#3459b1;font-size:11px}.empty{color:#7a879d;padding:18px;text-align:center}.print-only{display:none}
+        @media(max-width:900px){.sidebar{width:70px;padding:20px 8px}.logo-area{padding:5px 4px 25px}.logo{font-size:16px;text-align:center}.logo-subtitle,.menu span,.side-foot{display:none}.menu a{justify-content:center;padding:13px 6px}.main{margin-left:70px;width:calc(100% - 70px)}.lavea-admin-topbar{left:70px;padding:0 12px}.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}.service-grid{grid-template-columns:repeat(2,1fr)}.lavea-search-box,.lavea-search-spacer{flex-basis:200px;width:200px}}
+        @media(max-width:600px){.content{padding:18px}.grid,.form-grid,.service-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.lavea-admin-topbar{height:64px}.lavea-admin-topbar-spacer{height:64px}.lavea-search-box,.lavea-search-spacer{display:none}.lavea-top-right{gap:8px}.lavea-admin-profile div:nth-child(2),.lavea-admin-profile>svg:last-child{display:none}.lavea-sign-out{padding:8px}.page-head{align-items:flex-start;gap:12px}}
+        @media print{.sidebar,.lavea-admin-topbar,.lavea-admin-topbar-spacer,.no-print{display:none!important}.main{margin:0;width:100%}.content{padding:0}.print-only{display:block}}
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <aside class="sidebar"><div class="logo-area"><div class="logo">LAVEA</div><div class="logo-subtitle">Laundry Made Easy</div></div>
+        <nav class="menu">
+            @foreach ([['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Orders'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']] as [$key,$icon,$label])
+                @php($active = $key === 'dashboard' ? request()->routeIs('staff.dashboard') : request()->routeIs('staff.'.$key.'.*'))
+                <a href="{{ route($key === 'dashboard' ? 'staff.dashboard' : 'staff.'.$key.'.index') }}" class="{{ $active ? 'active' : '' }}"><i data-lucide="{{ $icon }}"></i><span>{{ $label }}</span></a>
+            @endforeach
+            <a href="{{ route('logout.confirm') }}"><i data-lucide="log-out"></i><span>Logout</span></a>
+        </nav><div class="side-foot">Staff workspace</div>
+    </aside>
+    <main class="main">
+        <header class="lavea-admin-topbar">
+            <div class="lavea-topbar-title">{{ $title ?? 'Staff Dashboard' }}</div>
+            <div class="top-date">{{ now()->format('F d, Y') }}<br>{{ now()->format('l') }}</div>
+            <div class="lavea-top-right">
+                @include('admin.partials.notifications')
+                <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle dark mode">◐</button>
+                <div class="lavea-admin-profile"><div class="lavea-admin-avatar"><i data-lucide="user"></i></div><div><strong>{{ auth()->user()->name }}</strong><span>Staff Account</span></div></div>
+                <form method="GET" action="{{ route('logout.confirm') }}"><button type="submit" class="lavea-sign-out">Sign Out</button></form>
+            </div>
+        </header><div class="lavea-admin-topbar-spacer"></div>
+        <section class="content">
+            @if (session('success'))<div class="flash">{{ session('success') }}</div>@endif
+            @if ($errors->any())<ul class="error-list">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
+            @yield('content')
+        </section>
+    </main>
+</div>
+<script>
+    lucide.createIcons();
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+        const theme = document.documentElement.dataset.laveaTheme === 'dark' ? 'light' : 'dark';
+        document.cookie = 'lavea_theme=' + theme + '; path=/; max-age=31536000; SameSite=Lax';
+        window.location.reload();
+    });
+</script>
+</body></html>

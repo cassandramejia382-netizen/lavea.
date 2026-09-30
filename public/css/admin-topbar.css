@@ -1,0 +1,357 @@
+.lavea-admin-topbar {
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 255px;
+    right: 0;
+    z-index: 1000;
+    width: auto;
+    height: 75px;
+    background: white;
+    border-bottom: 1px solid #e8ecf3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+}
+
+.lavea-admin-topbar-spacer {
+    height: 75px;
+}
+
+.lavea-search-box {
+    box-sizing: border-box;
+    flex: 0 0 430px;
+    width: 430px;
+    height: 40px;
+    border: 1px solid #dfe5ef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 13px;
+    color: #8a96aa;
+}
+
+.lavea-search-spacer {
+    box-sizing: border-box;
+    flex: 0 0 430px;
+    width: 430px;
+    height: 40px;
+}
+
+.lavea-search-box svg {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.lavea-search-box input {
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    margin-left: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    font-size: 13px;
+}
+
+.lavea-search-box button {
+    box-sizing: border-box;
+    flex: 0 0 18px;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 24px;
+    border: 0;
+    padding: 0;
+    display: flex;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.lavea-top-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.lavea-notification {
+    color: #172554;
+    position: relative;
+}
+
+.lavea-notification-button {
+    position: relative;
+    width: 28px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.lavea-notification-button svg {
+    width: 21px;
+}
+
+.lavea-notification-count {
+    position: absolute;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    top: -3px;
+    right: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.lavea-notification-dropdown {
+    position: absolute;
+    top: 40px;
+    right: -15px;
+    width: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e3e8f0;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px #17255424;
+    color: #172554;
+    z-index: 1200;
+}
+
+.lavea-notification-dropdown[hidden] {
+    display: none;
+}
+
+.lavea-notification-heading {
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.lavea-notification-item {
+    padding: 13px 16px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.lavea-notification-item.is-unread {
+    background: #f4f7ff;
+}
+
+.lavea-notification-title {
+    display: block;
+    color: #172554;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lavea-notification-item p {
+    margin: 5px 0;
+    color: #627089;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.lavea-notification-item small {
+    color: #8a96aa;
+    font-size: 10px;
+}
+
+.lavea-notification-read {
+    margin-top: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4169c8;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.lavea-notification-empty {
+    padding: 16px;
+    margin: 0;
+    color: #8a96aa;
+    font-size: 12px;
+}
+
+html[data-lavea-theme="dark"] .lavea-notification-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+
+html[data-lavea-theme="dark"] .lavea-notification-heading,
+html[data-lavea-theme="dark"] .lavea-notification-item {
+    border-color: #374151;
+}
+
+html[data-lavea-theme="dark"] .lavea-notification-item.is-unread {
+    background: #273449;
+}
+
+html[data-lavea-theme="dark"] .lavea-notification-title,
+html[data-lavea-theme="dark"] .lavea-notification-item p {
+    color: #e5e7eb;
+}
+
+.lavea-admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 1px solid #e3e7ef;
+    padding-left: 20px;
+}
+
+.lavea-admin-avatar {
+    width: 39px;
+    height: 39px;
+    background: #e8eefb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lavea-admin-avatar svg {
+    width: 21px;
+}
+
+.lavea-admin-profile strong {
+    font-size: 13px;
+    display: block;
+}
+
+.lavea-admin-profile span {
+    font-size: 10px;
+    color: #8792a6;
+}
+
+.lavea-page-date {
+    position: relative;
+    top: -2px;
+    margin-right: -2px;
+    text-align: right;
+    color: #687691;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.lavea-page-date strong {
+    display: block;
+    color: #53627e;
+    margin-bottom: 5px;
+}
+
+.lavea-page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.lavea-staff-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin: 30px 0 25px;
+}
+
+.lavea-staff-heading h1 {
+    font-size: 26px;
+    color: #10204a;
+    margin-bottom: 7px;
+}
+
+.lavea-staff-heading p {
+    color: #7a879d;
+    font-size: 13px;
+}
+
+.lavea-sign-out {
+    border: 0;
+    border-radius: 7px;
+    padding: 10px 14px;
+    background: #111d38;
+    color: white;
+    cursor: pointer;
+}
+
+@media (max-width: 800px) {
+    .lavea-admin-topbar {
+        left: 70px;
+    }
+
+    .lavea-search-box {
+        flex-basis: 250px;
+        width: 250px;
+    }
+
+    .lavea-search-spacer {
+        flex-basis: 250px;
+        width: 250px;
+    }
+}
+
+@media (max-width: 600px) {
+    .lavea-admin-topbar {
+        height: 115px;
+        min-height: 115px;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 15px;
+    }
+
+    .lavea-admin-topbar-spacer {
+        height: 115px;
+    }
+
+    .lavea-search-box {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .lavea-search-spacer {
+        display: block;
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .lavea-top-right {
+        gap: 10px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .lavea-admin-profile {
+        gap: 6px;
+        padding-left: 10px;
+    }
+
+    .lavea-page-date {
+        top: 0;
+        margin-right: 0;
+        text-align: left;
+    }
+
+    .lavea-page-header-actions {
+        gap: 10px;
+    }
+
+    .lavea-staff-heading {
+        margin-top: 15px;
+    }
+}
