@@ -32,7 +32,7 @@
     <div class="lavea-top-right">
         @include('admin.partials.notifications')
 
-        @if (auth()->user()->role === 'staff' || request()->routeIs('admin.dashboard'))
+        @if (in_array(auth()->user()->role, ['staff', 'customer', 'user']) || request()->routeIs('admin.dashboard'))
             <button type="button" class="lavea-notification-button" id="dashboard-theme-toggle" aria-label="Toggle dark mode">
                 <i data-lucide="sun-moon"></i>
             </button>
@@ -43,7 +43,10 @@
                 <i data-lucide="user"></i>
             </div>
             <div>
-                @if (auth()->user()->role === 'staff')
+                @if (in_array(auth()->user()->role, ['customer', 'user']))
+                    <strong>{{ auth()->user()->name }}</strong>
+                    <span>Customer Account</span>
+                @elseif (auth()->user()->role === 'staff')
                     <strong>{{ auth()->user()->name }}</strong>
                     <span>Staff Account</span>
                 @else

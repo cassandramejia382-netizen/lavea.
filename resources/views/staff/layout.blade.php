@@ -17,17 +17,23 @@
 <div class="dashboard">
     <aside class="sidebar"><div class="logo-area"><div class="logo">LAVEA</div><div class="logo-subtitle">Laundry Made Easy</div></div>
         <nav class="menu">
-            @foreach ([['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Orders'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']] as [$key,$icon,$label])
+            @php
+                $isCustomerPortal = ($portal ?? 'staff') === 'customer';
+                $navigation = $isCustomerPortal
+                    ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','My Orders'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','Profile']]
+                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Orders'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']];
+                $portalPrefix = $isCustomerPortal ? 'customer' : 'staff';
+            @endphp
+            @foreach ($navigation as [$key,$icon,$label])
                 @php
-                    $active = $key === 'dashboard'
-                        ? request()->routeIs('staff.dashboard')
-                        : request()->routeIs('staff.'.$key.'.*');
+                    $navigationRoute = in_array($key, ['dashboard', 'profile']) ? $portalPrefix.'.'.$key : $portalPrefix.'.'.$key.'.index';
+                    $active = request()->routeIs($navigationRoute, $portalPrefix.'.'.$key.'.*');
                 @endphp
-                <a href="{{ route($key === 'dashboard' ? 'staff.dashboard' : 'staff.'.$key.'.index') }}" class="{{ $active ? 'active' : '' }}"><i data-lucide="{{ $icon }}"></i><span>{{ $label }}</span></a>
+                <a href="{{ route($navigationRoute) }}" class="{{ $active ? 'active' : '' }}" aria-label="{{ $label }}" @if($active) aria-current="page" @endif><i data-lucide="{{ $icon }}"></i><span>{{ $label }}</span></a>
             @endforeach
-            <a href="{{ route('logout.confirm') }}"><i data-lucide="log-out"></i><span>Logout</span></a>
+            <a href="{{ route('logout.confirm') }}" aria-label="Logout"><i data-lucide="log-out"></i><span>Logout</span></a>
         </nav>
-        <div class="staff-profile"><div class="staff-avatar"><i data-lucide="user-round"></i></div><div class="staff-info"><strong>{{ auth()->user()->name }}</strong><span>Staff Account</span></div></div>
+        <div class="staff-profile"><div class="staff-avatar"><i data-lucide="user-round"></i></div><div class="staff-info"><strong>{{ auth()->user()->name }}</strong><span>{{ $isCustomerPortal ? 'Customer Account' : 'Staff Account' }}</span></div></div>
     </aside>
     <main class="main">
         @php

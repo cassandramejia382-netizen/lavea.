@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
@@ -45,14 +46,22 @@ Route::middleware(['auth', 'role:customer'])->group(function (): void {
         ->name('verification.send');
 
     Route::middleware('verified')->prefix('customer')->name('customer.')->group(function (): void {
-        Route::get('/dashboard', fn () => view('customer.dashboard'))->name('dashboard');
+        Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders.index');
+        Route::get('/orders/{order}', [CustomerDashboardController::class, 'showOrder'])->whereNumber('order')->name('orders.show');
+        Route::get('/services', [CustomerDashboardController::class, 'services'])->name('services.index');
+        Route::get('/payments', [CustomerDashboardController::class, 'payments'])->name('payments.index');
+        Route::get('/payments/{payment}', [CustomerDashboardController::class, 'showPayment'])->whereNumber('payment')->name('payments.show');
+        Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
+        Route::patch('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
     });
 
     Route::middleware('verified')->prefix('user')->name('user.')->group(function (): void {
         Route::get('/dashboard', fn () => redirect()->route('customer.dashboard'))->name('dashboard');
-        Route::get('/services', fn () => view('user.services'))->name('services');
-        Route::get('/orders', fn () => view('user.orders'))->name('orders');
-        Route::get('/profile', fn () => view('user.profile'))->name('profile');
+        Route::get('/services', fn () => redirect()->route('customer.services.index'))->name('services');
+        Route::get('/orders', fn () => redirect()->route('customer.orders.index'))->name('orders');
+        Route::get('/payments', fn () => redirect()->route('customer.payments.index'))->name('payments');
+        Route::get('/profile', fn () => redirect()->route('customer.profile'))->name('profile');
     });
 });
 

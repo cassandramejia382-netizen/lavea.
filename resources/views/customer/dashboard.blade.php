@@ -1,4 +1,16 @@
-<!DOCTYPE html>
-<html lang="en"><head>
-    @include('partials.theme-assets')<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Customer Dashboard | LAVEA</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#111d38;font-family:Arial,sans-serif}.top{display:flex;align-items:center;justify-content:space-between;padding:22px max(24px,calc((100% - 1050px)/2));background:#111d38;color:white}.brand{font-weight:800;font-size:23px;letter-spacing:3px}.top p{margin:5px 0 0;color:#c6d0e2;font-size:12px}button{padding:10px 15px;border:0;border-radius:7px;background:#fff;color:#111d38;font-weight:700;cursor:pointer}.content{max-width:1050px;margin:42px auto;padding:0 24px}.card{padding:30px;border:1px solid #e4e9f1;border-radius:12px;background:white}h1{margin-top:0;font-size:26px}p{color:#65738c;line-height:1.6}.notice{margin-top:18px;padding:13px;border-radius:8px;background:#edf4ff;color:#214a8d}</style></head>
-<body><header class="top"><div><div class="brand">LAVEA</div><p>Laundry Management System</p></div><form method="GET" action="{{ route('logout.confirm') }}"><button type="submit">Sign Out</button></form></header><main class="content"><section class="card"><h1>Welcome, {{ auth()->user()->name }}</h1><p>Your LAVEA customer account is ready.</p>@if(session('status'))<div class="notice">{{ session('status') }}</div>@endif</section></main></body></html>
+@extends('customer.layout', ['title' => 'Dashboard'])
+@section('content')
+<div class="page-head"><div><h1>Welcome, {{ auth()->user()->name }}</h1><div class="muted">Track your laundry, payments, and services in one place.</div></div><div class="muted">{{ now()->format('F d, Y') }}</div></div>
+@if(session('status'))<div class="flash">{{ session('status') }}</div>@endif
+<div class="grid">
+    @foreach ([['Total Orders', $stats['total'], 'clipboard-list'], ['Pending Orders', $stats['pending'], 'clock-3'], ['Completed Orders', $stats['completed'], 'circle-check'], ['Total Payments', '₱'.number_format($stats['payments'], 2), 'credit-card']] as [$label, $value, $icon])
+        <div class="stat-card"><i data-lucide="{{ $icon }}" style="color:#4169c8;width:22px"></i><div class="muted" style="margin-top:12px">{{ $label }}</div><strong>{{ $value }}</strong>@if($label === 'Total Payments')<small class="muted">Completed payments</small>@endif</div>
+    @endforeach
+</div>
+<div class="card" style="margin-bottom:24px">
+    <div class="page-head"><h2>Recent Orders</h2><a class="btn secondary" href="{{ route('customer.orders.index') }}">View all</a></div>
+    @include('customer.orders-table', ['orders' => $recentOrders])
+</div>
+<div class="page-head"><div><h1 style="font-size:20px">Available Services</h1><div class="muted">Fresh, clean laundry starts here.</div></div><a class="btn secondary" href="{{ route('customer.services.index') }}">View all</a></div>
+@include('customer.services-grid')
+@endsection
