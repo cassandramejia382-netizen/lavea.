@@ -75,9 +75,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function (): void {
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('customers', CustomerController::class)->except(['destroy'])->names('customers');
+    Route::resource('customers', CustomerController::class)->names('customers');
     Route::get('/services', [ServiceController::class, 'staffIndex'])->name('services.index');
-    Route::resource('orders', OrderController::class)->except(['destroy'])->names('orders');
+    Route::resource('orders', OrderController::class)->names('orders');
     Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show'])->names('payments');
     Route::get('/schedules', [ScheduleController::class, 'staffIndex'])->name('schedules.index');
 });

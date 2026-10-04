@@ -2,7 +2,7 @@
     @if (!empty($hideSearch))
         <div class="lavea-search-spacer" aria-hidden="true"></div>
     @elseif (!empty($customerSearch))
-        <form class="lavea-search-box" method="GET" action="{{ route('admin.customers.index') }}">
+        <form class="lavea-search-box" method="GET" action="{{ route(auth()->user()->role === 'staff' ? 'staff.customers.index' : 'admin.customers.index') }}">
             <button type="submit" aria-label="Search customers">
                 <i data-lucide="search"></i>
             </button>
@@ -16,7 +16,7 @@
             <input type="search" name="search" value="{{ request('search') }}" placeholder="Search here...">
         </form>
     @elseif (!empty($paymentSearch))
-        <form class="lavea-search-box" method="GET" action="{{ route('admin.payments.index') }}">
+        <form class="lavea-search-box" method="GET" action="{{ route(auth()->user()->role === 'staff' ? 'staff.payments.index' : 'admin.payments.index') }}">
             <button type="submit" aria-label="Search payments">
                 <i data-lucide="search"></i>
             </button>
@@ -31,6 +31,12 @@
 
     <div class="lavea-top-right">
         @include('admin.partials.notifications')
+
+        @if (auth()->user()->role === 'staff' || request()->routeIs('admin.dashboard'))
+            <button type="button" class="lavea-notification-button" id="dashboard-theme-toggle" aria-label="Toggle dark mode">
+                <i data-lucide="sun-moon"></i>
+            </button>
+        @endif
 
         <div class="lavea-admin-profile">
             <div class="lavea-admin-avatar">
@@ -58,5 +64,15 @@
 
 <script>
     lucide.createIcons();
+
+    var dashboardThemeToggle = document.getElementById('dashboard-theme-toggle');
+
+    if (dashboardThemeToggle) {
+        dashboardThemeToggle.addEventListener('click', function () {
+            var theme = document.documentElement.dataset.laveaTheme === 'dark' ? 'light' : 'dark';
+            document.cookie = 'lavea_theme=' + theme + '; path=/; max-age=31536000; SameSite=Lax';
+            window.location.reload();
+        });
+    }
 </script>
 

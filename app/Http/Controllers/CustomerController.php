@@ -62,6 +62,18 @@ class CustomerController extends Controller
         return view('admin.customers.show', compact('customer'));
     }
 
+    public function destroy(Customer $customer)
+    {
+        if ($customer->orders()->exists()) {
+            return redirect()->route('staff.customers.index')
+                ->with('error', 'This customer has order history and cannot be deleted.');
+        }
+
+        $customer->delete();
+
+        return redirect()->route('staff.customers.index')->with('success', 'Customer deleted successfully.');
+    }
+
     public function edit(Customer $customer)
     {
         return view('staff.customers.form', compact('customer'));

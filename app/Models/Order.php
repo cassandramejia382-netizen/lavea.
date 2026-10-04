@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    public const STATUSES = ['Pending', 'Processing', 'Completed', 'Cancelled'];
+
     protected $casts = [
         'order_date' => 'date',
         'pickup_date' => 'date',

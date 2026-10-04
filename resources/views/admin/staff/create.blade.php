@@ -493,6 +493,50 @@
                         </div>
 
 
+                        <!-- PASSWORD -->
+                        <div class="form-group">
+
+                            <label for="password">
+                                Password
+                            </label>
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter password (at least 8 characters)"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            @error('password')
+                                <div class="error">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+
+                        </div>
+
+
+                        <!-- CONFIRM PASSWORD -->
+                        <div class="form-group">
+
+                            <label for="password_confirmation">
+                                Confirm Password
+                            </label>
+
+                            <input
+                                type="password"
+                                id="password_confirmation"
+                                name="password_confirmation"
+                                placeholder="Re-enter password"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                        </div>
+
+
                         <!-- PHONE -->
                         <div class="form-group">
 

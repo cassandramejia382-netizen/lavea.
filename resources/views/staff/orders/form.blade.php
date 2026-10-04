@@ -9,7 +9,7 @@
 <div class="field"><label for="order_date">Order Date *</label><input id="order_date" type="date" name="order_date" required value="{{ old('order_date', isset($order) && $order->order_date ? $order->order_date->format('Y-m-d') : today()->toDateString()) }}"></div>
 <div class="field"><label for="pickup_date">Pickup Date</label><input id="pickup_date" type="date" name="pickup_date" min="{{ today()->toDateString() }}" value="{{ old('pickup_date', isset($order) && $order->pickup_date ? $order->pickup_date->format('Y-m-d') : '') }}"></div>
 <div class="field"><label for="delivery_date">Delivery Date</label><input id="delivery_date" type="date" name="delivery_date" min="{{ today()->toDateString() }}" value="{{ old('delivery_date', isset($order) && $order->delivery_date ? $order->delivery_date->format('Y-m-d') : '') }}"></div>
-<div class="field"><label for="status">Status *</label><select id="status" name="status" required>@foreach(['Pending','Processing','Completed','Cancelled'] as $status)<option @selected(old('status', $order->status ?? 'Pending') === $status)>{{ $status }}</option>@endforeach</select></div>
+<div class="field"><label for="status">Status *</label><select id="status" name="status" required>@foreach(\App\Models\Order::STATUSES as $status)<option @selected(old('status', $order->status ?? 'Pending') === $status)>{{ $status }}</option>@endforeach</select></div>
 <div class="field full"><label for="notes">Notes</label><textarea id="notes" name="notes">{{ old('notes', $order->notes ?? '') }}</textarea></div>
 <div class="actions field full"><button class="btn">{{ $editing ? 'Save Order' : 'Create Order' }}</button><a class="btn secondary" href="{{ route('staff.orders.index') }}">Cancel</a></div>
 </form>

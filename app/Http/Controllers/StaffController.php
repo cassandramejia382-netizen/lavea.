@@ -8,8 +8,8 @@ use App\Notifications\LaveaPasswordResetNotification;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 
 class StaffController extends Controller
 {
@@ -30,16 +30,17 @@ class StaffController extends Controller
         $details = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:staff,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:20'],
             'role' => ['required', 'string', 'max:100'],
             'status' => ['required', 'in:Active,Inactive'],
         ]);
 
-        $user = DB::transaction(function () use ($details) {
+        DB::transaction(function () use ($details) {
             $user = User::create([
                 'name' => $details['name'],
                 'email' => $details['email'],
-                'password' => Str::random(40),
+                'password' => Hash::make($details['password']),
                 'role' => 'staff',
                 'email_verified_at' => now(),
             ]);
@@ -52,15 +53,6 @@ class StaffController extends Controller
                 'status' => $details['status'],
             ]);
 
-            return $user;
-        });
-
-        dispatch(function () use ($user) {
-            try {
-                $token = Password::broker()->createToken($user);
-                $user->notify(new LaveaPasswordResetNotification($token));
-            } catch (Exception $exception) {
-            }
         });
 
         return redirect()->route('admin.staff.index')

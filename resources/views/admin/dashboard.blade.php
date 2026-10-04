@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-lavea-theme="{{ request()->cookie('lavea_theme', 'light') }}">
 
 <head>
     @include('partials.theme-assets')
@@ -764,6 +764,9 @@
     <main class="main">
 
         <!-- TOPBAR -->
+        @php
+            $hideSearch = true;
+        @endphp
         @include('admin.partials.topbar')
 
 

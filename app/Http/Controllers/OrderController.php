@@ -9,6 +9,7 @@ use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\SystemNotification;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -83,7 +84,7 @@ class OrderController extends Controller
             'order_date' => 'required|date',
             'pickup_date' => 'nullable|date|after_or_equal:today|after_or_equal:order_date',
             'delivery_date' => 'nullable|date|after_or_equal:today|after_or_equal:pickup_date',
-            'status' => 'required|in:Pending,Processing,Completed,Cancelled',
+            'status' => ['required', Rule::in(Order::STATUSES)],
             'notes' => 'nullable|string|max:2000',
         ]);
 
@@ -167,7 +168,7 @@ class OrderController extends Controller
             'order_date' => 'required|date',
             'pickup_date' => 'nullable|date|after_or_equal:today|after_or_equal:order_date',
             'delivery_date' => 'nullable|date|after_or_equal:today|after_or_equal:pickup_date',
-            'status' => 'required|in:Pending,Processing,Completed,Cancelled',
+            'status' => ['required', Rule::in(Order::STATUSES)],
             'notes' => 'nullable|string|max:2000',
         ]);
 
@@ -200,5 +201,12 @@ class OrderController extends Controller
         return redirect()
             ->route('staff.orders.show', $order)
             ->with('success', 'Order updated successfully.');
+    }
+
+    public function destroy(Order $order)
+    {
+        $order->delete();
+
+        return redirect()->route('staff.orders.index')->with('success', 'Order deleted successfully.');
     }
 }
