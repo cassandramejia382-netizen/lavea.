@@ -1,244 +1,73 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@extends('admin.layout', ['title' => 'Customer Details'])
 
-<head>
-    @include('partials.theme-assets')
+@push('styles')
 
-    <meta charset="UTF-8">
+<style>
+.lavea-admin-content .container { max-width: 720px; margin: 32px auto; padding: 0 20px; }
+.lavea-admin-content .back { display: inline-block; color: #4169c8; text-decoration: none; font-size: 13px; line-height: 1.5; }
+.lavea-admin-content .back:hover { text-decoration: underline; }
+.lavea-admin-content .back:focus-visible { outline: 2px solid #4169c8; outline-offset: 4px; border-radius: 3px; }
+.lavea-admin-content .card { margin-top: 16px; background: white; border: 1px solid #e5e9f1; border-radius: 12px; padding: 24px; }
+.lavea-admin-content .customer-header { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid #e5e9f1; }
+.lavea-admin-content .avatar { flex: 0 0 52px; width: 52px; height: 52px; background: #e8eefb; color: #4169c8; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lavea-admin-content .avatar svg { width: 26px; height: 26px; stroke-width: 2; }
+.lavea-admin-content h1 { min-width: 0; margin: 0; font-size: 26px; line-height: 1.25; overflow-wrap: anywhere; }
+.lavea-admin-content .details { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; margin: 0; }
+.lavea-admin-content .detail { min-width: 0; padding: 16px 0; border-bottom: 1px solid #edf0f5; }
+.lavea-admin-content .detail:last-child { border-bottom: 0; }
+.lavea-admin-content .label { color: #64748b; font-size: 11px; font-weight: 600; letter-spacing: .4px; margin-bottom: 6px; }
+.lavea-admin-content .value { margin: 0; color: #263552; font-size: 14px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.lavea-admin-content .customer-updated { margin: 0; padding-top: 14px; border-top: 1px solid #e5e9f1; color: #64748b; font-size: 12px; line-height: 1.5; }
+@media (max-width: 600px) {
+.lavea-admin-content .container { margin: 24px auto; padding: 0 16px; }
+.lavea-admin-content .card { padding: 20px; }
+.lavea-admin-content .details { grid-template-columns: minmax(0, 1fr); }
+.lavea-admin-content h1 { font-size: 23px; }
+}
+</style>
+@endpush
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>LAVEA | Customer Details</title>
-
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            background: #f5f7fb;
-            color: #172554;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 0 20px;
-        }
-
-        .back {
-            color: #4169c8;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .card {
-            margin-top: 25px;
-            background: white;
-            border: 1px solid #e5e9f1;
-            border-radius: 12px;
-            padding: 30px;
-        }
-
-        .customer-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid #edf0f5;
-        }
-
-        .avatar {
-            width: 65px;
-            height: 65px;
-            background: #e8eefb;
-            color: #4169c8;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .avatar svg {
-            width: 30px;
-        }
-
-        h1 {
-            margin: 0 0 5px;
-        }
-
-        .email {
-            color: #8995aa;
-            font-size: 12px;
-        }
-
-        .details {
-            margin-top: 25px;
-        }
-
-        .detail {
-            padding: 15px 0;
-            border-bottom: 1px solid #edf0f5;
-        }
-
-        .label {
-            color: #8995aa;
-            font-size: 11px;
-            margin-bottom: 5px;
-        }
-
-        .value {
-            color: #263552;
-            font-size: 14px;
-        }
-
-        .customer-header .lavea-page-date {
-            margin-left: auto;
-        }
-
-    </style>
-
-    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
-</head>
-
-<body>
-
-@include('admin.partials.topbar')
-
+@section('content')
 <div class="container">
 
     <a
         href="{{ route('admin.customers.index') }}"
         class="back"
     >
-        â† Back to Customers
+        &larr; Back to Customers
     </a>
 
 
     <div class="card">
-
         <div class="customer-header">
-
-            <div class="avatar">
-
-                <i data-lucide="user"></i>
-
-            </div>
-
-            <div>
-
-                <h1>
-                    {{ $customer->name }}
-                </h1>
-
-                <div class="email">
-                    {{ $customer->email ?: 'No email' }}
-                </div>
-
-            </div>
-
-            @include('admin.partials.current-date')
-
+            <div class="avatar" aria-hidden="true"><i data-lucide="user"></i></div>
+            <h1>{{ $customer->name }}</h1>
         </div>
 
-
-        <div class="details">
-
+        <dl class="details">
             <div class="detail">
-
-                <div class="label">
-                    CUSTOMER ID
-                </div>
-
-                <div class="value">
-                    {{ $customer->id }}
-                </div>
-
+                <dt class="label">CUSTOMER ID</dt>
+                <dd class="value">{{ $customer->id }}</dd>
             </div>
-
             <div class="detail">
-
-                <div class="label">
-                    PHONE NUMBER
-                </div>
-
-                <div class="value">
-                    {{ $customer->phone ?: 'No phone provided' }}
-                </div>
-
+                <dt class="label">PHONE NUMBER</dt>
+                <dd class="value">{{ $customer->phone ?: 'No phone provided' }}</dd>
             </div>
-
-
             <div class="detail">
-
-                <div class="label">
-                    EMAIL
-                </div>
-
-                <div class="value">
-                    {{ $customer->email ?: 'No email provided' }}
-                </div>
-
+                <dt class="label">EMAIL</dt>
+                <dd class="value">{{ $customer->email ?: 'No email provided' }}</dd>
             </div>
-
-
             <div class="detail">
-
-                <div class="label">
-                    ADDRESS
-                </div>
-
-                <div class="value">
-                    {{ $customer->address ?: 'No address provided' }}
-                </div>
-
+                <dt class="label">ADDRESS</dt>
+                <dd class="value">{{ $customer->address ?: 'No address provided' }}</dd>
             </div>
-
-
             <div class="detail">
-
-                <div class="label">
-                    CUSTOMER SINCE
-                </div>
-
-                <div class="value">
-                    {{ $customer->created_at?->format('F d, Y') }}
-                </div>
-
+                <dt class="label">CUSTOMER SINCE</dt>
+                <dd class="value">{{ $customer->created_at?->format('F d, Y') ?: 'Not available' }}</dd>
             </div>
+        </dl>
 
-
-            <div class="detail">
-
-                <div class="label">
-                    LAST UPDATED
-                </div>
-
-                <div class="value">
-                    {{ $customer->updated_at?->format('F d, Y') ?: 'Not available' }}
-                </div>
-
-            </div>
-
-        </div>
-
+        <p class="customer-updated muted">Last updated: {{ $customer->updated_at?->format('F d, Y') ?: 'Not available' }}</p>
     </div>
-
 </div>
-
-<script>
-    lucide.createIcons();
-</script>
-
-</body>
-
-</html>
-
+@endsection

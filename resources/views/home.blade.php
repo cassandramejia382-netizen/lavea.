@@ -51,7 +51,7 @@
         }
 
         .logo span {
-            color: #7182a5;
+            color: #526078;
             font-size: 12px;
             margin-top: 5px;
             letter-spacing: .3px;
@@ -162,7 +162,7 @@
         }
 
         .hero-description {
-            color: #61708f;
+            color: #526078;
             font-size: 17px;
             line-height: 1.7;
             max-width: 520px;
@@ -171,6 +171,7 @@
 
         .hero-buttons {
             display: flex;
+            flex-wrap: wrap;
             gap: 18px;
             margin-bottom: 45px;
         }
@@ -250,7 +251,7 @@
         }
 
         .feature-text small {
-            color: #8995ab;
+            color: #526078;
             font-size: 10px;
         }
 
@@ -313,7 +314,7 @@
         .section-description {
             max-width: 700px;
             margin: auto;
-            color: #687792;
+            color: #526078;
             line-height: 1.7;
             font-size: 15px;
         }
@@ -336,7 +337,7 @@
 
         .service-card {
             padding: 35px 25px;
-            border: 1px solid #e7edf6;
+            border: 1px solid #94a3b8;
             border-radius: 15px;
             background: white;
             transition: .2s;
@@ -367,7 +368,7 @@
         }
 
         .service-card p {
-            color: #71809a;
+            color: #526078;
             font-size: 14px;
             line-height: 1.6;
         }
@@ -395,16 +396,16 @@
         .contact-btn {
             display: inline-block;
             padding: 13px 28px;
-            background: #111d38;
-            color: white;
+            background: #ffffff;
+            color: #111d38;
             text-decoration: none;
             border-radius: 8px;
             transition: all 0.25s ease;
         }
 
         .contact-btn:hover {
-            background: #1b2d52;
-            color: #ffffff;
+            background: #e8eefb;
+            color: #111d38;
             box-shadow: 0 5px 14px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
@@ -414,12 +415,17 @@
 
         footer {
             background: #0b152b;
-            color: #8795af;
+            color: #b6c2d3;
             text-align: center;
             padding: 20px;
             font-size: 12px;
         }
 
+
+        .home-page a:focus-visible {
+            outline: 2px solid #4169c8;
+            outline-offset: 4px;
+        }
 
         /* ================= RESPONSIVE ================= */
 
@@ -489,7 +495,7 @@
     </style>
 </head>
 
-<body>
+<body class="home-page">
 
 
     <!-- ================= NAVIGATION ================= -->
@@ -793,7 +799,7 @@
 
 
     <!-- ================= FOOTER ================= -->
-l    <footer>
+    <footer>
 
         © {{ date('Y') }} LAVEA Laundry Management System.
         All rights reserved.

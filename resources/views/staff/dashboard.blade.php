@@ -12,7 +12,7 @@
         @include('staff.partials.orders-table', ['orders' => $recentOrders])
     </div>
     <div class="card"><h2>Today's Schedule</h2>
-        @forelse($todaySchedule as $item)<div style="padding:12px 0;border-bottom:1px solid #edf0f5"><strong>{{ $item->type }} · {{ $item->schedule_time }}</strong><div class="muted">{{ $item->order->customer->name ?? 'Customer' }} · Order #{{ $item->order_id }}</div><span class="pill">{{ $item->status }}</span></div>@empty<div class="empty">No assigned schedule today.</div>@endforelse
+        @forelse($todaySchedule as $item)<div style="padding:12px 0;border-bottom:1px solid #edf0f5"><strong>{{ $item->type }} · {{ $item->schedule_time }}</strong><div class="muted">{{ $item->order->customer->name ?? 'Customer' }} · Order #{{ $item->order_id }}</div><span class="pill" data-status="{{ $item->status }}">{{ $item->status }}</span></div>@empty<div class="empty">No assigned schedule today.</div>@endforelse
     </div>
 </div>
 <div class="cols">

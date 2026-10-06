@@ -6,8 +6,8 @@
                 <td><a href="{{ route('customer.orders.show', $order) }}">#{{ $order->id }}</a></td>
                 <td>{{ $order->service?->service_name ?? 'Unavailable service' }}</td>
                 <td>{{ $order->order_date?->format('M d, Y') ?? '—' }}</td>
-                <td><span class="pill">{{ $order->status }}</span></td>
-                <td><span class="pill">{{ $order->payment_status }}</span></td>
+                <td><span class="pill" data-status="{{ $order->status }}">{{ $order->status }}</span></td>
+                <td><span class="pill" data-status="{{ $order->payment_status }}">{{ $order->payment_status }}</span></td>
                 <td>₱{{ number_format($order->total, 2) }}</td>
             </tr>
         @empty

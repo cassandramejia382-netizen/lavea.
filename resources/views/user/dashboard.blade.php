@@ -937,6 +937,10 @@
                 <span>Settings</span>
             </a>
 
+            <a href="{{ route('logout.confirm') }}" aria-label="Sign Out">
+                <i data-lucide="log-out"></i>
+                <span>Sign Out</span>
+            </a>
         </nav>
 
         <div class="admin-profile">

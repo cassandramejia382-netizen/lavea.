@@ -1,68 +1,44 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@extends('admin.layout', ['title' => 'Edit Service'])
 
-<head>
-    @include('partials.theme-assets')
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@push('styles')
 
-    <title>LAVEA | Edit Service</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            background: #f5f7fb;
-            color: #172554;
-        }
-
-        .container {
+<style>
+.lavea-admin-content .container {
             max-width: 850px;
             margin: 50px auto;
             padding: 0 20px;
         }
-
-        .back {
+.lavea-admin-content .back {
             color: #4169c8;
             text-decoration: none;
             font-size: 13px;
         }
-
-        h1 {
+.lavea-admin-content h1 {
             margin-top: 20px;
             margin-bottom: 7px;
         }
-
-        .subtitle {
+.lavea-admin-content .subtitle {
             color: #7a879d;
             font-size: 13px;
             margin-bottom: 25px;
         }
-
-        .card {
+.lavea-admin-content .card {
             background: white;
             border: 1px solid #e5e9f1;
             border-radius: 12px;
             padding: 30px;
         }
-
-        .form-group {
+.lavea-admin-content .form-group {
             margin-bottom: 20px;
         }
-
-        label {
+.lavea-admin-content label {
             display: block;
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 8px;
         }
-
-        input,
-        textarea {
+.lavea-admin-content input,
+.lavea-admin-content textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #dce2ec;
@@ -70,43 +46,36 @@
             outline: none;
             font-size: 13px;
         }
-
-        textarea {
+.lavea-admin-content textarea {
             min-height: 120px;
             resize: vertical;
         }
-
-        input:focus,
-        textarea:focus {
+.lavea-admin-content input:focus,
+.lavea-admin-content textarea:focus {
             border-color: #4169c8;
         }
-
-        .current-image {
+.lavea-admin-content .current-image {
             margin-bottom: 12px;
         }
-
-        .current-image img {
+.lavea-admin-content .current-image img {
             width: 100px;
             height: 100px;
             object-fit: cover;
             border-radius: 10px;
             border: 1px solid #e1e5ed;
         }
-
-        .error {
+.lavea-admin-content .error {
             color: #dc3545;
             font-size: 11px;
             margin-top: 5px;
         }
-
-        .buttons {
+.lavea-admin-content .buttons {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             margin-top: 25px;
         }
-
-        .cancel {
+.lavea-admin-content .cancel {
             background: #eef1f6;
             color: #44526d;
             text-decoration: none;
@@ -114,8 +83,7 @@
             border-radius: 8px;
             font-size: 13px;
         }
-
-        .update {
+.lavea-admin-content .update {
             border: none;
             background: #4169c8;
             color: white;
@@ -124,15 +92,10 @@
             cursor: pointer;
             font-size: 13px;
         }
-    </style>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
-</head>
+</style>
+@endpush
 
-<body>
-
-@include('admin.partials.topbar')
-
+@section('content')
 <div class="container">
 
     <a href="{{ route('admin.services.index') }}" class="back">
@@ -211,12 +174,12 @@
 
                 <label>Current Image</label>
 
-                @if($service->image)
+                @if($imageUrl = $service->imageUrl())
 
                     <div class="current-image">
 
                         <img
-                            src="{{ asset('uploads/services/' . $service->image) }}"
+                            src="{{ $imageUrl }}"
                             alt="{{ $service->service_name }}"
                         >
 
@@ -235,13 +198,17 @@
 
             <div class="form-group">
 
-                <label>Change Image</label>
+                <label for="image">Change Image</label>
 
                 <input
                     type="file"
+                    id="image"
                     name="image"
                     accept=".jpg,.jpeg,.png,.webp"
+                    aria-describedby="image-help"
                 >
+                <small id="image-help">JPG, JPEG, PNG or WEBP. Maximum 2 MB. Leave empty to keep the current image.</small>
+                @include('partials.service-image-preview')
 
                 @error('image')
                     <div class="error">{{ $message }}</div>
@@ -270,7 +237,4 @@
     </div>
 
 </div>
-
-</body>
-</html>
-
+@endsection

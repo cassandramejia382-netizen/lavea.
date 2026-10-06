@@ -1,139 +1,11 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    @include('partials.theme-assets')
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('admin.layout', ['title' => 'Add Schedule | LAVEA'])
 
-    <title>Add Schedule | LAVEA</title>
+@push('styles')
 
-    <script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.lavea-admin-content * { margin: 0; padding: 0; }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f5f7fb;
-            color: #1f2937;
-        }
-
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 255px;
-            background: #111d38;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-        }
-
-        .logo {
-            padding: 28px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .logo h1 {
-            color: white;
-            font-size: 28px;
-            letter-spacing: 2px;
-        }
-
-        .logo p {
-            color: #9eacc8;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        .menu {
-            padding: 20px 14px;
-        }
-
-        .menu a {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            color: #dce5f7;
-            text-decoration: none;
-            padding: 13px 14px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        .menu a:hover,
-        .menu a.active {
-            background: #4169c8;
-            color: white;
-        }
-
-        .menu i {
-            width: 19px;
-            height: 19px;
-        }
-
-        /* MAIN */
-        .main {
-            margin-left: 255px;
-            width: calc(100% - 255px);
-        }
-
-        /* TOPBAR */
-        .topbar {
-            height: 75px;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 35px;
-        }
-
-        .search {
-            width: 400px;
-            position: relative;
-        }
-
-        .search i {
-            position: absolute;
-            left: 13px;
-            top: 11px;
-            width: 18px;
-            color: #8a94a6;
-        }
-
-        .search input {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #e1e5eb;
-            border-radius: 8px;
-            padding: 0 15px 0 42px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .search input:focus {
-            border-color: #4169c8;
-        }
-
-        .admin {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-        }
-
-        .avatar {
+.lavea-admin-content .avatar {
             width: 40px;
             height: 40px;
             background: #e9eefb;
@@ -143,77 +15,49 @@
             justify-content: center;
             color: #4169c8;
         }
-
-        .admin strong {
-            display: block;
-            font-size: 14px;
-        }
-
-        .admin span {
-            display: block;
-            font-size: 11px;
-            color: #8a94a6;
-            margin-top: 2px;
-        }
-
-        /* CONTENT */
-        .content {
-            padding: 30px;
-        }
-
-        .page-header {
+.lavea-admin-content .page-header {
             margin-bottom: 25px;
         }
-
-        .page-header h2 {
+.lavea-admin-content .page-header h2 {
             font-size: 24px;
             color: #17233d;
         }
-
-        .page-header p {
+.lavea-admin-content .page-header p {
             color: #8a94a6;
             font-size: 13px;
             margin-top: 5px;
         }
-
-        /* FORM CARD */
-        .card {
+.lavea-admin-content .card {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             padding: 25px;
             max-width: 900px;
         }
-
-        .form-grid {
+.lavea-admin-content .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-
-        .form-group {
+.lavea-admin-content .form-group {
             display: flex;
             flex-direction: column;
         }
-
-        .form-group.full {
+.lavea-admin-content .form-group.full {
             grid-column: 1 / -1;
         }
-
-        label {
+.lavea-admin-content label {
             font-size: 13px;
             font-weight: 600;
             color: #374151;
             margin-bottom: 8px;
         }
-
-        label span {
+.lavea-admin-content label span {
             color: #d64545;
         }
-
-        input,
-        select,
-        textarea {
+.lavea-admin-content input,
+.lavea-admin-content select,
+.lavea-admin-content textarea {
             width: 100%;
             border: 1px solid #dfe3ea;
             border-radius: 7px;
@@ -223,26 +67,22 @@
             background: white;
             color: #374151;
         }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
+.lavea-admin-content input:focus,
+.lavea-admin-content select:focus,
+.lavea-admin-content textarea:focus {
             border-color: #4169c8;
             box-shadow: 0 0 0 2px rgba(65,105,200,0.08);
         }
-
-        textarea {
+.lavea-admin-content textarea {
             resize: vertical;
             min-height: 100px;
         }
-
-        .error {
+.lavea-admin-content .error {
             color: #c23c3c;
             font-size: 11px;
             margin-top: 5px;
         }
-
-        .form-actions {
+.lavea-admin-content .form-actions {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
@@ -250,8 +90,7 @@
             padding-top: 20px;
             border-top: 1px solid #e5e7eb;
         }
-
-        .btn {
+.lavea-admin-content .btn {
             border: none;
             border-radius: 7px;
             padding: 11px 18px;
@@ -259,151 +98,45 @@
             text-decoration: none;
             cursor: pointer;
         }
-
-        .cancel-btn {
+.lavea-admin-content .cancel-btn {
             background: #eef1f5;
             color: #4b5563;
         }
-
-        .save-btn {
+.lavea-admin-content .save-btn {
             background: #4169c8;
             color: white;
         }
-
-        .save-btn:hover {
+.lavea-admin-content .save-btn:hover {
             background: #355ab0;
         }
-
-        @media (max-width: 800px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo h1 {
-                font-size: 17px;
-                text-align: center;
-            }
-
-            .logo p,
-            .menu span {
-                display: none;
-            }
-
-            .menu a {
-                justify-content: center;
-            }
-
-            .main {
-                margin-left: 70px;
-                width: calc(100% - 70px);
-            }
-
-            .form-grid {
+@media (max-width: 800px) {
+.lavea-admin-content .form-grid {
                 grid-template-columns: 1fr;
             }
-
-            .form-group.full {
+.lavea-admin-content .form-group.full {
                 grid-column: auto;
             }
+}
+</style>
+@endpush
 
-            .search {
-                width: 200px;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
-</head>
+@section('content')
+@php($routePrefix = 'admin.schedules')
 
-<body>
-
-<div class="layout">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
-
-        <div class="logo">
-            <h1>LAVEA</h1>
-            <p>Laundry Made Easy</p>
-        </div>
-
-        <nav class="menu">
-
-            @if (auth()->user()->role === 'staff')
-            <a href="{{ route('staff.dashboard') }}">
-                <i data-lucide="layout-dashboard"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{{ route('staff.orders.index') }}">
-                <i data-lucide="clipboard-list"></i>
-                <span>Orders</span>
-            </a>
-            <a href="{{ route('staff.schedules.index') }}" class="active">
-                <i data-lucide="calendar-days"></i>
-                <span>Schedule</span>
-            </a>
-            @else
-
-            <a href="{{ route('admin.dashboard') }}">
-                <i data-lucide="layout-dashboard"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('admin.customers.index') }}">
-                <i data-lucide="users"></i>
-                <span>Customers</span>
-            </a>
-
-            <a href="{{ route('admin.staff.index') }}">
-                <i data-lucide="user-round-cog"></i>
-                <span>Staff</span>
-            </a>
-
-            <a href="{{ route('admin.services.index') }}">
-                <i data-lucide="package"></i>
-                <span>Services</span>
-            </a>
-
-            <a href="{{ route('admin.orders.index') }}">
-                <i data-lucide="clipboard-list"></i>
-                <span>Orders</span>
-            </a>
-
-            <a href="{{ route('admin.payments.index') }}">
-                <i data-lucide="credit-card"></i>
-                <span>Payments / Transactions</span>
-            </a>
-
-            <a href="{{ route('admin.schedules.index') }}" class="active">
-                <i data-lucide="calendar-days"></i>
-                <span>Schedule</span>
-            </a>
-
-            <a href="#">
-                <i data-lucide="bar-chart-3"></i>
-                <span>Reports</span>
-            </a>
-
-            <a href="#">
-                <i data-lucide="settings"></i>
-                <span>Settings</span>
-            </a>
-            @endif
-
-        </nav>
-
-    </aside>
+    
 
 
     <!-- MAIN -->
-    <main class="main">
+    
 
         <!-- TOPBAR -->
-        @include('admin.partials.topbar')
+        
 
 
         <!-- CONTENT -->
-        <section class="content">
+        
 
             <div class="page-header">
 
@@ -644,17 +377,8 @@
 
             </div>
 
-        </section>
+        
 
-    </main>
+    
 
-</div>
-
-<script>
-    lucide.createIcons();
-</script>
-
-</body>
-</html>
-
-
+@endsection

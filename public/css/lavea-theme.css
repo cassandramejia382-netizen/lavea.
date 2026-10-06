@@ -1,196 +1,348 @@
-body {
-    background: #111827 !important;
-    color: #e5e7eb !important;
-}
+/* The existing theme cookie loads this stylesheet only for dark mode.
+   Screen-only overrides preserve the original printable receipts. */
+@media screen {
+    html[data-lavea-theme="dark"] {
+        color-scheme: dark;
+        --lavea-background: #111827;
+        --lavea-surface: #1f2937;
+        --lavea-raised: #273449;
+        --lavea-border: #64748b;
+        --lavea-text: #e5e7eb;
+        --lavea-muted: #b6c2d3;
+        --lavea-blue-background: #1e3a5f;
+        --lavea-blue-text: #bfdbfe;
+        --lavea-green-background: #123a2c;
+        --lavea-green-text: #a7f3d0;
+        --lavea-amber-background: #493516;
+        --lavea-amber-text: #fde68a;
+        --lavea-red-background: #4c1d24;
+        --lavea-red-text: #fecdd3;
+        --lavea-purple-background: #352653;
+        --lavea-purple-text: #ddd6fe;
+    }
 
-body :is(
-    .card,
-    .settings-card,
-    .settings-nav,
-    .theme-options,
-    .setting-message,
-    .service-card,
-    .navbar,
-    .hero,
-    .about,
-    .services,
-    .contact,
-    footer,
-    .content,
-    .main,
-    .container,
-    .table-container,
-    .topbar,
-    .lavea-admin-topbar,
-    .page-header,
-    .item,
-    .notes-content,
-    .info-card,
-    .stat-card,
-    .panel,
-    .search,
-    .search-box,
-    main,
-    section,
-    article,
-    table
-) {
-    background-color: #1f2937 !important;
-    border-color: #374151 !important;
-    color: #e5e7eb !important;
-}
+    body {
+        background: var(--lavea-background) !important;
+        color: var(--lavea-text) !important;
+    }
 
-body :is(.sidebar, .top, .brand, header) {
-    background-color: #111d38;
-    color: #ffffff;
-}
+    /* Inline page styles also contain fixed light-mode text colors. */
+    body * {
+        color: var(--lavea-text) !important;
+        border-color: var(--lavea-border) !important;
+    }
 
-body .hero-image::before {
-    background: #273449;
-}
+    body :is(
+        .card, .settings-card, .settings-nav, .service-card, .navbar,
+        .hero, .about, .services, .contact, footer, .container,
+        .table-container, .table-card, .filter-card, .report-card,
+        .topbar, .lavea-admin-topbar, .page-header, .item, .info-card,
+        .stat-card, .panel, main, section, article, table,
+        .lavea-notification-dropdown
+    ) {
+        background-color: var(--lavea-surface) !important;
+    }
 
-body :is(h1, h2, h3, h4, strong, .title, .value, .admin-text, .label) {
-    color: #f3f4f6 !important;
-}
+    body :is(.main, .content) {
+        background-color: var(--lavea-background) !important;
+    }
 
-body :is(p, label, td, .subtitle, .description, .total-label) {
-    color: #cbd5e1;
-}
+    body :is(.sidebar, .brand) {
+        background-color: #111d38 !important;
+    }
 
-body th {
-    background: #273449 !important;
-    color: #cbd5e1 !important;
-}
+    body :is(h1, h2, h3, h4, h5, h6, strong, b, .title, .value,
+        .detail-value, .stat-number, .customer-name, .payment-id, .price) {
+        color: #f3f4f6 !important;
+    }
 
-body :is(input, select, textarea) {
-    background: #111827 !important;
-    border-color: #4b5563 !important;
-    color: #f3f4f6 !important;
-}
+    body :is(.muted, .subtitle, .description, .label, .detail-label,
+        .stat-title, .stat-sub, .activity-time, .customer-email, .email,
+        .reference, .empty, .date, .date strong, .bar-label, .theme-status, .settings-note,
+        .lavea-page-date, .lavea-page-date strong, .admin span,
+        .admin-text span, .logo p, .logo-subtitle, .profile-info span,
+        .staff-info span, .lavea-admin-profile span,
+        .lavea-notification-item small, .lavea-notification-empty) {
+        color: var(--lavea-muted) !important;
+    }
 
-body .theme-options {
-    background: #111827 !important;
-    border-color: #4b5563 !important;
-}
+    body :is(a, .order-number, .total, .view-all),
+    body .amount-box .amount {
+        color: #bfdbfe !important;
+    }
 
-body .theme-button {
-    color: #cbd5e1 !important;
-}
+    body a:hover {
+        color: #dbeafe !important;
+    }
 
-body .theme-button.active {
-    background: #374151 !important;
-    color: #ffffff !important;
-}
+    body :is(svg, svg *, i[data-lucide]) {
+        color: inherit !important;
+    }
 
-body .setting-message {
-    background: #123a2c !important;
-    color: #a7f3d0 !important;
-}
+    body .stat-card > :is(svg, i[data-lucide]) {
+        color: var(--lavea-blue-text) !important;
+    }
 
-body .settings-nav a {
-    color: #cbd5e1 !important;
-}
+    body :is(.avatar, .customer-avatar, .staff-avatar, .profile-icon,
+        .lavea-admin-avatar, .activity-icon, .report-card-icon,
+        .stat-icon.blue, .no-image, .service-placeholder) {
+        background-color: var(--lavea-blue-background) !important;
+        color: var(--lavea-blue-text) !important;
+    }
 
-body .settings-nav a:hover {
-    background: #273449 !important;
-    color: #ffffff !important;
-}
+    body .service-image {
+        background-color: var(--lavea-raised) !important;
+    }
 
-body input::placeholder,
-body textarea::placeholder {
-    color: #9ca3af;
-}
+    body .stat-icon.green {
+        background-color: var(--lavea-green-background) !important;
+        color: var(--lavea-green-text) !important;
+    }
 
-body a:not(.btn):not(.action):not(.menu a) {
-    color: #a9c2ff;
-}
+    body .stat-icon.purple {
+        background-color: var(--lavea-purple-background) !important;
+        color: var(--lavea-purple-text) !important;
+    }
 
-body :is(.lavea-page-date, .admin span, .logo p) {
-    color: #aebbd3 !important;
-}
+    body .stat-icon.orange {
+        background-color: var(--lavea-amber-background) !important;
+        color: var(--lavea-amber-text) !important;
+    }
 
-body.login-page .remember {
-    color: #cbd5e1 !important;
-}
+    body :is(.search, .search-box, .lavea-search-box, .notes-content,
+        .total-box, .amount-box, .donut-center, .theme-options,
+        .lavea-notification-item.is-unread) {
+        background-color: var(--lavea-raised) !important;
+    }
 
-body.login-page input {
-    color: #f3f4f6 !important;
-}
+    body .hero-image::before {
+        background: var(--lavea-raised);
+    }
 
-body.login-page input:focus {
-    border-color: #a9c2ff !important;
-    outline-color: #a9c2ff;
-}
+    body th {
+        background: var(--lavea-raised) !important;
+        color: #cbd5e1 !important;
+    }
 
-body.login-page button {
-    background-color: #111d38 !important;
-    color: #ffffff !important;
-}
+    body td {
+        background-color: var(--lavea-surface) !important;
+    }
 
-body.login-page a {
-    color: #c3d2f4 !important;
-}
+    body tbody tr:hover td {
+        background-color: var(--lavea-raised) !important;
+    }
 
-body.login-page .notice {
-    background-color: #123a2c !important;
-    color: #a7f3d0 !important;
-}
+    body :is(input, select, textarea, option, .filter) {
+        background-color: var(--lavea-background) !important;
+        color: #f3f4f6 !important;
+        accent-color: #93c5fd;
+    }
 
-body.login-page .error {
-    color: #fca5a5 !important;
-}
+    body :is(input, textarea)::placeholder {
+        color: var(--lavea-muted) !important;
+        opacity: 1;
+    }
 
-/* Keep text readable when this stylesheet is enabled for Dark Mode. */
-body * {
-    color: #e5e7eb !important;
-}
+    body :is(input, select, textarea):focus {
+        border-color: #93c5fd !important;
+        outline-color: #93c5fd;
+    }
 
-body :is(h1, h2, h3, h4, h5, h6, th, strong, b) {
-    color: #f3f4f6 !important;
-}
+    body :is(a, button, input, select, textarea):focus-visible {
+        outline: 2px solid #93c5fd;
+        outline-offset: 3px;
+    }
 
-body a {
-    color: #b8ccff !important;
-}
+    body input[type="file"]::file-selector-button {
+        background: var(--lavea-raised);
+        color: var(--lavea-text);
+        border: 1px solid var(--lavea-border);
+    }
 
-body :is(button, input[type="submit"], input[type="button"]) {
-    background-color: #374151 !important;
-    color: #f3f4f6 !important;
-}
+    body :is(button, input[type="submit"], input[type="button"],
+        .btn, .btn-primary, .add-btn, .save-btn, .edit-btn,
+        .btn-edit, .update, a.edit) {
+        background-color: #3558ad !important;
+        color: #ffffff !important;
+    }
 
-body :is(input, select, textarea) {
-    background-color: #111827 !important;
-    color: #f3f4f6 !important;
-}
+    body :is(button, .btn, .btn-primary, .add-btn, .save-btn,
+        .edit-btn, .btn-edit, .update):hover {
+        background-color: #4169c8 !important;
+    }
 
-body :is(input, textarea)::placeholder {
-    color: #9ca3af !important;
-}
+    body :is(.btn.secondary, .back-btn, .btn-back, .cancel-btn,
+        .btn-cancel, a.cancel, .theme-button) {
+        background-color: var(--lavea-raised) !important;
+        color: var(--lavea-text) !important;
+    }
 
-body span:is([class*="status"], [class*="badge"]):not(.status-dot) {
-    background-color: #374151 !important;
-    color: #e5e7eb !important;
-}
+    body :is(.btn.secondary, .back-btn, .btn-back, .cancel-btn,
+        .btn-cancel, a.cancel, .theme-button):hover {
+        background-color: #374151 !important;
+    }
 
-body :is(.success, .setting-message) {
-    background-color: #123a2c !important;
-    color: #a7f3d0 !important;
-}
+    body .theme-button.active {
+        background-color: #3558ad !important;
+        color: #ffffff !important;
+    }
 
-body :is(.error, .err, .email-error) {
-    color: #fca5a5 !important;
-}
+    body :is(.action, .action-btn, .btn-view, .btn-edit, .btn-delete,
+        .badge, .status, .status-badge, .pill) {
+        background-color: var(--lavea-raised) !important;
+        color: var(--lavea-text) !important;
+    }
 
-body .email-error {
-    background-color: #4c1d24 !important;
-}
+    body :is(.action.view, .action-btn.view-btn, .btn-view,
+        .status.processing, .status-scheduled, .status-on-time,
+        .badge-progress, .pill[data-status="Processing"],
+        .pill[data-status="Scheduled"], .pill[data-status="On Time"]) {
+        background-color: var(--lavea-blue-background) !important;
+        color: var(--lavea-blue-text) !important;
+    }
 
-body :is(.msg, .notice) {
-    background-color: #273449 !important;
-    color: #bfdbfe !important;
-}
+    body :is(.action.edit, .btn-edit, .status.ready,
+        .pill[data-status="Ready"], .pill[data-status="Ready for Pickup"]) {
+        background-color: var(--lavea-purple-background) !important;
+        color: var(--lavea-purple-text) !important;
+    }
 
-body a.cancel {
-    background-color: #374151 !important;
-    color: #f3f4f6 !important;
+    body :is(.status.pending, .status.partial, .badge-pending,
+        .action-btn.edit-btn, .pill[data-status="Pending"],
+        .pill[data-status="Partial"]) {
+        background-color: var(--lavea-amber-background) !important;
+        color: var(--lavea-amber-text) !important;
+    }
+
+    body :is(.status.completed, .status.paid, .status-completed,
+        .badge-completed, .active-badge, .pill[data-status="Completed"],
+        .pill[data-status="Paid"], .pill[data-status="Active"],
+        .success, .setting-message, .flash, .alert) {
+        background-color: var(--lavea-green-background) !important;
+        color: var(--lavea-green-text) !important;
+    }
+
+    body :is(.status.cancelled, .status.failed, .status.unpaid,
+        .status-cancelled, .badge-cancelled, .inactive-badge, .pill[data-status="Cancelled"],
+        .pill[data-status="Failed"], .pill[data-status="Unpaid"],
+        .pill[data-status="Inactive"], .action.delete, .action-btn.delete-btn,
+        .btn-delete, .btn.danger, .email-error, .flash-error) {
+        background-color: var(--lavea-red-background) !important;
+        color: var(--lavea-red-text) !important;
+    }
+
+    body :is(.paid, .stat-change) {
+        color: var(--lavea-green-text) !important;
+    }
+
+    body .partial {
+        color: var(--lavea-amber-text) !important;
+    }
+
+    body :is(.unpaid, .error, .err, .field-error, .error-list,
+        .error-list *, label > span) {
+        color: var(--lavea-red-text) !important;
+    }
+
+    body :is(.msg, .notice) {
+        background-color: var(--lavea-blue-background) !important;
+        color: var(--lavea-blue-text) !important;
+    }
+
+    /* Nested labels and Lucide strokes follow their control's semantic color. */
+    body :is(a, button, .btn, .action, .action-btn, .badge, .status,
+        .status-badge, .pill, .stat-icon, .activity-icon, .report-card-icon,
+        .success, .setting-message, .flash, .alert, .msg, .notice,
+        .email-error) * {
+        color: inherit !important;
+    }
+
+    body .menu a {
+        color: #dce5f7 !important;
+    }
+
+    body .menu a.active {
+        background-color: #4169c8 !important;
+        color: #ffffff !important;
+    }
+
+    body :is(.menu a:hover, .settings-nav a:hover) {
+        background-color: #273f68 !important;
+        color: #ffffff !important;
+    }
+
+    body :is(.lavea-notification-button, .lavea-notification-read,
+        .lavea-search-box button, .search button) {
+        background-color: transparent !important;
+        color: var(--lavea-blue-text) !important;
+    }
+
+    body :is(.lavea-notification-count, .notification-dot) {
+        background-color: #b91c1c !important;
+        color: #ffffff !important;
+    }
+
+    body :is(button, input, select, textarea):disabled {
+        background-color: var(--lavea-raised) !important;
+        color: var(--lavea-muted) !important;
+        opacity: 1;
+    }
+
+    /* Home has a gradient hero and outlined links separate from portal buttons. */
+    body.home-page .navbar {
+        background: var(--lavea-surface) !important;
+    }
+
+    body.home-page .hero {
+        background: linear-gradient(90deg, #111827 0%, #111827 43%, #1f2937 100%) !important;
+    }
+
+    body.home-page :is(.services, footer) {
+        background: var(--lavea-background) !important;
+    }
+
+    body.home-page .contact {
+        background: #111d38 !important;
+    }
+
+    body.home-page :is(.hero-description, .section-description, .service-card p,
+        .feature-text small, .logo span, .contact p, footer) {
+        color: var(--lavea-muted) !important;
+    }
+
+    body.home-page :is(.logo h1, .hero h2, .hero h2 span, .section-title,
+        .service-card h3, .contact h2, .small-title, .section-label) {
+        color: #f3f4f6 !important;
+    }
+
+    body.home-page :is(.feature-icon, .service-icon) {
+        background: var(--lavea-raised) !important;
+        color: var(--lavea-blue-text) !important;
+        border-color: #93c5fd !important;
+    }
+
+    body.home-page :is(.btn-secondary, .signup-btn) {
+        background: var(--lavea-raised) !important;
+        color: #f3f4f6 !important;
+        border-color: #93c5fd !important;
+    }
+
+    body.home-page :is(.btn-primary, .signin-btn, .contact-btn,
+        .btn-secondary:hover, .signup-btn:hover) {
+        background: #3558ad !important;
+        color: #ffffff !important;
+    }
+
+    body.home-page :is(.btn-primary, .signin-btn, .contact-btn):hover {
+        background: #4169c8 !important;
+        color: #ffffff !important;
+    }
+
+    body.home-page .service-card:hover {
+        border-color: #93c5fd !important;
+    }
+
+    body.home-page a:focus-visible {
+        outline-color: #93c5fd;
+    }
 }

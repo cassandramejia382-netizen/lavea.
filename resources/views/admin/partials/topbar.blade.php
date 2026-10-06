@@ -1,5 +1,5 @@
 ﻿<header class="lavea-admin-topbar">
-    @if (!empty($hideSearch))
+    @if (auth()->user()->role === 'admin' || !empty($hideSearch))
         <div class="lavea-search-spacer" aria-hidden="true"></div>
     @elseif (!empty($customerSearch))
         <form class="lavea-search-box" method="GET" action="{{ route(auth()->user()->role === 'staff' ? 'staff.customers.index' : 'admin.customers.index') }}">
@@ -32,15 +32,12 @@
     <div class="lavea-top-right">
         @include('admin.partials.notifications')
 
-        @if (in_array(auth()->user()->role, ['staff', 'customer', 'user']) || request()->routeIs('admin.dashboard'))
-            <button type="button" class="lavea-notification-button" id="dashboard-theme-toggle" aria-label="Toggle dark mode">
-                <i data-lucide="sun-moon"></i>
-            </button>
-        @endif
-
         <div class="lavea-admin-profile">
-            <div class="lavea-admin-avatar">
-                <i data-lucide="user"></i>
+            <div class="lavea-admin-avatar" style="flex:0 0 39px;width:39px;height:39px;min-width:39px;min-height:39px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex:none;width:21px;height:21px">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
             </div>
             <div>
                 @if (in_array(auth()->user()->role, ['customer', 'user']))
@@ -57,25 +54,15 @@
             <i data-lucide="chevron-down"></i>
         </div>
 
-        <form method="GET" action="{{ route('logout.confirm') }}">
-            <button type="submit" class="lavea-sign-out">Sign Out</button>
-        </form>
     </div>
 </header>
 
 <div class="lavea-admin-topbar-spacer" aria-hidden="true"></div>
 
 <script>
-    lucide.createIcons();
-
-    var dashboardThemeToggle = document.getElementById('dashboard-theme-toggle');
-
-    if (dashboardThemeToggle) {
-        dashboardThemeToggle.addEventListener('click', function () {
-            var theme = document.documentElement.dataset.laveaTheme === 'dark' ? 'light' : 'dark';
-            document.cookie = 'lavea_theme=' + theme + '; path=/; max-age=31536000; SameSite=Lax';
-            window.location.reload();
-        });
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
+
 </script>
 

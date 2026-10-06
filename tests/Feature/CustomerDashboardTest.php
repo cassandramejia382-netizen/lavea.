@@ -188,14 +188,14 @@ test('shared layout keeps admin and staff dashboards working', function (string 
     ['staff', 'Staff Account'],
 ]);
 
-test('customer pages render services profile and theme controls with escaped content', function (): void {
+test('customer pages render services profile and saved theme with escaped content', function (): void {
     $user = User::factory()->create(['role' => 'customer', 'name' => '<script>customerName</script>']);
     CustomerFactory::new()->create(['email' => $user->email, 'address' => '<script>address</script>']);
     ServiceFactory::new()->create(['service_name' => '<script>serviceName</script>', 'description' => '<script>serviceDescription</script>']);
 
-    $this->actingAs($user)->withCookie('lavea_theme', 'dark')->get(route('customer.dashboard'))
+    $this->actingAs($user)->withUnencryptedCookie('lavea_theme', 'dark')->get(route('customer.dashboard'))
         ->assertOk()->assertSee('data-lavea-theme="dark"', false)->assertSee('css/lavea-theme.css', false)
-        ->assertSee('dashboard-theme-toggle')->assertSee('Customer Account')
+        ->assertDontSee('dashboard-theme-toggle')->assertSee('Customer Account')
         ->assertSee('<script>customerName</script>')->assertDontSee('<script>customerName</script>', false);
     $this->get(route('customer.services.index'))->assertSee('<script>serviceName</script>')
         ->assertSee('<script>serviceDescription</script>')->assertDontSee('<script>serviceName</script>', false)

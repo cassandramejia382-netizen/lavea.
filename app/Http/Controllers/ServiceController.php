@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+use Throwable;
 
 class ServiceController extends Controller
 {
-    public function staffIndex()
+    public function staffIndex(): View
     {
         $services = Service::orderBy('service_name')->get();
 
@@ -17,7 +23,7 @@ class ServiceController extends Controller
     /**
      * Display all services.
      */
-    public function index()
+    public function index(): View
     {
         $services = Service::latest()->get();
 
@@ -27,7 +33,7 @@ class ServiceController extends Controller
     /**
      * Show create service form.
      */
-    public function create()
+    public function create(): View
     {
         return view('admin.services.create');
     }
@@ -35,33 +41,28 @@ class ServiceController extends Controller
     /**
      * Save new service.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $imageName = null;
+        $validated['image'] = $request->hasFile('image')
+            ? $this->storeImage($request->file('image'))
+            : null;
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = $image->hashName();
+        try {
+            Service::create($validated);
+        } catch (Throwable $exception) {
+            if ($validated['image']) {
+                Storage::disk('public')->delete($validated['image']);
+            }
 
-            $image->move(
-                public_path('uploads/services'),
-                $imageName
-            );
+            throw $exception;
         }
-
-        Service::create([
-            'service_name' => $request->service_name,
-            'price' => $request->price,
-            'description' => $request->description,
-            'image' => $imageName,
-        ]);
 
         $request->session()->forget('_old_input');
 
@@ -73,7 +74,7 @@ class ServiceController extends Controller
     /**
      * Display one service.
      */
-    public function show(Service $service)
+    public function show(Service $service): View
     {
         return view('admin.services.show', compact('service'));
     }
@@ -81,7 +82,7 @@ class ServiceController extends Controller
     /**
      * Show edit form.
      */
-    public function edit(Service $service)
+    public function edit(Service $service): View
     {
         return view('admin.services.edit', compact('service'));
     }
@@ -89,40 +90,33 @@ class ServiceController extends Controller
     /**
      * Update service.
      */
-    public function update(Request $request, Service $service)
+    public function update(Request $request, Service $service): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $imageName = $service->image;
+        $oldImage = $service->image;
+        $validated['image'] = $request->hasFile('image')
+            ? $this->storeImage($request->file('image'))
+            : $oldImage;
 
-        if ($request->hasFile('image')) {
-
-            if (
-                $service->image &&
-                file_exists(public_path('uploads/services/'.$service->image))
-            ) {
-                unlink(public_path('uploads/services/'.$service->image));
+        try {
+            $service->update($validated);
+        } catch (Throwable $exception) {
+            if ($validated['image'] && $validated['image'] !== $oldImage) {
+                Storage::disk('public')->delete($validated['image']);
             }
 
-            $imageName = time().'.'.$request->image->extension();
-
-            $request->image->move(
-                public_path('uploads/services'),
-                $imageName
-            );
+            throw $exception;
         }
 
-        $service->update([
-            'service_name' => $request->service_name,
-            'price' => $request->price,
-            'description' => $request->description,
-            'image' => $imageName,
-        ]);
+        if ($validated['image'] !== $oldImage) {
+            $service->deleteUnusedImage($oldImage);
+        }
 
         return redirect()
             ->route('admin.services.index')
@@ -132,19 +126,27 @@ class ServiceController extends Controller
     /**
      * Delete service.
      */
-    public function destroy(Service $service)
+    public function destroy(Service $service): RedirectResponse
     {
-        if (
-            $service->image &&
-            file_exists(public_path('uploads/services/'.$service->image))
-        ) {
-            unlink(public_path('uploads/services/'.$service->image));
-        }
-
+        $oldImage = $service->image;
         $service->delete();
+        $service->deleteUnusedImage($oldImage);
 
         return redirect()
             ->route('admin.services.index')
             ->with('success', 'Service deleted successfully.');
+    }
+
+    private function storeImage(UploadedFile $image): string
+    {
+        $path = $image->store('services', 'public');
+
+        if (! $path) {
+            throw ValidationException::withMessages([
+                'image' => 'The image could not be saved. Please try again.',
+            ]);
+        }
+
+        return $path;
     }
 }

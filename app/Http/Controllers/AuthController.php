@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\SystemNotification;
+use Closure;
 use Exception;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,14 +25,16 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
-        $request->validate([
+        $this->normalizeEmail($request);
+        $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
+        $credentials['email'] = $this->accountEmail($credentials['email']);
 
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'The email or password is incorrect.'])->onlyInput('email');
         }
 
@@ -43,14 +48,29 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
+        $this->normalizeEmail($request);
+
         $details = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'bail', 'required', 'email', 'max:255', 'unique:users,email',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    foreach ([User::class, Customer::class, Staff::class] as $model) {
+                        if ($model::whereRaw('LOWER(TRIM(email)) = ?', [$value])->exists()) {
+                            $fail('This email is already associated with an existing account or customer/staff record. Sign in, reset your password, or contact the shop for help.');
+
+                            return;
+                        }
+                    }
+                },
+            ],
             'phone' => ['required', 'string', 'max:20'],
-            'address' => ['required', 'string', 'max:1000'],
+            'address' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', 'min:8'],
+        ], [
+            'email.unique' => 'This email is already associated with an existing account or customer/staff record. Sign in, reset your password, or contact the shop for help.',
         ]);
 
         $user = DB::transaction(function () use ($details) {
@@ -61,11 +81,12 @@ class AuthController extends Controller
                 'role' => 'customer',
             ]);
 
-            $customer = Customer::firstOrNew(['email' => $details['email']]);
-            $customer->name = $details['name'];
-            $customer->phone = $details['phone'];
-            $customer->address = $details['address'];
-            $customer->save();
+            Customer::create([
+                'email' => $details['email'],
+                'name' => $details['name'],
+                'phone' => $details['phone'],
+                'address' => $details['address'],
+            ]);
 
             return $user;
         });
@@ -86,6 +107,8 @@ class AuthController extends Controller
 
             return redirect()->route('verification.notice')->with('status', 'Your account is ready. Check your email for the verification link.');
         } catch (Exception $exception) {
+            report($exception);
+
             return redirect()->route('verification.notice')->with('email_error', 'Your account was created, but we could not send the verification email. Please try again.');
         }
     }
@@ -99,23 +122,26 @@ class AuthController extends Controller
         return view('auth.verify-email');
     }
 
-    public function resendVerification(Request $request)
+    public function resendVerification(Request $request): RedirectResponse
     {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('customer.dashboard');
+        }
+
         try {
             $request->user()->sendEmailVerificationNotification();
 
-            return back()->with('status', 'A new verification link has been sent.');
+            return back()->with('status', 'A new verification link has been sent to your email address.');
         } catch (Exception $exception) {
+            report($exception);
+
             return back()->with('email_error', 'We could not send the email right now. Please try again later.');
         }
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyEmail(EmailVerificationRequest $request): RedirectResponse
     {
-        if (! $request->user()->hasVerifiedEmail()) {
-            $request->user()->markEmailAsVerified();
-            event(new Verified($request->user()));
-        }
+        $request->fulfill();
 
         return redirect()->route('customer.dashboard')->with('status', 'Your email has been verified.');
     }
@@ -125,13 +151,17 @@ class AuthController extends Controller
         return view('auth.forgot-password');
     }
 
-    public function sendResetLink(Request $request)
+    public function sendResetLink(Request $request): RedirectResponse
     {
-        $request->validate(['email' => ['required', 'email']]);
+        $this->normalizeEmail($request);
+        $details = $request->validate(['email' => ['required', 'email']]);
+        $details['email'] = $this->accountEmail($details['email']);
 
         try {
-            Password::sendResetLink($request->only('email'));
+            Password::sendResetLink($details);
         } catch (Exception $exception) {
+            report($exception);
+
             return back()->with('status', 'If an account exists for that email, a password reset link will be sent.');
         }
 
@@ -146,13 +176,15 @@ class AuthController extends Controller
         ]);
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request): RedirectResponse
     {
+        $this->normalizeEmail($request);
         $details = $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
+        $details['email'] = $this->accountEmail($details['email']);
 
         $status = Password::reset($details, function ($user, $password) {
             $user->password = $password;
@@ -176,6 +208,20 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    private function normalizeEmail(Request $request): void
+    {
+        if (! is_string($request->input('email'))) {
+            return;
+        }
+
+        $request->merge(['email' => Str::lower(trim($request->input('email')))]);
+    }
+
+    private function accountEmail(string $email): string
+    {
+        return User::whereRaw('LOWER(TRIM(email)) = ?', [$email])->value('email') ?? $email;
     }
 
     private function redirectToDashboard($user)

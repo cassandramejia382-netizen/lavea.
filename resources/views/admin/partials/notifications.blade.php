@@ -6,7 +6,7 @@
 <div class="lavea-notification">
     <button type="button" class="lavea-notification-button" id="notification-toggle" aria-label="Notifications" aria-expanded="false" aria-controls="notification-panel">
         <i data-lucide="bell"></i>
-        @if ($unreadCount > 0)
+        @if ($unreadCount > 0 && (auth()->user()->show_notification_badge ?? true))
             <span class="lavea-notification-count">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
         @endif
     </button>

@@ -1,3 +1,7 @@
+.sidebar {
+    overflow-y: auto;
+}
+
 .lavea-admin-topbar {
     box-sizing: border-box;
     position: fixed;
@@ -13,6 +17,31 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 28px;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: normal;
+    color: #172554;
+}
+
+.lavea-admin-topbar * {
+    box-sizing: border-box;
+    font-family: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+.lavea-admin-topbar form {
+    margin: 0;
+}
+
+.lavea-admin-topbar svg {
+    flex-shrink: 0;
+}
+
+.lavea-admin-topbar .lavea-admin-profile > svg {
+    width: 24px;
+    height: 24px;
 }
 
 .lavea-admin-topbar-spacer {
@@ -94,10 +123,15 @@
     background: transparent;
     color: inherit;
     cursor: pointer;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    line-height: normal;
 }
 
 .lavea-notification-button svg {
     width: 21px;
+    height: 24px;
 }
 
 .lavea-notification-count {
@@ -217,23 +251,35 @@ html[data-lavea-theme="dark"] .lavea-notification-item p {
     padding-left: 20px;
 }
 
-.lavea-admin-avatar {
+.lavea-admin-topbar .lavea-admin-avatar {
+    flex: 0 0 39px;
     width: 39px;
     height: 39px;
+    min-width: 39px;
+    min-height: 39px;
+    flex-shrink: 0;
     background: #e8eefb;
+    color: #172554;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.lavea-admin-avatar svg {
+.lavea-admin-topbar .lavea-admin-avatar > svg {
+    display: block;
+    flex: none;
     width: 21px;
+    height: 21px;
+    stroke-width: 2;
 }
 
 .lavea-admin-profile strong {
     font-size: 13px;
     display: block;
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
 }
 
 .lavea-admin-profile span {
@@ -243,12 +289,14 @@ html[data-lavea-theme="dark"] .lavea-notification-item p {
 
 .lavea-page-date {
     position: relative;
-    top: -2px;
-    margin-right: -2px;
+    top: 0;
+    margin: 0;
     text-align: right;
     color: #687691;
     font-size: 12px;
     white-space: nowrap;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: normal;
 }
 
 .lavea-page-date strong {

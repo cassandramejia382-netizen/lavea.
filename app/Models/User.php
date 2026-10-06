@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'show_notification_badge' => 'boolean',
     ];
 
     public function staffProfile()

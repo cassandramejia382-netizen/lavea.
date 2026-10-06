@@ -54,6 +54,11 @@ Route::middleware(['auth', 'role:customer'])->group(function (): void {
         Route::get('/payments/{payment}', [CustomerDashboardController::class, 'showPayment'])->whereNumber('payment')->name('payments.show');
         Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
         Route::patch('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+        Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+        Route::post('/settings/appearance', [SettingsController::class, 'updateAppearance'])->name('settings.appearance');
+        Route::post('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
     });
 
     Route::middleware('verified')->prefix('user')->name('user.')->group(function (): void {
@@ -80,6 +85,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/settings/admin-profile', [SettingsController::class, 'updateAdminProfile'])->name('settings.profile');
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::post('/settings/appearance', [SettingsController::class, 'updateAppearance'])->name('settings.appearance');
+    Route::post('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
 });
 
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function (): void {
@@ -89,4 +95,9 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::resource('orders', OrderController::class)->names('orders');
     Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show'])->names('payments');
     Route::get('/schedules', [ScheduleController::class, 'staffIndex'])->name('schedules.index');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::post('/settings/appearance', [SettingsController::class, 'updateAppearance'])->name('settings.appearance');
+    Route::post('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
 });

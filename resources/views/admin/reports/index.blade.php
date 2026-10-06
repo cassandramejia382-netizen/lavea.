@@ -1,212 +1,53 @@
-﻿﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    @include('partials.theme-assets')
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('admin.layout', ['title' => 'Reports - LAVEA'])
 
-    <title>Reports - LAVEA</title>
+@push('styles')
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            background: #f5f7fb;
-            color: #1f2937;
-        }
-
-        /* SIDEBAR */
-.sidebar {
-    width: 255px;
-    background: #111d38;
-    color: white;
-    padding: 25px 16px;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.logo {
-    padding: 5px 15px 35px;
-}
-
-.logo h1 {
-    font-size: 27px;
-    letter-spacing: 3px;
-    font-weight: 700;
-}
-
-.logo p {
-    color: #aebbd3;
-    font-size: 11px;
-    margin-top: 4px;
-}
-
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.menu a {
-    text-decoration: none;
-    color: #dce5f7;
-    padding: 13px 15px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1;
-}
-
-.menu a:hover,
-.menu a.active {
-    background: #4169c8;
-    color: white;
-}
-
-.menu svg {
-    width: 19px;
-    height: 19px;
-    flex-shrink: 0;
-    stroke-width: 2;
-}
-        /* TOPBAR */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 255px;
-            right: 0;
-            height: 75px;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            z-index: 10;
-        }
-
-        .search {
-            width: 400px;
-            position: relative;
-        }
-
-        .search input {
-            width: 100%;
-            padding: 11px 15px 11px 40px;
-            border: 1px solid #e5e7eb;
-            border-radius: 7px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .search svg {
-            position: absolute;
-            left: 13px;
-            top: 11px;
-            width: 18px;
-            color: #9ca3af;
-        }
-
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .admin-avatar {
-            width: 38px;
-            height: 38px;
-            background: #4169c8;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .admin-text strong {
-            display: block;
-            font-size: 14px;
-        }
-
-        .admin-text span {
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        /* MAIN */
-        .main {
-            margin-left: 255px;
-            width: calc(100% - 255px);
-            padding: 30px;
-        }
-
-        .page-header {
+<style>
+.lavea-admin-content * { margin: 0; padding: 0; }
+.lavea-admin-content .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
         }
-
-        .page-header h2 {
+.lavea-admin-content .page-header h2 {
             font-size: 24px;
             color: #111827;
             margin-bottom: 6px;
         }
-
-        .page-header p {
+.lavea-admin-content .page-header p {
             color: #6b7280;
             font-size: 14px;
         }
-
-        /* FILTER CARD */
-        .filter-card {
+.lavea-admin-content .filter-card {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 25px;
         }
-
-        .filter-title {
+.lavea-admin-content .filter-title {
             font-size: 15px;
             font-weight: 600;
             margin-bottom: 15px;
             color: #111827;
         }
-
-        .filter-row {
+.lavea-admin-content .filter-row {
             display: flex;
             gap: 15px;
             align-items: end;
         }
-
-        .form-group {
+.lavea-admin-content .form-group {
             flex: 1;
         }
-
-        .form-group label {
+.lavea-admin-content .form-group label {
             display: block;
             font-size: 12px;
             color: #6b7280;
             margin-bottom: 7px;
         }
-
-        .form-group select,
-        .form-group input {
+.lavea-admin-content .form-group select,
+.lavea-admin-content .form-group input {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #d1d5db;
@@ -215,13 +56,11 @@
             font-size: 14px;
             background: white;
         }
-
-        .form-group select:focus,
-        .form-group input:focus {
+.lavea-admin-content .form-group select:focus,
+.lavea-admin-content .form-group input:focus {
             border-color: #4169c8;
         }
-
-        .btn {
+.lavea-admin-content .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -233,44 +72,36 @@
             font-size: 14px;
             text-decoration: none;
         }
-
-        .btn svg {
+.lavea-admin-content .btn svg {
             width: 17px;
             height: 17px;
         }
-
-        .btn-primary {
+.lavea-admin-content .btn-primary {
             background: #4169c8;
             color: white;
         }
-
-        .btn-primary:hover {
+.lavea-admin-content .btn-primary:hover {
             background: #3558ad;
         }
-
-        /* REPORT CARDS */
-        .report-grid {
+.lavea-admin-content .report-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 18px;
             margin-bottom: 25px;
         }
-
-        .report-card {
+.lavea-admin-content .report-card {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             padding: 20px;
         }
-
-        .report-card-header {
+.lavea-admin-content .report-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 15px;
         }
-
-        .report-card-icon {
+.lavea-admin-content .report-card-icon {
             width: 40px;
             height: 40px;
             border-radius: 8px;
@@ -280,53 +111,43 @@
             align-items: center;
             justify-content: center;
         }
-
-        .report-card-icon svg {
+.lavea-admin-content .report-card-icon svg {
             width: 20px;
             height: 20px;
         }
-
-        .report-card h3 {
+.lavea-admin-content .report-card h3 {
             font-size: 25px;
             color: #111827;
             margin-bottom: 5px;
         }
-
-        .report-card p {
+.lavea-admin-content .report-card p {
             font-size: 13px;
             color: #6b7280;
         }
-
-        /* TABLE CARD */
-        .table-card {
+.lavea-admin-content .table-card {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             overflow: hidden;
         }
-
-        .table-header {
+.lavea-admin-content .table-header {
             padding: 20px 25px;
             border-bottom: 1px solid #e5e7eb;
         }
-
-        .table-header h3 {
+.lavea-admin-content .table-header h3 {
             font-size: 17px;
             color: #111827;
         }
-
-        .table-header p {
+.lavea-admin-content .table-header p {
             font-size: 13px;
             color: #6b7280;
             margin-top: 4px;
         }
-
-        table {
+.lavea-admin-content table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        th {
+.lavea-admin-content th {
             text-align: left;
             padding: 14px 20px;
             font-size: 12px;
@@ -335,191 +156,85 @@
             border-bottom: 1px solid #e5e7eb;
             text-transform: uppercase;
         }
-
-        td {
+.lavea-admin-content td {
             padding: 16px 20px;
             font-size: 13px;
             border-bottom: 1px solid #eef0f4;
             color: #374151;
         }
-
-        tr:last-child td {
+.lavea-admin-content tr:last-child td {
             border-bottom: none;
         }
-
-        .status {
+.lavea-admin-content .status {
             display: inline-block;
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
         }
-
-        .completed {
+.lavea-admin-content .completed {
             background: #dcfce7;
             color: #15803d;
         }
-
-        .pending {
+.lavea-admin-content .pending {
             background: #fef3c7;
             color: #b45309;
         }
-
-        .cancelled {
+.lavea-admin-content .cancelled {
             background: #fee2e2;
             color: #dc2626;
         }
-
-        .empty {
+.lavea-admin-content .empty {
             text-align: center;
             padding: 40px;
             color: #9ca3af;
         }
-
-        /* RESPONSIVE */
-        @media (max-width: 1000px) {
-            .report-grid {
+@media (max-width: 1000px) {
+.lavea-admin-content .report-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
-            .filter-row {
+.lavea-admin-content .filter-row {
                 flex-wrap: wrap;
             }
-
-            .form-group {
+.lavea-admin-content .form-group {
                 min-width: 200px;
             }
-        }
-
-        @media (max-width: 800px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo h1 {
-                font-size: 17px;
-                text-align: center;
-            }
-
-            .logo p,
-            .menu span {
-                display: none;
-            }
-
-            .menu a {
-                justify-content: center;
-            }
-
-            .main {
-                margin-left: 70px;
-                width: calc(100% - 70px);
-                padding: 30px;
-            }
-
-            .admin-text {
-                display: none;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .report-grid {
+}
+@media (max-width: 700px) {
+.lavea-admin-content .report-grid {
                 grid-template-columns: 1fr;
             }
-
-            .filter-row {
+.lavea-admin-content .filter-row {
                 display: block;
             }
-
-            .form-group {
+.lavea-admin-content .form-group {
                 margin-bottom: 12px;
             }
-
-            .filter-row .btn {
+.lavea-admin-content .filter-row .btn {
                 width: 100%;
             }
-
-            table {
+.lavea-admin-content table {
                 min-width: 700px;
             }
-
-            .table-card {
+.lavea-admin-content .table-card {
                 overflow-x: auto;
             }
-        }
-    </style>
-    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
-</head>
+}
+</style>
+@endpush
 
-<body>
-
-    <!-- SIDEBAR -->
+@section('content')
+<!-- SIDEBAR -->
    <!-- SIDEBAR -->
-<aside class="sidebar">
-
-    <div class="logo">
-        <h1>LAVEA</h1>
-        <p>Laundry Made Easy</p>
-    </div>
-
-    <nav class="menu">
-
-        <a href="{{ route('admin.dashboard') }}">
-            <i data-lucide="layout-dashboard"></i>
-            <span>Dashboard</span>
-        </a>
-
-        <a href="{{ route('admin.customers.index') }}">
-            <i data-lucide="users"></i>
-            <span>Customers</span>
-        </a>
-
-        <a href="{{ route('admin.staff.index') }}">
-            <i data-lucide="user-round-cog"></i>
-            <span>Staff</span>
-        </a>
-
-        <a href="{{ route('admin.services.index') }}">
-            <i data-lucide="package"></i>
-            <span>Services</span>
-        </a>
-
-        <a href="{{ route('admin.orders.index') }}">
-            <i data-lucide="clipboard-list"></i>
-            <span>Orders</span>
-        </a>
-
-        <a href="{{ route('admin.payments.index') }}">
-            <i data-lucide="credit-card"></i>
-            <span>Payments / Transactions</span>
-        </a>
-
-        <a href="{{ route('admin.schedules.index') }}">
-            <i data-lucide="calendar-days"></i>
-            <span>Schedule</span>
-        </a>
-
-        <a href="{{ route('admin.reports') }}" class="active">
-            <i data-lucide="bar-chart-3"></i>
-            <span>Reports</span>
-        </a>
-
-        <a href="{{ route('admin.settings') }}">
-    <i data-lucide="settings"></i>
-    <span>Settings</span>
-</a>
-
-    </nav>
-
-</aside>    
+    
 
 
     <!-- TOPBAR -->
-    @include('admin.partials.topbar')
+    
 
 
     <!-- MAIN -->
-    <main class="main">
+    
 
         <div class="page-header">
             <div>
@@ -734,15 +449,4 @@
             @endif
 
         </div>
-
-    </main>
-
-
-    <script>
-        lucide.createIcons();
-    </script>
-
-</body>
-</html>
-
-
+@endsection

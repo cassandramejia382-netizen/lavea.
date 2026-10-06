@@ -1,127 +1,10 @@
-﻿﻿<!DOCTYPE html>
-<html lang="en">
+@extends('admin.layout', ['title' => 'Payment Details'])
 
-<head>
-    @include('partials.theme-assets')
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@push('styles')
 
-    <title>LAVEA | Payment Details</title>
-
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            background: #f5f7fb;
-            color: #172554;
-        }
-
-        .sidebar {
-            width: 255px;
-            background: #111d38;
-            color: white;
-            padding: 25px 16px;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-        }
-
-        .logo {
-            padding: 5px 15px 35px;
-        }
-
-        .logo h1 {
-            font-size: 27px;
-            letter-spacing: 3px;
-            font-weight: 700;
-        }
-
-        .logo p {
-            color: #aebbd3;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .menu a {
-            text-decoration: none;
-            color: #dce5f7;
-            padding: 13px 15px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 14px;
-        }
-
-        .menu a:hover,
-        .menu a.active {
-            background: #4169c8;
-            color: white;
-        }
-
-        .menu svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        .main {
-            margin-left: 255px;
-            width: calc(100% - 255px);
-        }
-
-        .topbar {
-            height: 75px;
-            background: white;
-            border-bottom: 1px solid #e8ecf3;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 28px;
-        }
-
-        .search {
-            width: 400px;
-            height: 40px;
-            border: 1px solid #dfe5ef;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            color: #8995aa;
-        }
-
-        .search svg {
-            width: 18px;
-        }
-
-        .search input {
-            border: none;
-            outline: none;
-            margin-left: 10px;
-            width: 100%;
-        }
-
-        .admin {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar {
+<style>
+.lavea-admin-content * { margin: 0; padding: 0; }
+.lavea-admin-content .avatar {
             width: 38px;
             height: 38px;
             background: #e8eefb;
@@ -130,44 +13,25 @@
             align-items: center;
             justify-content: center;
         }
-
-        .avatar svg {
+.lavea-admin-content .avatar svg {
             width: 18px;
         }
-
-        .admin strong {
-            display: block;
-            font-size: 13px;
-        }
-
-        .admin span {
-            font-size: 10px;
-            color: #8995aa;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .page-header {
+.lavea-admin-content .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
         }
-
-        .page-header h1 {
+.lavea-admin-content .page-header h1 {
             font-size: 26px;
             color: #10204a;
         }
-
-        .page-header p {
+.lavea-admin-content .page-header p {
             color: #7a879d;
             font-size: 13px;
             margin-top: 6px;
         }
-
-        .back-btn {
+.lavea-admin-content .back-btn {
             background: white;
             color: #526078;
             border: 1px solid #dfe5ef;
@@ -176,20 +40,17 @@
             text-decoration: none;
             font-size: 13px;
         }
-
-        .back-btn:hover {
+.lavea-admin-content .back-btn:hover {
             background: #f1f4f9;
         }
-
-        .card {
+.lavea-admin-content .card {
             background: white;
             border: 1px solid #e7ebf2;
             border-radius: 10px;
             padding: 28px;
             max-width: 950px;
         }
-
-        .payment-header {
+.lavea-admin-content .payment-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -197,66 +58,55 @@
             border-bottom: 1px solid #edf0f5;
             margin-bottom: 25px;
         }
-
-        .payment-id {
+.lavea-admin-content .payment-id {
             font-size: 18px;
             font-weight: 700;
             color: #172554;
         }
-
-        .payment-id span {
+.lavea-admin-content .payment-id span {
             color: #7a879d;
             font-size: 12px;
             font-weight: 400;
         }
-
-        .status {
+.lavea-admin-content .status {
             display: inline-block;
             padding: 7px 12px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
         }
-
-        .completed {
+.lavea-admin-content .completed {
             background: #e5f8ef;
             color: #168458;
         }
-
-        .pending {
+.lavea-admin-content .pending {
             background: #fff4d6;
             color: #a56a00;
         }
-
-        .failed {
+.lavea-admin-content .failed {
             background: #ffe9ec;
             color: #d14a5b;
         }
-
-        .grid {
+.lavea-admin-content .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 22px 35px;
         }
-
-        .item {
+.lavea-admin-content .item {
             border-bottom: 1px solid #edf0f5;
             padding-bottom: 15px;
         }
-
-        .label {
+.lavea-admin-content .label {
             color: #7a879d;
             font-size: 11px;
             margin-bottom: 7px;
         }
-
-        .value {
+.lavea-admin-content .value {
             color: #263550;
             font-size: 14px;
             font-weight: 500;
         }
-
-        .amount-box {
+.lavea-admin-content .amount-box {
             margin-top: 25px;
             background: #f4f7ff;
             border: 1px solid #dce5fb;
@@ -266,23 +116,19 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        .amount-label {
+.lavea-admin-content .amount-label {
             color: #66738b;
             font-size: 13px;
         }
-
-        .amount {
+.lavea-admin-content .amount {
             color: #4169c8;
             font-size: 25px;
             font-weight: 700;
         }
-
-        .notes {
+.lavea-admin-content .notes {
             margin-top: 25px;
         }
-
-        .notes-content {
+.lavea-admin-content .notes-content {
             background: #f8f9fc;
             border-radius: 8px;
             padding: 15px;
@@ -291,14 +137,12 @@
             line-height: 1.6;
             min-height: 55px;
         }
-
-        .actions {
+.lavea-admin-content .actions {
             display: flex;
             gap: 10px;
             margin-top: 25px;
         }
-
-        .edit-btn {
+.lavea-admin-content .edit-btn {
             background: #4169c8;
             color: white;
             padding: 11px 19px;
@@ -306,26 +150,21 @@
             text-decoration: none;
             font-size: 13px;
         }
-
-        .edit-btn:hover {
+.lavea-admin-content .edit-btn:hover {
             background: #3459b1;
         }
-
-        .receipt {
+.lavea-admin-content .receipt {
             display: none;
         }
-
-        @media print {
-            body * {
+@media print {
+.lavea-admin-content * {
                 visibility: hidden !important;
             }
-
-            #payment-receipt,
-            #payment-receipt * {
+.lavea-admin-content #payment-receipt,
+.lavea-admin-content #payment-receipt * {
                 visibility: visible !important;
             }
-
-            #payment-receipt {
+.lavea-admin-content #payment-receipt {
                 display: block !important;
                 position: absolute;
                 top: 0;
@@ -336,135 +175,24 @@
                 color: #111 !important;
                 font-family: Arial, Helvetica, sans-serif;
             }
-
-            #payment-receipt h1 {
+.lavea-admin-content #payment-receipt h1 {
                 margin-bottom: 20px;
             }
-
-            #payment-receipt p {
+.lavea-admin-content #payment-receipt p {
                 padding: 10px 0;
                 border-bottom: 1px solid #ddd;
             }
-        }
-
-        @media(max-width: 800px) {
-
-            .sidebar {
-                width: 70px;
-            }
-
-            .logo h1 {
-                font-size: 17px;
-                text-align: center;
-            }
-
-            .logo p,
-            .menu span {
-                display: none;
-            }
-
-            .menu a {
-                justify-content: center;
-            }
-
-            .main {
-                margin-left: 70px;
-                width: calc(100% - 70px);
-            }
-
-            .search {
-                width: 200px;
-            }
-
-            .grid {
+}
+@media(max-width: 800px) {
+.lavea-admin-content .grid {
                 grid-template-columns: 1fr;
             }
-        }
-    </style>
-    <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}">
-</head>
+}
+</style>
+@endpush
 
-<body>
-
-<aside class="sidebar">
-
-    <div class="logo">
-        <h1>LAVEA</h1>
-        <p>Laundry Made Easy</p>
-    </div>
-
-    <nav class="menu">
-
-        @if (auth()->user()->role === 'staff')
-        <a href="{{ route('staff.dashboard') }}">
-            <i data-lucide="layout-dashboard"></i>
-            <span>Dashboard</span>
-        </a>
-
-        <a href="{{ route('staff.orders.index') }}" class="active">
-            <i data-lucide="clipboard-list"></i>
-            <span>Orders</span>
-        </a>
-        @else
-        <a href="{{ route('admin.dashboard') }}">
-            <i data-lucide="layout-dashboard"></i>
-            <span>Dashboard</span>
-        </a>
-
-        <a href="{{ route('admin.customers.index') }}">
-            <i data-lucide="users"></i>
-            <span>Customers</span>
-        </a>
-
-        <a href="{{ route('admin.staff.index') }}">
-            <i data-lucide="user-round-cog"></i>
-            <span>Staff</span>
-        </a>
-
-        <a href="{{ route('admin.services.index') }}">
-            <i data-lucide="package"></i>
-            <span>Services</span>
-        </a>
-
-        <a href="{{ route('admin.orders.index') }}">
-            <i data-lucide="clipboard-list"></i>
-            <span>Orders</span>
-        </a>
-
-        <a href="{{ route('admin.payments.index') }}" class="active">
-            <i data-lucide="credit-card"></i>
-            <span>Payments / Transactions</span>
-        </a>
-
-        <a href="#">
-            <i data-lucide="calendar-days"></i>
-            <span>Schedule</span>
-        </a>
-
-        <a href="#">
-            <i data-lucide="bar-chart-3"></i>
-            <span>Reports</span>
-        </a>
-
-        <a href="#">
-            <i data-lucide="settings"></i>
-            <span>Settings</span>
-        </a>
-        @endif
-
-    </nav>
-
-</aside>
-
-
-<main class="main">
-
-    @include('admin.partials.topbar')
-
-
-    <section class="content">
-
-        <div class="page-header">
+@section('content')
+<div class="page-header">
 
             <div>
 
@@ -641,16 +369,4 @@
 
 
         </div>
-
-    </section>
-
-</main>
-
-
-<script>
-    lucide.createIcons();
-</script>
-
-</body>
-</html>
-
+@endsection

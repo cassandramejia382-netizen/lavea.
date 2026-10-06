@@ -12,6 +12,7 @@
         @media(max-width:600px){.content{padding:18px}.grid,.form-grid,.service-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.lavea-admin-topbar{height:64px}.lavea-admin-topbar-spacer{height:64px}.lavea-search-box,.lavea-search-spacer{display:none}.lavea-top-right{gap:8px}.lavea-admin-profile div:nth-child(2),.lavea-admin-profile>svg:last-child{display:none}.lavea-sign-out{padding:8px}.page-head{align-items:flex-start;gap:12px}}
         @media print{.sidebar,.lavea-admin-topbar,.lavea-admin-topbar-spacer,.no-print{display:none!important}.main{margin:0;width:100%}.content{padding:0}.print-only{display:block}}
     </style>
+    @stack('styles')
 </head>
 <body>
 <div class="dashboard">
@@ -23,30 +24,34 @@
                     ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','My Orders'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','Profile']]
                     : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Orders'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']];
                 $portalPrefix = $isCustomerPortal ? 'customer' : 'staff';
+                $navigation[] = ['settings', 'settings', 'Settings'];
             @endphp
             @foreach ($navigation as [$key,$icon,$label])
                 @php
-                    $navigationRoute = in_array($key, ['dashboard', 'profile']) ? $portalPrefix.'.'.$key : $portalPrefix.'.'.$key.'.index';
+                    $navigationRoute = in_array($key, ['dashboard', 'profile', 'settings']) ? $portalPrefix.'.'.$key : $portalPrefix.'.'.$key.'.index';
                     $active = request()->routeIs($navigationRoute, $portalPrefix.'.'.$key.'.*');
                 @endphp
                 <a href="{{ route($navigationRoute) }}" class="{{ $active ? 'active' : '' }}" aria-label="{{ $label }}" @if($active) aria-current="page" @endif><i data-lucide="{{ $icon }}"></i><span>{{ $label }}</span></a>
             @endforeach
-            <a href="{{ route('logout.confirm') }}" aria-label="Logout"><i data-lucide="log-out"></i><span>Logout</span></a>
+            <a href="{{ route('logout.confirm') }}" aria-label="Sign Out"><i data-lucide="log-out"></i><span>Sign Out</span></a>
         </nav>
-        <div class="staff-profile"><div class="staff-avatar"><i data-lucide="user-round"></i></div><div class="staff-info"><strong>{{ auth()->user()->name }}</strong><span>{{ $isCustomerPortal ? 'Customer Account' : 'Staff Account' }}</span></div></div>
+        @if ($isCustomerPortal)
+            <div class="staff-profile"><div class="staff-avatar"><i data-lucide="user-round"></i></div><div class="staff-info"><strong>{{ auth()->user()->name }}</strong><span>Customer Account</span></div></div>
+        @endif
     </aside>
     <main class="main">
         @php
             $customerSearch = request()->routeIs('staff.customers.*');
             $orderSearch = request()->routeIs('staff.orders.*');
             $paymentSearch = request()->routeIs('staff.payments.*');
-            $hideSearch = ! ($customerSearch || $orderSearch || $paymentSearch);
+            $hideSearch = request()->routeIs('staff.customers.index', 'staff.orders.index', 'staff.payments.index')
+                || ! ($customerSearch || $orderSearch || $paymentSearch);
             $orderRoutePrefix = 'staff.orders';
         @endphp
         @include('admin.partials.topbar')
         <section class="content">
             @if (session('success'))<div class="flash">{{ session('success') }}</div>@endif
-            @if (session('error'))<div class="flash" style="background:#ffe9ec;color:#b42335">{{ session('error') }}</div>@endif
+            @if (session('error'))<div class="flash flash-error" style="background:#ffe9ec;color:#b42335">{{ session('error') }}</div>@endif
             @if ($errors->any())<ul class="error-list">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
             @yield('content')
         </section>
