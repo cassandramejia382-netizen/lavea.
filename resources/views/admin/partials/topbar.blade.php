@@ -10,7 +10,7 @@
         </form>
     @elseif (!empty($orderSearch))
         <form class="lavea-search-box" method="GET" action="{{ route(($orderRoutePrefix ?? 'admin.orders').'.index') }}">
-            <button type="submit" aria-label="Search orders">
+            <button type="submit" aria-label="Search records">
                 <i data-lucide="search"></i>
             </button>
             <input type="search" name="search" value="{{ request('search') }}" placeholder="Search here...">

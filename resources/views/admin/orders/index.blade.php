@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Orders'])
+@extends('admin.layout', ['title' => 'Records'])
 
 @push('styles')
 
@@ -204,15 +204,15 @@
             <div class="page-header">
 
                 <div>
-                    <h1>Orders</h1>
-                    <p>View and monitor customer laundry orders and schedules.</p>
+                    <h1>Records</h1>
+                    <p>View and monitor customer laundry records and schedules.</p>
                 </div>
 
                 <div class="lavea-page-header-actions">
                     @if ($canManageOrders)
                         <a href="{{ route($orderRoutePrefix.'.create') }}" class="add-btn">
                             <i data-lucide="plus"></i>
-                            Add Order
+                            Add Record
                         </a>
                         <a href="{{ route('staff.payments.create') }}" class="add-btn">
                             <i data-lucide="credit-card"></i>
@@ -252,7 +252,7 @@
 
                                 <th>Qty</th>
 
-                                <th>Order Date</th>
+                                <th>Record Date</th>
 
                                 <th>Pickup</th>
 
@@ -405,7 +405,7 @@
 
                                             <i data-lucide="clipboard-x"></i>
 
-                                            <p>No orders found.</p>
+                                            <p>No records found.</p>
 
                                         </div>
 

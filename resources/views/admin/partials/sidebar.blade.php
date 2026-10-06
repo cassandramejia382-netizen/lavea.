@@ -10,7 +10,7 @@
             ['customers.index', 'Customers', 'users', 'customers.*'],
             ['staff.index', 'Staff', 'user-round-cog', 'staff.*'],
             ['services.index', 'Services', 'package', 'services.*'],
-            ['orders.index', 'Orders', 'clipboard-list', 'orders.*'],
+            ['orders.index', 'Records', 'clipboard-list', 'orders.*'],
             ['payments.index', 'Payments / Transactions', 'credit-card', 'payments.*'],
             ['schedules.index', 'Schedule', 'calendar-days', 'schedules.*'],
             ['reports', 'Reports', 'bar-chart-3', 'reports'],

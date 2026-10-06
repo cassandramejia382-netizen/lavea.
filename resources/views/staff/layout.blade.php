@@ -22,7 +22,7 @@
                 $isCustomerPortal = ($portal ?? 'staff') === 'customer';
                 $navigation = $isCustomerPortal
                     ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','My Orders'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','Profile']]
-                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Orders'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']];
+                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule']];
                 $portalPrefix = $isCustomerPortal ? 'customer' : 'staff';
                 $navigation[] = ['settings', 'settings', 'Settings'];
             @endphp

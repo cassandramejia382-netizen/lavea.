@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Order Details - LAVEA'])
+@extends('admin.layout', ['title' => 'Record Details - LAVEA'])
 
 @push('styles')
 
@@ -162,19 +162,19 @@
 @section('content')
 <div class="top">
         <div>
-            <h2>Order Details</h2>
-            <p>View complete information about this order.</p>
+            <h2>Record Details</h2>
+            <p>View complete information about this record.</p>
         </div>
 
         <a href="{{ route($orderRoutePrefix.'.index') }}" class="back-btn">
-            Back to Orders
+            Back to Records
         </a>
     </div>
 
     <div class="card">
 
         <div class="card-title">
-            Order #{{ $order->id }}
+            Record #{{ $order->id }}
         </div>
 
         <div class="grid">
@@ -208,7 +208,7 @@
             </div>
 
             <div class="item">
-                <div class="label">Order Date</div>
+                <div class="label">Record Date</div>
                 <div class="value">
                     {{ $order->order_date ? $order->order_date->format('F d, Y') : 'N/A' }}
                 </div>

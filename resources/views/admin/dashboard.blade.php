@@ -387,7 +387,7 @@
                     </div>
 
                     <div>
-                        <div class="stat-title">Total Orders</div>
+                        <div class="stat-title">Total Records</div>
                         <div class="stat-number">{{ $stats['orders'] }}</div>
                         <div class="stat-change">&uarr; 12%</div>
                         <div class="stat-sub">vs. last week</div>
@@ -481,7 +481,7 @@
                 <div class="card">
 
                     <div class="card-header">
-                        <h2>Order Status</h2>
+                        <h2>Record Status</h2>
                     </div>
 
                     <div class="status-container">
@@ -490,7 +490,7 @@
 
                             <div class="donut-center">
                                 <strong>{{ $stats['orders'] }}</strong>
-                                <span>Total Orders</span>
+                                <span>Total Records</span>
                             </div>
 
                         </div>
@@ -546,7 +546,7 @@
 
                     <div class="card-header">
 
-                        <h2>Recent Orders</h2>
+                        <h2>Recent Records</h2>
 
                         <a href="{{ route('admin.orders.index') }}" class="view-all">
                             View All
@@ -558,7 +558,7 @@
 
                         <thead>
                             <tr>
-                                <th>Order No.</th>
+                                <th>Record No.</th>
                                 <th>Customer</th>
                                 <th>Service</th>
                                 <th>Status</th>

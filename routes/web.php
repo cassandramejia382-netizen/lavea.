@@ -92,6 +92,7 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
     Route::resource('customers', CustomerController::class)->names('customers');
     Route::get('/services', [ServiceController::class, 'staffIndex'])->name('services.index');
+    Route::get('/services/{service}', [ServiceController::class, 'staffShow'])->name('services.show');
     Route::resource('orders', OrderController::class)->names('orders');
     Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show'])->names('payments');
     Route::get('/schedules', [ScheduleController::class, 'staffIndex'])->name('schedules.index');

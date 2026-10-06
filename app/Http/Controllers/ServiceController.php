@@ -20,6 +20,11 @@ class ServiceController extends Controller
         return view('staff.services.index', compact('services'));
     }
 
+    public function staffShow(Service $service): View
+    {
+        return view('staff.services.show', compact('service'));
+    }
+
     /**
      * Display all services.
      */

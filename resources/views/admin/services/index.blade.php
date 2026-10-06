@@ -135,7 +135,7 @@
             width: 55px;
             height: 55px;
             border-radius: 8px;
-            object-fit: cover;
+            object-fit: contain;
             object-position: center;
             background: #eef2f8;
         }
@@ -198,16 +198,16 @@
 
 
     <!-- SIDEBAR -->
-    
+
 
 
     <!-- MAIN -->
-    
-
-        
 
 
-        
+
+
+
+
 
             <div class="page-header" id="services-page-header">
                 <div>
@@ -264,11 +264,13 @@
 
                                         @if($imageUrl = $service->imageUrl())
 
-                                            <img
-                                                src="{{ $imageUrl }}"
-                                                class="service-image"
-                                                alt="{{ $service->service_name }}"
-                                            >
+                                            <a href="{{ route('admin.services.show', $service) }}" aria-label="View {{ $service->service_name }} details">
+                                                <img
+                                                    src="{{ $imageUrl }}"
+                                                    class="service-image"
+                                                    alt="{{ $service->service_name }}"
+                                                >
+                                            </a>
 
                                         @else
 
@@ -281,7 +283,9 @@
                                     </td>
 
                                     <td>
-                                        <strong>{{ $service->service_name }}</strong>
+                                        <a href="{{ route('admin.services.show', $service) }}" style="color:inherit;text-decoration:none">
+                                            <strong>{{ $service->service_name }}</strong>
+                                        </a>
                                     </td>
 
                                     <td class="price">
@@ -369,9 +373,5 @@
                 </div>
 
             </div>
-
-        
-
-    
 
 @endsection
