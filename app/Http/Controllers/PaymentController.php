@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use App\Notifications\SystemNotification;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -106,6 +107,33 @@ class PaymentController extends Controller
         }
 
         return view('admin.payments.show', compact('payment'));
+    }
+
+    public function reviewCustomerPayment(Request $request, Payment $payment): RedirectResponse
+    {
+        abort_unless($payment->status === 'Pending', 403, 'Only pending payments can be reviewed.');
+
+        $details = $request->validate([
+            'status' => ['required', 'in:Completed,Failed'],
+        ]);
+
+        $payment->update(['status' => $details['status']]);
+        $this->updateOrderPaymentStatus($payment->order_id);
+
+        $payment->load('order.customer.user');
+        $customerUser = $payment->order?->customer?->user;
+
+        if ($customerUser !== null) {
+            $customerUser->notify(new SystemNotification(
+                'Payment '.$details['status'],
+                'Your payment for order #'.$payment->order_id.' was marked '.$details['status'].'.',
+                route('customer.payments.show', $payment->id)
+            ));
+        }
+
+        $paymentRoutePrefix = $request->user()->role === 'admin' ? 'admin.payments' : 'staff.payments';
+
+        return redirect()->route($paymentRoutePrefix.'.show', $payment)->with('success', 'Payment marked '.$details['status'].'.');
     }
 
     private function updateOrderPaymentStatus($orderId)

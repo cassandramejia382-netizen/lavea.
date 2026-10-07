@@ -1,24 +1,26 @@
 @extends('admin.layout', ['title' => 'Settings - LAVEA'])
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/lavea-settings.css') }}">
-<style>
-.lavea-admin-content * { margin: 0; padding: 0; }
+<link rel="stylesheet" href="{{ asset('css/lavea-settings.css') }}?v={{ filemtime(public_path('css/lavea-settings.css')) }}">
+        <style>
+.main > .lavea-admin-content { padding: 16px; }
 .lavea-admin-content .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 26px;
         }
 .lavea-admin-content .page-header h2 {
             font-size: 24px;
-            color: #111827;
+            color: #10204a;
             margin-bottom: 6px;
         }
 .lavea-admin-content .page-header p {
             color: #6b7280;
             font-size: 14px;
         }
+.lavea-admin-content .settings-card h3 { font-size: 17px; }
+.lavea-admin-content .settings-card > p { font-size: 14px; }
 </style>
 @endpush
 
@@ -62,7 +64,7 @@
                 <h3>Settings Menu</h3>
                 <div class="settings-nav-links">
                     <a href="#shop-information"><i data-lucide="store"></i>Shop Information</a>
-                    <a href="#admin-profile"><i data-lucide="user-round"></i>Profile Information</a>
+                    <a href="#profile-information"><i data-lucide="user-round"></i>Profile Information</a>
                     <a href="#change-password"><i data-lucide="lock-keyhole"></i>Security</a>
                     <a href="#appearance"><i data-lucide="palette"></i>Appearance</a>
                     <a href="#notifications"><i data-lucide="bell"></i>Notifications</a>

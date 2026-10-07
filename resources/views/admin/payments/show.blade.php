@@ -350,6 +350,13 @@
 
             </div>
 
+            @if ($payment->status === 'Pending')
+                <div class="actions">
+                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}">@csrf @method('PATCH')<input type="hidden" name="status" value="Completed"><button class="edit-btn" type="submit">Confirm Payment</button></form>
+                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}" onsubmit="return confirm('Mark this payment as failed?')">@csrf @method('PATCH')<input type="hidden" name="status" value="Failed"><button class="back-btn" type="submit">Mark Failed</button></form>
+                </div>
+            @endif
+
             @if ($payment->status === 'Completed')
                 <div class="actions">
                     <button type="button" class="edit-btn" onclick="window.print()">Print Receipt</button>

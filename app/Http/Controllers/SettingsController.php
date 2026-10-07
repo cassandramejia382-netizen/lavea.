@@ -6,12 +6,118 @@ use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
+    public function staffProfile(Request $request): View
+    {
+        return view('staff.profile', [
+            'staff' => $request->user()->staffProfile,
+            'profileAddress' => $request->user()->address,
+        ]);
+    }
+
+    public function adminProfile(Request $request): View
+    {
+        return view('admin.profile', [
+            'profilePhone' => $request->user()->phone,
+            'profileAddress' => $request->user()->address,
+        ]);
+    }
+
+    public function updateAdminAccountProfile(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $hasChanges = $user->name !== $validated['name']
+            || $user->phone !== ($validated['phone'] ?? null)
+            || $user->address !== ($validated['address'] ?? null)
+            || $request->hasFile('profile_photo');
+
+        if (! $hasChanges) {
+            return redirect()->route('admin.profile');
+        }
+
+        $previousPhoto = $user->profile_photo_path;
+        $newPhoto = $request->file('profile_photo')?->store('staff-profiles', 'public');
+
+        $user->fill([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+        ]);
+
+        if ($newPhoto !== null) {
+            $user->profile_photo_path = $newPhoto;
+        }
+
+        $user->save();
+
+        if ($newPhoto !== null && $previousPhoto !== null) {
+            Storage::disk('public')->delete($previousPhoto);
+        }
+
+        return redirect()->route('admin.profile')->with('profile_saved', 'Your profile was saved successfully.');
+    }
+
+    public function updateStaffProfile(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $staff = $user->staffProfile;
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $hasChanges = $user->name !== $validated['name']
+            || ($staff !== null && $staff->phone !== ($validated['phone'] ?? null))
+            || $user->address !== ($validated['address'] ?? null)
+            || $request->hasFile('profile_photo');
+
+        if (! $hasChanges) {
+            return redirect()->route('staff.profile');
+        }
+
+        $previousPhoto = $user->profile_photo_path;
+        $newPhoto = $request->file('profile_photo')?->store('staff-profiles', 'public');
+
+        $user->fill([
+            'name' => $validated['name'],
+            'address' => $validated['address'] ?? null,
+        ]);
+
+        if ($newPhoto !== null) {
+            $user->profile_photo_path = $newPhoto;
+        }
+
+        $user->save();
+
+        if ($staff !== null) {
+            $staff->update([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+            ]);
+        }
+
+        if ($newPhoto !== null && $previousPhoto !== null) {
+            Storage::disk('public')->delete($previousPhoto);
+        }
+
+        return redirect()->route('staff.profile')->with('profile_saved', 'Your profile was saved successfully.');
+    }
+
     public function index(Request $request): View
     {
         $settingsRole = $this->settingsRole($request);
@@ -19,6 +125,7 @@ class SettingsController extends Controller
         return view($settingsRole === 'admin' ? 'admin.settings.index' : 'staff.settings', [
             'settingsRole' => $settingsRole,
             'customerProfile' => $settingsRole === 'customer' ? $request->user()->customerProfile : null,
+            'staffProfile' => $settingsRole === 'staff' ? $request->user()->staffProfile : null,
             'shopSettings' => $settingsRole === 'admin' ? DB::table('shop_settings')->find(1) : null,
         ]);
     }
@@ -70,13 +177,21 @@ class SettingsController extends Controller
         if ($customer !== null) {
             $rules['phone'] = 'required|string|max:20';
             $rules['address'] = 'required|string|max:255';
+        } else {
+            $rules['phone'] = 'nullable|string|max:20';
+            $rules['address'] = 'nullable|string|max:255';
         }
 
         $details = $request->validate($rules);
         $emailChanged = $user->email !== $details['email'];
 
         DB::transaction(function () use ($user, $customer, $staff, $details, $emailChanged, $settingsRole): void {
-            $user->fill(['name' => $details['name'], 'email' => $details['email']]);
+            $user->fill([
+                'name' => $details['name'],
+                'email' => $details['email'],
+                'phone' => $details['phone'] ?? null,
+                'address' => $details['address'] ?? null,
+            ]);
 
             if ($emailChanged && $settingsRole === 'customer') {
                 $user->email_verified_at = null;
@@ -89,7 +204,11 @@ class SettingsController extends Controller
             }
 
             if ($staff !== null) {
-                $staff->update(['name' => $details['name'], 'email' => $details['email']]);
+                $staff->update([
+                    'name' => $details['name'],
+                    'email' => $details['email'],
+                    'phone' => $details['phone'] ?? null,
+                ]);
             }
         });
 

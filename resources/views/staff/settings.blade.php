@@ -1,7 +1,7 @@
 @extends('staff.layout', ['portal' => $settingsRole, 'title' => 'Settings'])
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/lavea-settings.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/lavea-settings.css') }}?v={{ filemtime(public_path('css/lavea-settings.css')) }}">
 @endpush
 
 @section('content')

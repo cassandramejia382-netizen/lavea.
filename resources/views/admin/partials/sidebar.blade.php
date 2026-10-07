@@ -22,13 +22,15 @@
             @if ($navigationPrefix === 'admin' || ! in_array($navigationRoute, ['staff.index', 'reports']))
                 <a href="{{ route($navigationPrefix.'.'.$navigationRoute) }}" @class(['active' => request()->routeIs($navigationPrefix.'.'.$navigationPattern)]) aria-label="{{ $navigationLabel }}" @if (request()->routeIs($navigationPrefix.'.'.$navigationPattern)) aria-current="page" @endif>
                     <i data-lucide="{{ $navigationIcon }}"></i>
-                    <span>{{ $navigationLabel }}</span>
+                    <span>{{ $navigationRoute === 'settings' ? 'Account Settings' : $navigationLabel }}</span>
                 </a>
             @endif
         @endforeach
-        <a href="{{ route('logout.confirm') }}" aria-label="Sign Out">
-            <i data-lucide="log-out"></i>
-            <span>Sign Out</span>
-        </a>
+        @if ($navigationPrefix === 'admin')
+            <a href="{{ route('admin.profile') }}" @class(['active' => request()->routeIs('admin.profile')]) aria-label="My Profile" @if (request()->routeIs('admin.profile')) aria-current="page" @endif>
+                <i data-lucide="user-round"></i>
+                <span>My Profile</span>
+            </a>
+        @endif
     </nav>
 </aside>

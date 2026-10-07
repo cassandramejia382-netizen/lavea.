@@ -287,6 +287,60 @@ html[data-lavea-theme="dark"] .lavea-notification-item p {
     color: #8792a6;
 }
 
+.staff-account-menu {
+    position: relative;
+}
+
+.staff-account-menu summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.staff-account-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.staff-account-menu[open] .lavea-admin-profile {
+    color: #4169c8;
+}
+
+.staff-account-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    z-index: 1200;
+    width: 220px;
+    padding: 6px;
+    border: 1px solid #e3e8f0;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 30px #17255424;
+}
+
+.staff-account-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 7px;
+    color: #172554;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.staff-account-dropdown a:hover {
+    background: #f1f5fb;
+}
+
+.staff-account-dropdown svg {
+    width: 17px;
+    height: 17px;
+}
+
+.staff-account-dropdown .logout-link {
+    color: #a73545;
+}
+
 .lavea-page-date {
     position: relative;
     top: 0;

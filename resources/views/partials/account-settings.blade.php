@@ -1,6 +1,6 @@
-<section class="settings-card" id="{{ $settingsRole === 'admin' ? 'admin-profile' : 'profile-information' }}" aria-labelledby="profile-heading">
+<section class="settings-card" id="profile-information" aria-labelledby="profile-heading">
     <h3 id="profile-heading">Profile Information</h3>
-    <p>Update the name and email used for your {{ ucfirst($settingsRole) }} account.</p>
+    <p>Update the name, email, and contact details used for your {{ ucfirst($settingsRole) }} account.</p>
 
     <form method="POST" action="{{ route($settingsRole.'.settings.profile') }}">
         @csrf
@@ -28,7 +28,18 @@
                 <textarea id="account_address" name="address" maxlength="255" autocomplete="street-address" required>{{ old('address', $customerProfile->address) }}</textarea>
                 @error('address')<div class="field-error">{{ $message }}</div>@enderror
             </div>
-        @elseif ($settingsRole === 'customer')
+        @elseif (in_array($settingsRole, ['admin', 'staff']))
+            <div class="form-group">
+                <label for="account_phone">Phone Number</label>
+                <input id="account_phone" name="phone" type="tel" value="{{ old('phone', $settingsRole === 'staff' ? $staffProfile?->phone : auth()->user()->phone) }}" maxlength="20" autocomplete="tel">
+                @error('phone')<div class="field-error">{{ $message }}</div>@enderror
+            </div>
+            <div class="form-group">
+                <label for="account_address">Address</label>
+                <textarea id="account_address" name="address" maxlength="255" autocomplete="street-address">{{ old('address', auth()->user()->address) }}</textarea>
+                @error('address')<div class="field-error">{{ $message }}</div>@enderror
+            </div>
+        @else
             <p class="settings-note">Contact the shop to link your account to your customer contact details.</p>
         @endif
         <button class="btn" type="submit">Update Profile</button>

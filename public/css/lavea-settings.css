@@ -3,31 +3,32 @@
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 14px;
-    padding: 26px;
+    padding: 28px;
     box-shadow: 0 5px 18px rgba(17, 29, 56, 0.04);
 }
 
 .settings-layout {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: 22px;
-    max-width: 1200px;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 26px;
+    width: 100%;
+    max-width: 1500px;
 }
 
 .settings-nav {
     position: sticky;
     top: 95px;
     height: fit-content;
-    padding: 18px 12px;
+    padding: 22px 16px;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    border-radius: 14px;
     background: white;
 }
 
 .settings-nav h3 {
-    padding: 4px 10px 12px;
+    padding: 4px 10px 14px;
     color: #64748b;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: .7px;
     text-transform: uppercase;
 }
@@ -39,7 +40,7 @@
     padding: 11px 10px;
     border-radius: 8px;
     color: #46536a;
-    font-size: 13px;
+    font-size: 14px;
     text-decoration: none;
 }
 
@@ -49,26 +50,26 @@
 }
 
 .settings-nav svg {
-    width: 17px;
-    height: 17px;
+    width: 19px;
+    height: 19px;
 }
 
 .settings-content {
     display: grid;
-    gap: 16px;
+    gap: 18px;
     min-width: 0;
 }
 
 .settings-card h3 {
-    font-size: 17px;
+    font-size: 19px;
     color: #111827;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
 }
 
 .settings-card > p {
-    font-size: 13px;
+    font-size: 15px;
     color: #6b7280;
-    margin: 0 0 25px;
+    margin: 0 0 24px;
 }
 
 .settings-card .form-group {
@@ -77,7 +78,7 @@
 
 .settings-card .form-group label {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: #374151;
     margin-bottom: 7px;
@@ -85,7 +86,7 @@
 
 .settings-card .form-group input {
     width: 100%;
-    padding: 11px 12px;
+    padding: 12px;
     border: 1px solid #d1d5db;
     border-radius: 7px;
     outline: none;
@@ -95,7 +96,7 @@
 .settings-card .form-group textarea {
     width: 100%;
     min-height: 90px;
-    padding: 11px 12px;
+    padding: 12px;
     border: 1px solid #d1d5db;
     border-radius: 7px;
     outline: none;
@@ -197,10 +198,12 @@
 @media (max-width: 900px) {
     .settings-layout {
         grid-template-columns: 1fr;
+        gap: 18px;
     }
 
     .settings-nav {
         position: static;
+        padding: 18px;
     }
 
     .settings-nav-links {
@@ -211,7 +214,15 @@
 
 @media (max-width: 600px) {
     .settings-card {
-        padding: 20px;
+        padding: 22px;
+    }
+
+    .settings-card h3 {
+        font-size: 18px;
+    }
+
+    .settings-card > p {
+        font-size: 14px;
     }
 
     .theme-options {
@@ -266,12 +277,49 @@
     color: #526078;
 }
 
+.settings-page-head {
+    margin-bottom: 30px;
+}
+
+.settings-page-head h1 {
+    font-size: 26px;
+}
+
+.settings-page-head .muted,
+.lavea-admin-content .page-header p {
+    font-size: 15px;
+}
+
+.lavea-admin-content .page-header {
+    margin-bottom: 26px;
+}
+
+.lavea-admin-content .page-header h2 {
+    font-size: 26px;
+    color: #10204a;
+}
+
 @media (max-width: 600px) {
+    .settings-page-head h1,
+    .lavea-admin-content .page-header h2 {
+        font-size: 24px;
+    }
+
+    .settings-page-head .muted,
+    .lavea-admin-content .page-header p {
+        font-size: 16px;
+    }
+
     .settings-nav-links {
         grid-template-columns: 1fr;
     }
 
     .settings-card {
+        padding: 22px;
         scroll-margin-top: 130px;
+    }
+
+    .settings-card > p {
+        margin-bottom: 24px;
     }
 }
