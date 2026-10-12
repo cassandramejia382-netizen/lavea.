@@ -9,6 +9,7 @@
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('css/admin-layout.css') }}?v={{ filemtime(public_path('css/admin-layout.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}?v={{ filemtime(public_path('css/admin-topbar.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
 <body>
     <div class="dashboard">
@@ -26,5 +27,7 @@
         }
     </script>
     @stack('scripts')
+@include('partials.logout-dialog')
+@include('partials.dashboard-back-navigation')
 </body>
 </html>

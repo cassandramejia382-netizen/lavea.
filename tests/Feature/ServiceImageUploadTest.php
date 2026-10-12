@@ -48,7 +48,7 @@ test('admin uploads supported images and sees them after reloading the list', fu
 
     $this->post(route('admin.services.store'), [
         'service_name' => 'Wash and Fold', 'price' => 150, 'description' => 'Fresh laundry',
-        'image' => UploadedFile::fake()->image('laundry.'.$extension),
+        'image' => UploadedFile::fake()->image('laundry.'.$extension)->size(20480),
     ])->assertRedirect(route('admin.services.index'))->assertSessionHasNoErrors();
 
     $service = Service::sole();
@@ -77,7 +77,7 @@ test('admin replaces an image only after the service is updated', function (): v
     $service = ServiceFactory::new()->create(['image' => 'services/old.png']);
     $this->actingAs(User::factory()->create(['role' => 'admin']))->put(route('admin.services.update', $service), [
         'service_name' => 'Updated service', 'price' => 200,
-        'image' => UploadedFile::fake()->image('replacement.webp'),
+        'image' => UploadedFile::fake()->image('replacement.webp')->size(20480),
     ])->assertRedirect(route('admin.services.index'))->assertSessionHasNoErrors();
     $service->refresh();
     $this->assertDatabaseHas('services', ['id' => $service->id, 'service_name' => 'Updated service', 'price' => 200]);
@@ -133,7 +133,6 @@ test('invalid images leave the database and existing image unchanged', function 
     $disguisedFile = tmpfile();
     fwrite($disguisedFile, 'This is not an image.');
     $image = match ($kind) {
-        'oversized' => UploadedFile::fake()->image('large.png')->size(2049),
         'unsupported' => UploadedFile::fake()->image('animated.gif'),
         'disguised' => new UploadedFile(stream_get_meta_data($disguisedFile)['uri'], 'fake.jpg', 'image/jpeg', null, true),
     };
@@ -145,7 +144,7 @@ test('invalid images leave the database and existing image unchanged', function 
     $this->assertDatabaseHas('services', ['id' => $service->id, 'image' => 'services/existing.png', 'service_name' => $service->service_name]);
     Storage::disk('public')->assertExists('services/existing.png');
     expect(Storage::disk('public')->allFiles('services'))->toHaveCount(1);
-})->with(['oversized', 'unsupported', 'disguised'])->with(['post', 'put']);
+})->with(['unsupported', 'disguised'])->with(['post', 'put']);
 
 test('staff and customers cannot change service images', function (string $role, string $method): void {
     Storage::fake('public');

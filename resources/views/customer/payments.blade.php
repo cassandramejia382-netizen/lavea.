@@ -17,16 +17,16 @@
     .payment-section-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px; }
     .payment-section-heading h2 { margin:0;font-size:16px;color:#172554; }
     .payment-section-heading p { margin:4px 0 0;color:#78869d;font-size:12px; }
-    .payable-order-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:11px; }
-    .payable-order-card { padding:14px;border:1px solid #e9edf5;border-radius:9px;background:linear-gradient(145deg,#fff,#f9fbff);transition:transform 160ms ease,border-color 160ms ease,box-shadow 160ms ease; }
+    .payable-order-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,245px),1fr));gap:11px; }
+    .payable-order-card { padding:12px;border:1px solid #e9edf5;border-radius:9px;background:linear-gradient(145deg,#fff,#f9fbff);transition:transform 160ms ease,border-color 160ms ease,box-shadow 160ms ease; }
     .payable-order-card:hover { transform:translateY(-2px);border-color:#cbd8f4;box-shadow:0 7px 16px rgb(23 37 84 / 7%); }
     .payable-order-top { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px; }
     .payable-order-number { color:#4169c8;font-size:12px;font-weight:700;text-decoration:none; }
     .payable-order-number:hover { text-decoration:underline; }
-    .payable-order-service { margin:0 0 12px;color:#263550;font-size:14px;font-weight:600; }
-    .payable-order-meta { display:flex;justify-content:space-between;gap:8px;margin-bottom:12px;color:#78869d;font-size:12px; }
+    .payable-order-service { margin:0 0 8px;color:#263550;font-size:14px;font-weight:600; }
+    .payable-order-meta { display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;color:#78869d;font-size:12px; }
     .payable-order-meta strong { color:#263550;font-size:13px; }
-    .payable-order-card .btn { width:100%;justify-content:center;padding:9px 12px;font-size:12px; }
+    .payable-order-card .btn { width:auto;justify-content:center;padding:8px 14px;font-size:12px; }
     .payment-search { display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px;padding:12px;border:1px solid #e6eaf2;border-radius:10px;background:#fff; }
     .payment-search input,.payment-search select { min-height:38px;padding:8px 11px;border:1px solid #dfe5ef;border-radius:7px;background:#fff;color:#263550;font:inherit;font-size:13px; }
     .payment-search input { flex:1;min-width:220px; }
@@ -122,7 +122,7 @@
                         <td><span class="pill" data-status="{{ $payment->status }}">{{ $payment->status }}</span></td>
                         <td>&#8369;{{ number_format($payment->amount, 2) }}</td>
                         <td>
-                            @if ($payment->status === 'Completed')
+                            @if (in_array($payment->status, ['Completed', 'Pending'], true))
                                 <a class="payment-receipt-link" href="{{ route('customer.payments.show', ['payment' => $payment, 'print' => 1]) }}" target="_blank" rel="noopener" aria-label="Print receipt for payment {{ $payment->id }}"><i data-lucide="printer" style="width:14px;height:14px"></i>Print Receipt</a>
                             @else
                                 <span class="muted">—</span>

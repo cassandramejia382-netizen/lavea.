@@ -5,7 +5,6 @@ use App\Notifications\SystemNotification;
 use Database\Factories\CustomerFactory;
 use Database\Factories\StaffFactory;
 use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
@@ -14,9 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\URL;
 
-test('Gmail SMTP accepts registration and resend verification and the signed link opens the customer dashboard', function (): void {
+test('Gmail SMTP accepts registration and resend verification and the code opens the customer dashboard', function (): void {
     if (getenv('LAVEA_GMAIL_SMTP_TEST') !== '1') {
         $this->markTestSkipped('Enable explicitly to send two verification emails to the configured Gmail sender.');
     }
@@ -34,10 +32,9 @@ test('Gmail SMTP accepts registration and resend verification and the signed lin
     $this->from(route('verification.notice'))->post(route('verification.send'))
         ->assertRedirect(route('verification.notice'))->assertSessionHas('status')->assertSessionMissing('email_error');
 
-    $verificationUrl = (new VerifyEmail)->toMail($customer)->actionUrl;
-    $this->get($verificationUrl)->assertRedirect(route('customer.dashboard'));
+    $this->post(route('verification.verify'), ['verification_code' => $customer->fresh()->verification_code])->assertRedirect(route('customer.dashboard'));
     expect($customer->fresh()->hasVerifiedEmail())->toBeTrue();
-    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified.');
+    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified successfully!');
 });
 
 beforeEach(function (): void {
@@ -88,7 +85,7 @@ test('new customer registration creates one normalized login and profile and sen
     $customer = User::where('email', 'fresh.customer@example.com')->sole();
     $this->assertAuthenticatedAs($customer);
     expect(Hash::check('StrongPassword123!', $customer->password))->toBeTrue();
-    Notification::assertSentTo($customer, VerifyEmail::class);
+    expect($customer->verification_code)->toMatch('/^\d{6}$/');
     Notification::assertSentTo($admin, SystemNotification::class);
 });
 
@@ -152,11 +149,11 @@ test('wrong passwords remain rejected after email normalization', function (): v
     $this->assertGuest();
 });
 
-test('customer verification links mark the account verified and allow the dashboard', function (): void {
-    $user = User::factory()->unverified()->create(['role' => 'customer', 'email' => 'verify@example.com']);
-    $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), ['id' => $user->id, 'hash' => sha1($user->email)]);
-    $this->actingAs($user)->get($url)->assertRedirect(route('customer.dashboard'));
+test('customer verification codes mark the account verified and allow the dashboard', function (): void {
+    $user = User::factory()->unverified()->create(['role' => 'customer', 'verification_code' => '123456', 'verification_code_expires_at' => now()->addMinutes(10)]);
+    $this->actingAs($user)->post(route('verification.verify'), ['verification_code' => '123456'])->assertRedirect(route('customer.dashboard'));
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    expect($user->fresh()->verification_code)->toBeNull();
     $this->get(route('customer.dashboard'))->assertOk();
 });
 
@@ -183,15 +180,15 @@ test('password reset tokens alone do not reserve an email for registration', fun
     Notification::fake();
     $this->post(route('register.submit'), registrationPayload('new@example.com'))->assertRedirect(route('verification.notice'));
     $this->assertDatabaseHas('users', ['email' => 'new@example.com', 'role' => 'customer']);
-    Notification::assertSentTo(User::where('email', 'new@example.com')->sole(), VerifyEmail::class);
+    expect(User::where('email', 'new@example.com')->sole()->verification_code)->toMatch('/^\d{6}$/');
 });
 
-test('resending verification sends one notification without creating accounts', function (): void {
+test('resending verification emails a new code without creating accounts', function (): void {
     $user = User::factory()->unverified()->create(['role' => 'customer']);
     Notification::fake();
     $this->actingAs($user)->from(route('verification.notice'))->post(route('verification.send'))
-        ->assertRedirect(route('verification.notice'))->assertSessionHas('status', 'A new verification link has been sent to your email address.');
-    Notification::assertSentToTimes($user, VerifyEmail::class, 1);
+        ->assertRedirect(route('verification.notice'))->assertSessionHas('status', 'A new verification code has been sent to your email.');
+    expect($user->fresh()->verification_code)->toMatch('/^\d{6}$/');
     $this->assertDatabaseCount('users', 1);
     $this->assertDatabaseCount('customers', 0);
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
@@ -199,7 +196,7 @@ test('resending verification sends one notification without creating accounts', 
 
 test('failed verification sending is reported and keeps the customer unverified', function (string $flow): void {
     Exceptions::fake();
-    Notification::shouldReceive('send')->once()->andThrow(new RuntimeException('SMTP authentication failed'));
+    Mail::shouldReceive('raw')->once()->andThrow(new RuntimeException('SMTP authentication failed'));
     if ($flow === 'registration') {
         $response = $this->post(route('register.submit'), registrationPayload('new@example.com'));
     } else {
@@ -213,20 +210,20 @@ test('failed verification sending is reported and keeps the customer unverified'
     $this->assertAuthenticated();
 })->with(['registration', 'resend']);
 
-test('signed verification links cannot verify the wrong account or email', function (string $invalid): void {
-    $user = User::factory()->unverified()->create(['role' => 'customer']);
-    $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
-        'id' => $invalid === 'account' ? $user->id + 1 : $user->id,
-        'hash' => $invalid === 'email' ? sha1('other@example.com') : sha1($user->email),
-    ]);
-    $this->actingAs($user)->get($url)->assertForbidden();
+test('verification codes cannot verify the wrong account or an incorrect code', function (string $invalid): void {
+    $user = User::factory()->unverified()->create(['role' => 'customer', 'verification_code' => '123456', 'verification_code_expires_at' => now()->addMinutes(10)]);
+    $other = User::factory()->unverified()->create(['role' => 'customer', 'verification_code' => '654321', 'verification_code_expires_at' => now()->addMinutes(10)]);
+    $code = $invalid === 'account' ? $other->verification_code : '999999';
+    $this->actingAs($user)->from(route('verification.notice'))->post(route('verification.verify'), ['verification_code' => $code])
+        ->assertSessionHasErrors('verification_code');
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+    expect($other->fresh()->hasVerifiedEmail())->toBeFalse();
 })->with(['account', 'email']);
 
-test('expired verification links are rejected', function (): void {
-    $user = User::factory()->unverified()->create(['role' => 'customer']);
-    $url = URL::temporarySignedRoute('verification.verify', now()->subMinute(), ['id' => $user->id, 'hash' => sha1($user->email)]);
-    $this->actingAs($user)->get($url)->assertForbidden();
+test('expired verification codes are rejected', function (): void {
+    $user = User::factory()->unverified()->create(['role' => 'customer', 'verification_code' => '123456', 'verification_code_expires_at' => now()->subMinute()]);
+    $this->actingAs($user)->from(route('verification.notice'))->post(route('verification.verify'), ['verification_code' => '123456'])
+        ->assertSessionHasErrors(['verification_code' => 'The verification code has expired. Please request a new code.']);
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
@@ -243,9 +240,9 @@ test('registration renders and delivers the real verification notification to th
     $messages = Mail::mailer()->getSymfonyTransport()->messages();
     expect($messages)->toHaveCount(1);
     $email = $messages->first()->getOriginalMessage();
-    expect($email->getSubject())->toBe('Verify your LAVEA email address');
+    expect($email->getSubject())->toBe('LAVEA Email Verification Code');
     expect($email->getTo()[0]->getAddress())->toBe('new@example.com');
-    expect($email->getHtmlBody())->toContain('Verify Email Address', '/email/verify/', 'signature=');
+    expect($email->getTextBody())->toContain(User::sole()->verification_code, 'expire in 10 minutes');
     expect(User::sole()->hasVerifiedEmail())->toBeFalse();
 
     $this->get(route('customer.dashboard'))->assertRedirect(route('verification.notice'));
@@ -254,7 +251,7 @@ test('registration renders and delivers the real verification notification to th
     expect(Mail::mailer()->getSymfonyTransport()->messages())->toHaveCount(2);
 
     $customer = User::sole();
-    $this->get((new VerifyEmail)->toMail($customer)->actionUrl)->assertRedirect(route('customer.dashboard'));
+    $this->post(route('verification.verify'), ['verification_code' => $customer->fresh()->verification_code])->assertRedirect(route('customer.dashboard'));
     expect($customer->fresh()->hasVerifiedEmail())->toBeTrue();
-    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified.');
+    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified successfully!');
 });

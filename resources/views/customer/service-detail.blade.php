@@ -59,7 +59,7 @@
             @csrf
             <div class="field">
                 <label for="quantity">Weight</label>
-                <div style="display:flex;align-items:center;gap:9px"><input id="quantity" type="number" name="quantity" min="1" max="9" step="1" value="{{ old('quantity', 1) }}" required><span>kg</span></div>
+                <div style="display:flex;align-items:center;gap:9px"><input id="quantity" type="number" name="quantity" min="1" max="9" step="0.01" value="{{ old('quantity', 1) }}" required><span>kg</span></div>
                 <small class="muted">Maximum: 9 kg</small>
             </div>
             <div class="field">

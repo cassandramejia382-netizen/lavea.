@@ -13,6 +13,7 @@
     .checkout-service { display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #e8edf6;border-radius:10px;background:#f8faff; }
     .checkout-service-icon { display:grid;place-items:center;flex:none;width:39px;height:39px;border-radius:10px;background:#e8efff;color:#4169c8; }
     .checkout-service-icon svg { width:19px;height:19px; }
+    .checkout-service-icon img { display:block;width:100%;height:100%;object-fit:contain;border-radius:10px; }
     .checkout-service-label { color:#78869d;font-size:12px; }
     .checkout-service strong { display:block;margin-top:3px;color:#172554;font-size:15px; }
     .checkout-facts { display:grid;gap:12px;margin-top:17px; }
@@ -23,6 +24,12 @@
     .checkout-balance strong { display:block;margin-top:4px;color:#3159b2;font-size:26px; }
     .checkout-form { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
     .checkout-form .field.full { grid-column:1/-1; }
+    #proof-field[hidden] { display:none; }
+    #proof-preview-frame { position:relative;align-self:flex-start;width:240px;max-width:100%; }
+    #proof-preview-frame[hidden] { display:none; }
+    #remove-proof { position:absolute;top:6px;right:6px;display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid #dfe5ef;border-radius:50%;background:#fff;color:#34415a;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 2px 6px #17255420; }
+    #remove-proof:hover { background:#fff2f4;color:#a73545; }
+    #remove-proof:focus-visible { outline:2px solid #4169c8;outline-offset:2px; }
     .checkout-form .field { gap:7px; }
     .checkout-form .field label { font-size:14px; }
     .checkout-form .field input,.checkout-form .field select,.checkout-form .field textarea { padding:11px 12px;border-radius:8px;font-size:14px; }
@@ -57,7 +64,13 @@
         <section class="customer-checkout-panel">
             <h2>Order summary</h2>
             <div class="checkout-service">
-                <span class="checkout-service-icon"><i data-lucide="washing-machine"></i></span>
+                <span class="checkout-service-icon">
+                    @if($imageUrl = $order->service?->imageUrl())
+                        <img src="{{ $imageUrl }}" alt="{{ $order->service->service_name }}">
+                    @else
+                        <i data-lucide="washing-machine"></i>
+                    @endif
+                </span>
                 <div><span class="checkout-service-label">Laundry service</span><strong>{{ $order->service?->service_name ?? 'Laundry service' }}</strong></div>
             </div>
             <div class="checkout-facts">
@@ -70,7 +83,7 @@
 
         <section class="customer-checkout-panel">
             <h2>Payment details</h2>
-            <form class="checkout-form" method="POST" action="{{ route('customer.payments.checkout.store', $order) }}">
+            <form class="checkout-form" method="POST" enctype="multipart/form-data" action="{{ route('customer.payments.checkout.store', $order) }}">
                 @csrf
                 <div class="field">
                     <label for="amount">Amount to pay</label>
@@ -89,10 +102,20 @@
                         @endforeach
                     </div>
                 </fieldset>
+                <div class="field full" id="proof-field">
+                    <label for="proof_image" id="proof-label">Proof of payment (optional)</label>
+                    <input id="proof_image" name="proof_image" type="file" accept="image/jpeg,image/png,image/webp">
+                    <small>Upload a receipt or payment screenshot. JPG, PNG or WEBP, up to 10 MB.</small>
+                    @error('proof_image')<span role="alert" style="color:#b42335">{{ $message }}</span>@enderror
+                    <div id="proof-preview-frame" hidden>
+                        <img id="proof-preview" alt="Selected proof of payment" style="display:block;width:100%;max-height:240px;object-fit:contain;border-radius:9px">
+                        <button id="remove-proof" type="button" aria-label="Remove selected proof photo" title="Remove photo">&times;</button>
+                    </div>
+                </div>
                 <div class="field full" id="reference-field">
                     <label for="reference_number">Transfer reference number <span id="reference-required">*</span></label>
                     <input id="reference_number" name="reference_number" maxlength="255" value="{{ old('reference_number') }}" placeholder="Enter the reference from your transfer">
-                    <small class="muted">Required for GCash and bank transfers. Cash and card payments are confirmed at the shop.</small>
+                    <small class="muted">Required for GCash and bank transfers. You can attach payment proof for GCash, bank transfers and card payments.</small>
                 </div>
                 <div class="field full">
                     <label for="notes">Note <span class="muted" style="font-weight:400">(optional)</span></label>
@@ -112,9 +135,46 @@
     const paymentMethodOptions = document.querySelectorAll('.checkout-method-option');
     const referenceInput = document.getElementById('reference_number');
     const referenceRequired = document.getElementById('reference-required');
+    const proofInput = document.getElementById('proof_image');
+    const proofPreview = document.getElementById('proof-preview');
+    const proofPreviewFrame = document.getElementById('proof-preview-frame');
+    const removeProof = document.getElementById('remove-proof');
+    let proofPreviewUrl;
+    const clearProof = () => {
+        proofInput.value = '';
+        proofPreviewFrame.hidden = true;
+        proofPreview.removeAttribute('src');
+        if (proofPreviewUrl) {
+            URL.revokeObjectURL(proofPreviewUrl);
+            proofPreviewUrl = undefined;
+        }
+    };
+    removeProof.addEventListener('click', () => {
+        clearProof();
+        proofInput.focus();
+    });
+    proofInput.addEventListener('change', () => {
+        if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+        const file = proofInput.files[0];
+        proofPreviewFrame.hidden = !file;
+        if (file) {
+            proofPreviewUrl = URL.createObjectURL(file);
+            proofPreview.src = proofPreviewUrl;
+        } else proofPreview.removeAttribute('src');
+    });
+    let previousPaymentMethod;
     const updatePaymentMethod = () => {
         const selectedMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+        if (previousPaymentMethod && previousPaymentMethod !== selectedMethod) {
+            clearProof();
+            referenceInput.value = '';
+        }
+        previousPaymentMethod = selectedMethod;
+        document.getElementById('proof-label').textContent = `${selectedMethod} proof of payment (optional)`;
         const requiresReference = ['GCash', 'Bank Transfer'].includes(selectedMethod);
+        const allowsProof = ['GCash', 'Bank Transfer', 'Card'].includes(selectedMethod);
+        document.getElementById('proof-field').hidden = !allowsProof;
+        proofInput.disabled = !allowsProof;
         referenceInput.required = requiresReference;
         referenceRequired.hidden = !requiresReference;
         referenceInput.placeholder = requiresReference ? 'Enter the reference from your transfer' : 'Optional';

@@ -1,7 +1,13 @@
 <?php
 
+use App\Models\Customer;
+use App\Models\Staff;
 use App\Models\User;
 use Database\Factories\CustomerFactory;
+use Database\Factories\OrderFactory;
+use Database\Factories\PaymentFactory;
+use Database\Factories\ScheduleFactory;
+use Database\Factories\ServiceFactory;
 use Database\Factories\StaffFactory;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Schema\Blueprint;
@@ -57,3 +63,10 @@ foreach (['admin', 'staff', 'customer'] as $role) {
         StaffFactory::new()->create(['email' => $user->email]);
     }
 }
+
+$browserCustomer = Customer::where('email', 'customer@logout-browser.test')->firstOrFail();
+$browserStaff = Staff::where('email', 'staff@logout-browser.test')->firstOrFail();
+$browserService = ServiceFactory::new()->create(['service_name' => 'Laundry Service With A Longer Name', 'description' => str_repeat('Careful laundry cleaning. ', 8)]);
+$browserOrder = OrderFactory::new()->for($browserCustomer)->for($browserService)->create(['staff_id' => $browserStaff->id, 'pickup_date' => today()->addDays(3), 'total' => 300]);
+PaymentFactory::new()->for($browserOrder)->create(['status' => 'Completed', 'amount' => 100]);
+ScheduleFactory::new()->for($browserOrder)->create();

@@ -13,6 +13,7 @@
         @media print{.sidebar,.lavea-admin-topbar,.lavea-admin-topbar-spacer,.no-print{display:none!important}.main{margin:0;width:100%}.content{padding:0}.print-only{display:block}}
     </style>
     @stack('styles')
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
 <body>
 <div class="dashboard">
@@ -22,7 +23,7 @@
                 $isCustomerPortal = ($portal ?? 'staff') === 'customer';
                 $navigation = $isCustomerPortal
                     ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','Records'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','My Profile']]
-                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['schedules','calendar-days','Schedule'],['profile','user-round','My Profile']];
+                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['profile','user-round','My Profile']];
                 $portalPrefix = $isCustomerPortal ? 'customer' : 'staff';
                 $navigation[] = ['settings', 'settings', $isCustomerPortal ? 'Account Settings' : 'Settings'];
             @endphp
@@ -57,4 +58,6 @@
 <script>
     lucide.createIcons();
 </script>
+@include('partials.logout-dialog')
+@include('partials.dashboard-back-navigation')
 </body></html>

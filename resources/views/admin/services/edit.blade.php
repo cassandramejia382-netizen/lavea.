@@ -207,7 +207,7 @@
                     accept=".jpg,.jpeg,.png,.webp"
                     aria-describedby="image-help"
                 >
-                <small id="image-help">JPG, JPEG, PNG or WEBP. Maximum 2 MB. Leave empty to keep the current image.</small>
+                <small id="image-help">JPG, JPEG, PNG or WEBP. Leave empty to keep the current image.</small>
                 @include('partials.service-image-preview')
 
                 @error('image')

@@ -507,6 +507,7 @@
 
         }
     </style>
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
 
 <body class="home-page">

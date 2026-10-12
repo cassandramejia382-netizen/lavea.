@@ -69,6 +69,32 @@
 .lavea-admin-content .table-container {
             overflow-x: auto;
         }
+.lavea-admin-content .customer-search {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 17px;
+        }
+.lavea-admin-content .customer-search input {
+            flex: 1;
+            min-width: 0;
+            padding: 11px;
+            border: 1px solid #dfe5ef;
+            border-radius: 7px;
+            color: #263550;
+            background: white;
+            font: inherit;
+        }
+.lavea-admin-content .customer-search button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 7px;
+            background: #4169c8;
+            color: white;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+.lavea-admin-content .customer-search button:hover { background: #3459b1; }
 .lavea-admin-content table {
             width: 100%;
             border-collapse: collapse;
@@ -198,6 +224,10 @@
 
 
             <!-- CUSTOMER TABLE -->
+            <form class="customer-search" method="GET" action="{{ route('admin.customers.index') }}">
+                <input type="search" name="search" value="{{ $search }}" placeholder="Name, email or phone" aria-label="Search customers by name, email or phone">
+                <button type="submit">Search</button>
+            </form>
             <div class="card">
 
                 <div class="table-container">

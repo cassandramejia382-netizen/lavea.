@@ -130,14 +130,40 @@
             font-size: 12px;
             color: #44526d;
         }
+.lavea-admin-content .service-image-frame {
+            display: block;
+            width: 55px;
+            height: 55px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #eef2f8;
+        }
 .lavea-admin-content .service-image {
             display: block;
             width: 55px;
             height: 55px;
-            border-radius: 8px;
             object-fit: contain;
             object-position: center;
-            background: #eef2f8;
+            animation: service-image-appear 450ms ease-out backwards;
+            transition: transform 250ms ease;
+        }
+.lavea-admin-content a:hover .service-image,
+.lavea-admin-content a:focus-visible .service-image {
+            transform: scale(1.08);
+        }
+@keyframes service-image-appear {
+            from { opacity: 0; transform: translateY(6px) scale(.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+@media (prefers-reduced-motion: reduce) {
+            .lavea-admin-content .service-image {
+                animation: none;
+                transition: none;
+            }
+            .lavea-admin-content a:hover .service-image,
+            .lavea-admin-content a:focus-visible .service-image {
+                transform: none;
+            }
         }
 .lavea-admin-content .no-image {
             width: 55px;
@@ -230,6 +256,7 @@
 
 
             <!-- SERVICE TABLE -->
+            @include('admin.partials.list-search', ['searchRoute' => 'admin.services.index', 'searchPlaceholder' => 'Service name or description', 'search' => $search])
             <div class="card">
 
                 <div class="card-header">
@@ -264,7 +291,7 @@
 
                                         @if($imageUrl = $service->imageUrl())
 
-                                            <a href="{{ route('admin.services.show', $service) }}" aria-label="View {{ $service->service_name }} details">
+                                            <a class="service-image-frame" href="{{ route('admin.services.show', $service) }}" aria-label="View {{ $service->service_name }} details">
                                                 <img
                                                     src="{{ $imageUrl }}"
                                                     class="service-image"

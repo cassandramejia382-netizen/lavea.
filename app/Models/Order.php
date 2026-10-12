@@ -28,6 +28,13 @@ class Order extends Model
         'notes',
     ];
 
+    public function canCustomerModify(): bool
+    {
+        return $this->status === 'Pending'
+            && $this->payment_status === 'Unpaid'
+            && ! $this->payments->contains(fn (Payment $payment): bool => in_array($payment->status, ['Pending', 'Completed'], true));
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);

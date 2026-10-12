@@ -57,7 +57,10 @@
                 <nav class="staff-account-dropdown" aria-label="{{ ucfirst(auth()->user()->role) }} account">
                     <a href="{{ route($accountRoutePrefix.'.profile') }}"><i data-lucide="user-round"></i><span>My Profile</span></a>
                     <a href="{{ route($accountRoutePrefix.'.settings') }}"><i data-lucide="settings"></i><span>Account Settings</span></a>
-                    <a class="logout-link" href="{{ route('logout.confirm') }}"><i data-lucide="log-out"></i><span>Log Out</span></a>
+                    <form method="POST" action="{{ route('logout') }}" data-confirm-logout>
+                        @csrf
+                        <button class="logout-link" type="submit" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:7px;background:transparent;color:#a73545;font:inherit;font-size:13px;text-align:left;cursor:pointer"><i data-lucide="log-out"></i><span>Log Out</span></button>
+                    </form>
                 </nav>
             </details>
         @else

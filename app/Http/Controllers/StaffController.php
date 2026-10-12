@@ -6,18 +6,28 @@ use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\LaveaPasswordResetNotification;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\View\View;
 
 class StaffController extends Controller
 {
-    public function index()
+    public function index(Request $request): View
     {
-        $staff = Staff::with('user')->latest()->get();
+        $search = trim($request->query('search', ''));
+        $staff = Staff::with('user')
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $query) use ($search): void {
+                    $query->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%')
+                        ->orWhere('phone', 'like', '%'.$search.'%');
+                });
+            })->latest()->get();
 
-        return view('admin.staff.index', compact('staff'));
+        return view('admin.staff.index', compact('staff', 'search'));
     }
 
     public function create()

@@ -1,6 +1,7 @@
 @php
     $notifications = auth()->user()->notifications()->latest()->take(8)->get();
     $unreadCount = auth()->user()->unreadNotifications()->count();
+    $notificationsReadAllUrl = route('notifications.read-all', [], false);
 @endphp
 
 <div class="lavea-notification" data-unread-count="{{ $unreadCount }}">
@@ -12,7 +13,7 @@
     </button>
 
     <div class="lavea-notification-dropdown" id="notification-panel" hidden>
-        <div class="lavea-notification-heading">Notifications</div>
+        <div class="lavea-notification-heading">Notifications</div><p class="lavea-notification-empty" data-read-error role="alert" hidden>Could not mark notifications as read. Refresh the page and try again.</p>
 
         @forelse ($notifications as $notification)
             @php
@@ -53,49 +54,36 @@
         const notificationContainer = toggle.closest('.lavea-notification');
         const csrfToken = @json(csrf_token());
 
-        function markVisibleNotificationsAsRead() {
-            panel.querySelectorAll('[data-read-url]').forEach(async function (item) {
-                if (item.dataset.readPending) {
-                    return;
-                }
-
-                item.dataset.readPending = 'true';
-
-                try {
-                    const response = await fetch(item.dataset.readUrl, {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                    });
-
-                    if (!response.ok || response.redirected) {
-                        return;
-                    }
-
+        let readRequestPending = false;
+        async function markVisibleNotificationsAsRead() {
+            if (readRequestPending || Number(notificationContainer.dataset.unreadCount) === 0) return;
+            readRequestPending = true;
+            const readError = panel.querySelector('[data-read-error]');
+            readError.hidden = true;
+            try {
+                const response = await fetch(@json($notificationsReadAllUrl), {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                });
+                if (!response.ok || response.redirected) throw new Error('Could not mark notifications as read');
+                const result = await response.json();
+                notificationContainer.dataset.unreadCount = String(result.unread_count);
+                panel.querySelectorAll('[data-read-url]').forEach(item => {
                     delete item.dataset.readUrl;
                     item.classList.remove('is-unread');
-                    const remaining = Math.max(0, Number(notificationContainer.dataset.unreadCount) - 1);
-                    notificationContainer.dataset.unreadCount = String(remaining);
-                    const badge = toggle.querySelector('.lavea-notification-count');
-
-                    if (badge) {
-                        if (remaining === 0) {
-                            badge.remove();
-                        } else {
-                            badge.textContent = remaining > 99 ? '99+' : String(remaining);
-                        }
-                    }
-                } catch (error) {
-                    // Keep unread notifications available for retry on the next opening.
-                } finally {
-                    delete item.dataset.readPending;
+                });
+                const badge = toggle.querySelector('.lavea-notification-count');
+                if (badge) {
+                    if (result.unread_count === 0) badge.remove();
+                    else badge.textContent = result.unread_count > 99 ? '99+' : String(result.unread_count);
                 }
-            });
+            } catch (error) {
+                readError.hidden = false;
+            } finally {
+                readRequestPending = false;
+            }
         }
-
         toggle.addEventListener('click', function () {
             panel.hidden = !panel.hidden;
             toggle.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');

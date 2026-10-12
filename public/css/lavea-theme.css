@@ -83,6 +83,46 @@
         color: var(--lavea-blue-text) !important;
     }
 
+    body :is(.overview-stat-icon, .payment-overview-icon, .customer-record-stat-icon,
+        .checkout-service-icon, .checkout-method-icon, .customer-checkout-heading-icon,
+        .logout-dialog-icon, .customer-view, .service-image-frame) {
+        background: var(--lavea-blue-background) !important;
+        color: var(--lavea-blue-text) !important;
+    }
+
+    body .overview-stat:nth-child(2) .overview-stat-icon {
+        background: var(--lavea-amber-background) !important;
+        color: var(--lavea-amber-text) !important;
+    }
+
+    body :is(.record-edit, .overview-stat:nth-child(3) .overview-stat-icon) {
+        background: var(--lavea-purple-background) !important;
+        color: var(--lavea-purple-text) !important;
+    }
+
+    body :is(.overview-payment-icon, .overview-stat:nth-child(4) .overview-stat-icon,
+        .payment-overview-card:nth-child(2) .payment-overview-icon) {
+        background: var(--lavea-green-background) !important;
+        color: var(--lavea-green-text) !important;
+    }
+
+    body .payment-overview-card:nth-child(3) .payment-overview-icon {
+        background: var(--lavea-amber-background) !important;
+        color: var(--lavea-amber-text) !important;
+    }
+
+    body :is(.record-delete, .customer-delete) {
+        background: var(--lavea-red-background) !important;
+        color: var(--lavea-red-text) !important;
+    }
+
+    body :is(.overview-stat-icon, .overview-payment-icon, .payment-overview-icon,
+        .customer-record-stat-icon, .checkout-service-icon, .checkout-method-icon,
+        .customer-checkout-heading-icon, .record-action, .customer-action,
+        .logout-dialog-icon) :is(svg, svg *, i[data-lucide]) {
+        color: inherit !important;
+    }
+
     body :is(.avatar, .customer-avatar, .staff-avatar, .profile-icon,
         .lavea-admin-avatar, .activity-icon, .report-card-icon,
         .stat-icon.blue, .no-image, .service-placeholder) {

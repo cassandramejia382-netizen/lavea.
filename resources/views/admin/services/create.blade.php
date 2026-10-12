@@ -189,7 +189,7 @@
                                 accept=".jpg,.jpeg,.png,.webp"
                                 aria-describedby="image-help"
                             >
-                            <small id="image-help">JPG, JPEG, PNG or WEBP. Maximum 2 MB.</small>
+                            <small id="image-help">JPG, JPEG, PNG or WEBP.</small>
                             @include('partials.service-image-preview')
                             @error('image')
                                 <div class="error">{{ $message }}</div>

@@ -4,7 +4,7 @@
     <div><h1>Payment #LVE-PAY-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</h1><div class="muted">Payment details for Order #LVE-{{ str_pad($payment->order_id, 4, '0', STR_PAD_LEFT) }}.</div></div>
     <div class="actions">
         <a class="btn secondary" href="{{ route('customer.payments.index') }}">Back to Payments</a>
-        @if($payment->status === 'Completed')
+        @if(in_array($payment->status, ['Completed', 'Pending'], true))
             <button class="btn" type="button" onclick="window.print()">Print Receipt</button>
         @endif
     </div>
@@ -31,12 +31,16 @@
     @endif
 </div>
 
-@if($payment->status === 'Completed')
+@if($payment->status === 'Pending')
+    <p class="muted no-print">Payment is pending staff verification.</p>
+@endif
+@if(in_array($payment->status, ['Completed', 'Pending'], true))
     @include('partials.payment-receipt', ['payment' => $payment])
 @endif
-@if ($payment->status === 'Completed' && request()->boolean('print'))
+@if (in_array($payment->status, ['Completed', 'Pending'], true) && request()->boolean('print'))
     <script>
         window.addEventListener('load', () => window.print(), { once: true });
     </script>
 @endif
+@include('partials.payment-proof', ['payment' => $payment])
 @endsection

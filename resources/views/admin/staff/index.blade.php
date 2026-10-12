@@ -194,6 +194,7 @@
 
 
         <!-- STAFF CARD -->
+        @include('admin.partials.list-search', ['searchRoute' => 'admin.staff.index', 'searchPlaceholder' => 'Name, email or phone', 'search' => $search])
         <div class="card">
 
             <div class="card-header">

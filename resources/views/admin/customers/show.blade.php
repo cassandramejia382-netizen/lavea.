@@ -4,8 +4,8 @@
 
 <style>
 .lavea-admin-content .container { max-width: 720px; margin: 32px auto; padding: 0 20px; }
-.lavea-admin-content .back { display: inline-block; color: #4169c8; text-decoration: none; font-size: 13px; line-height: 1.5; }
-.lavea-admin-content .back:hover { text-decoration: underline; }
+.lavea-admin-content .back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #edf3ff; border: 1px solid #dce6fa; border-radius: 8px; color: #4169c8; text-decoration: none; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.lavea-admin-content .back:hover { background: #dfeaff; }
 .lavea-admin-content .back:focus-visible { outline: 2px solid #4169c8; outline-offset: 4px; border-radius: 3px; }
 .lavea-admin-content .card { margin-top: 16px; background: white; border: 1px solid #e5e9f1; border-radius: 12px; padding: 24px; }
 .lavea-admin-content .customer-header { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid #e5e9f1; }

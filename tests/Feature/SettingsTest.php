@@ -17,11 +17,11 @@ test('staff account dropdown links to personal settings and sign out', function 
 
     $this->actingAs($staff)->get(route('staff.settings'))
         ->assertOk()
-        ->assertSee('id="staff-account-toggle" role="button" tabindex="0"', false)
-        ->assertSee('aria-expanded="false" aria-controls="staff-account-dropdown"', false)
-        ->assertSee('id="staff-account-dropdown" hidden', false)
-        ->assertSee('<a href="'.route('staff.settings').'">Profile / Account Settings</a>', false)
-        ->assertSee('<a href="'.route('logout.confirm').'">Sign Out</a>', false)
+        ->assertSee('<details class="staff-account-menu">', false)
+        ->assertSee('aria-label="Staff account"', false)
+        ->assertSee('href="'.route('staff.settings').'"', false)
+        ->assertSee('action="'.route('logout').'"', false)
+        ->assertSee('data-confirm-logout', false)
         ->assertSee($staff->name);
 });
 
@@ -227,7 +227,12 @@ test('personal settings still work when no linked profile exists', function (str
     $user = User::factory()->create(['role' => $role]);
     $portal = $role === 'user' ? 'customer' : $role;
 
-    $this->actingAs($user)->get(route($portal.'.settings'))->assertOk()->assertDontSee('name="phone"', false);
+    $response = $this->actingAs($user)->get(route($portal.'.settings'))->assertOk();
+    if ($role === 'staff') {
+        $response->assertSee('name="phone"', false);
+    } else {
+        $response->assertDontSee('name="phone"', false);
+    }
     $this->post(route($portal.'.settings.profile'), ['name' => 'Updated Name', 'email' => $user->email, 'phone' => 'injected', 'address' => 'injected'])
         ->assertRedirect(route($portal.'.settings'));
 
@@ -351,7 +356,7 @@ test('notification preferences affect only the account badge and preserve its in
     $this->assertDatabaseHas('users', ['id' => $user->id, 'show_notification_badge' => $showBadge]);
     $this->assertDatabaseHas('users', ['id' => $other->id, 'show_notification_badge' => 1]);
     $this->assertDatabaseHas('notifications', ['notifiable_id' => $user->id, 'read_at' => null]);
-    $response = $this->get(route($portal.'.settings'))->assertSee('Laundry Update')->assertSee('Mark as read');
+    $response = $this->get(route($portal.'.settings'))->assertSee('Laundry Update')->assertSee('data-read-url=', false);
     if ($showBadge === 1) {
         $response->assertSee('class="lavea-notification-count"', false);
     } else {
@@ -440,3 +445,17 @@ test('settings do not expose account editing routes with user ids', function (st
 
     $this->assertDatabaseHas('users', ['id' => $other->id, 'name' => $other->name]);
 })->with(['admin', 'staff', 'customer']);
+
+test('opening the notification bell clears all unread notifications only for the signed in account', function (): void {
+    $user = createSettingsAccount('customer');
+    $other = createSettingsAccount('customer');
+    for ($index = 0; $index < 11; $index++) {
+        $user->notify(new SystemNotification('Update', 'Order updated.', '/'));
+    }
+    $other->notify(new SystemNotification('Update', 'Other account.', '/'));
+    $this->actingAs($user)->postJson(route('notifications.read-all'))
+        ->assertOk()->assertJsonPath('unread_count', 0);
+    expect($user->unreadNotifications()->count())->toBe(0);
+    expect($other->unreadNotifications()->count())->toBe(1);
+    $this->postJson(route('notifications.read-all'))->assertOk()->assertJsonPath('unread_count', 0);
+});

@@ -13,7 +13,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Throwable;
 
 class CustomerDashboardController extends Controller
 {
@@ -28,7 +30,7 @@ class CustomerDashboardController extends Controller
                 'completed' => (clone $orders)->where('status', 'Completed')->count(),
                 'payments' => $this->customerPayments($request)->where('status', 'Completed')->sum('amount'),
             ],
-            'recentOrders' => $orders->with('service')->latest('order_date')->latest('id')->take(6)->get(),
+            'recentOrders' => $orders->with(['service', 'payments'])->latest('order_date')->latest('id')->take(6)->get(),
             'services' => Service::orderBy('service_name')->take(6)->get(),
         ]);
     }
@@ -39,7 +41,7 @@ class CustomerDashboardController extends Controller
         $paymentStatus = $request->query('payment_status', '');
         $validOrderStatuses = ['Pending', 'Processing', 'Completed', 'Cancelled'];
         $validPaymentStatuses = ['Unpaid', 'Partial', 'Paid'];
-        $orders = $this->customerOrders($request)->with('service');
+        $orders = $this->customerOrders($request)->with(['service', 'payments']);
 
         if (in_array($orderStatus, $validOrderStatuses, true)) {
             $orders->where('status', $orderStatus);
@@ -91,6 +93,43 @@ class CustomerDashboardController extends Controller
         return view('customer.pay-order', compact('order', 'balance'));
     }
 
+    public function editOrder(Request $request, int $order): View
+    {
+        $order = $this->customerOrders($request)->with(['service', 'payments'])->findOrFail($order);
+        abort_unless($order->canCustomerModify(), 403, 'Only pending, unpaid orders without active payments can be changed.');
+
+        return view('customer.edit-order', compact('order'));
+    }
+
+    public function updateOrder(Request $request, int $order): RedirectResponse
+    {
+        $details = $request->validate([
+            'quantity' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9'],
+            'pickup_date' => ['required', 'date', 'after_or_equal:today'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($request, $order, $details): void {
+            $record = $this->customerOrders($request)->with(['service', 'payments'])->lockForUpdate()->findOrFail($order);
+            abort_unless($record->canCustomerModify(), 403, 'Only pending, unpaid orders without active payments can be changed.');
+            abort_if($record->service === null, 409, 'This service is no longer available.');
+            $record->update([...$details, 'total' => round($record->service->price * $details['quantity'], 2)]);
+        });
+
+        return redirect()->route('customer.orders.index')->with('success', 'Your order was updated successfully.');
+    }
+
+    public function cancelOrder(Request $request, int $order): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $order): void {
+            $record = $this->customerOrders($request)->with('payments')->lockForUpdate()->findOrFail($order);
+            abort_unless($record->canCustomerModify(), 403, 'Only pending, unpaid orders without active payments can be cancelled.');
+            $record->update(['status' => 'Cancelled']);
+        });
+
+        return redirect()->route('customer.orders.index')->with('success', 'Your order was cancelled successfully.');
+    }
+
     public function storeOrderPayment(Request $request, int $order): RedirectResponse
     {
         $order = $this->loadCustomerPayableOrder($request, $order);
@@ -100,6 +139,7 @@ class CustomerDashboardController extends Controller
         $details = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', 'in:Cash,GCash,Card,Bank Transfer'],
+            'proof_image' => ['exclude_if:payment_method,Cash', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -112,15 +152,30 @@ class CustomerDashboardController extends Controller
             return back()->withErrors(['reference_number' => 'Enter the transfer reference number so staff can verify your payment.'])->withInput();
         }
 
-        $payment = Payment::create([
-            'order_id' => $order->id,
-            'amount' => $details['amount'],
-            'payment_method' => $details['payment_method'],
-            'reference_number' => $details['reference_number'] ?? null,
-            'payment_date' => today(),
-            'status' => 'Pending',
-            'notes' => $details['notes'] ?? null,
-        ]);
+        $proofPath = $request->input('payment_method') !== 'Cash' && $request->hasFile('proof_image')
+            ? $request->file('proof_image')->store('payment-proofs', 'local')
+            : null;
+        if ($proofPath === false) {
+            throw ValidationException::withMessages(['proof_image' => 'The proof image could not be saved. Please try again.']);
+        }
+
+        try {
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'amount' => $details['amount'],
+                'payment_method' => $details['payment_method'],
+                'reference_number' => $details['reference_number'] ?? null,
+                'payment_date' => today(),
+                'status' => 'Pending',
+                'notes' => $details['notes'] ?? null,
+                'proof_image_path' => $proofPath,
+            ]);
+        } catch (Throwable $exception) {
+            if ($proofPath !== null) {
+                Storage::disk('local')->delete($proofPath);
+            }
+            throw $exception;
+        }
 
         foreach (User::where('role', 'admin')->get() as $admin) {
             $admin->notify(new SystemNotification(
@@ -138,7 +193,7 @@ class CustomerDashboardController extends Controller
             ));
         }
 
-        return redirect()->route('customer.payments.index')->with('success', 'Your payment was submitted for staff verification.');
+        return redirect()->route('customer.payments.show', $payment)->with('success', 'Your payment was submitted for staff verification. You can print your receipt below.');
     }
 
     public function services(): View
@@ -157,7 +212,7 @@ class CustomerDashboardController extends Controller
         abort_if($customer === null, 404);
 
         $details = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:9'],
+            'quantity' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9'],
             'pickup_date' => ['required', 'date', 'after_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);

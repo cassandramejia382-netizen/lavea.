@@ -153,36 +153,6 @@
 .lavea-admin-content .edit-btn:hover {
             background: #3459b1;
         }
-.lavea-admin-content .receipt {
-            display: none;
-        }
-@media print {
-.lavea-admin-content * {
-                visibility: hidden !important;
-            }
-.lavea-admin-content #payment-receipt,
-.lavea-admin-content #payment-receipt * {
-                visibility: visible !important;
-            }
-.lavea-admin-content #payment-receipt {
-                display: block !important;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                padding: 24px;
-                background: white !important;
-                color: #111 !important;
-                font-family: Arial, Helvetica, sans-serif;
-            }
-.lavea-admin-content #payment-receipt h1 {
-                margin-bottom: 20px;
-            }
-.lavea-admin-content #payment-receipt p {
-                padding: 10px 0;
-                border-bottom: 1px solid #ddd;
-            }
-}
 @media(max-width: 800px) {
 .lavea-admin-content .grid {
                 grid-template-columns: 1fr;
@@ -223,7 +193,7 @@
                     Payment #{{ $payment->id }}
 
                     <span>
-                        â€” Order #{{ $payment->order->id ?? 'N/A' }}
+                        &mdash; Order #{{ $payment->order->id ?? 'N/A' }}
                     </span>
 
                 </div>
@@ -299,7 +269,7 @@
                     </div>
 
                     <div class="value">
-                        {{ $payment->reference_number ?: 'â€”' }}
+                        {{ $payment->reference_number ?: 'Not provided' }}
                     </div>
 
                 </div>
@@ -315,7 +285,7 @@
 
                         {{ $payment->payment_date
                             ? $payment->payment_date->format('F d, Y')
-                            : 'â€”'
+                            : 'Not available'
                         }}
 
                     </div>
@@ -362,18 +332,13 @@
                     <button type="button" class="edit-btn" onclick="window.print()">Print Receipt</button>
                 </div>
 
-                <div id="payment-receipt" class="receipt">
-                    <h1>LAVEA Payment Receipt</h1>
-                    <p><strong>Order ID:</strong> #{{ $payment->order->id ?? 'N/A' }}</p>
-                    <p><strong>Customer:</strong> {{ $payment->order->customer->name ?? 'N/A' }}</p>
-                    <p><strong>Service:</strong> {{ $payment->order->service->service_name ?? 'N/A' }}</p>
-                    <p><strong>Amount:</strong> ₱{{ number_format($payment->amount, 2) }}</p>
-                    <p><strong>Payment Method:</strong> {{ $payment->payment_method }}</p>
-                    <p><strong>Payment Date:</strong> {{ $payment->payment_date ? $payment->payment_date->format('F d, Y') : '—' }}</p>
-                    <p><strong>Payment Status:</strong> {{ $payment->status }}</p>
-                </div>
+
             @endif
 
 
         </div>
+@include('partials.payment-proof', ['payment' => $payment])
+@if ($payment->status === 'Completed')
+    @include('partials.payment-receipt', ['payment' => $payment])
+@endif
 @endsection

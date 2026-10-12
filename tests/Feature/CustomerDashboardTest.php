@@ -1,12 +1,15 @@
 <?php
 
+use App\Models\Payment;
 use App\Models\User;
 use Database\Factories\CustomerFactory;
 use Database\Factories\OrderFactory;
 use Database\Factories\PaymentFactory;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The original customers, services, and orders migrations are absent from this
@@ -127,7 +130,7 @@ test('accounts without a customer profile see empty data instead of other custom
     $this->actingAs($user)->get(route('customer.dashboard'))->assertOk()
         ->assertSee('No orders yet')->assertSee('₱0.00')
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 0 && $stats['pending'] === 0 && $stats['completed'] === 0);
-    $this->get(route('customer.payments.index'))->assertSee('No payments recorded yet.');
+    $this->get(route('customer.payments.index'))->assertSee('No payment records match your search.');
     $this->get(route('customer.profile'))->assertSee('Your customer profile is not linked yet.');
     $this->patch(route('customer.profile.update'), ['name' => 'New Name'])->assertNotFound();
 });
@@ -146,7 +149,7 @@ test('customers update only their own contact details and cannot change account 
         'role' => 'admin',
     ]);
 
-    $response->assertRedirect(route('customer.profile'))->assertSessionHas('success', 'Your profile has been updated.');
+    $response->assertRedirect(route('customer.profile'))->assertSessionHas('profile_saved', 'Your profile was saved successfully.');
     $this->assertDatabaseHas('customers', ['id' => $customer->id, 'name' => 'Updated Customer', 'phone' => '09123456789', 'address' => '123 Laundry Street', 'email' => $user->email]);
     $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Customer', 'email' => $user->email, 'role' => 'customer']);
     $this->assertDatabaseHas('customers', ['id' => $otherCustomer->id, 'name' => 'Other Customer']);
@@ -236,3 +239,166 @@ test('order pagination and recent orders stay scoped and show the newest orders 
         ->assertViewHas('orders', fn ($orders): bool => $orders->count() === 2 && $orders->every(fn ($order): bool => $order->customer_id === $customer->id));
     $this->get(route('customer.dashboard'))->assertViewHas('recentOrders', fn ($orders): bool => $orders->count() === 6 && $orders->first()->id === $latestOrder->id);
 });
+
+test('customers can order decimal laundry weights with the correct total', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create(['price' => 150]);
+
+    $this->actingAs($user)->get(route('customer.services.show', $service))
+        ->assertOk()->assertSee('step="0.01"', false);
+    $this->post(route('customer.services.order', $service), [
+        'quantity' => '1.2',
+        'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertRedirect(route('customer.services.show', $service))->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('orders', [
+        'customer_id' => $customer->id,
+        'service_id' => $service->id,
+        'quantity' => 1.2,
+        'total' => 180,
+    ]);
+});
+
+test('customers edit and cancel their pending unpaid orders', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create(['price' => 150]);
+    $order = OrderFactory::new()->for($customer)->for($service)->create();
+    $this->actingAs($user)->get(route('customer.orders.index'))->assertSee(route('customer.orders.edit', $order), false);
+    $this->get(route('customer.orders.edit', $order))->assertOk();
+    $this->put(route('customer.orders.update', $order), [
+        'quantity' => '1.2', 'pickup_date' => today()->addDays(3)->toDateString(), 'notes' => 'Handle carefully',
+        'status' => 'Completed', 'customer_id' => 999, 'total' => 1,
+    ])->assertRedirect(route('customer.orders.index'))->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('orders', ['id' => $order->id, 'quantity' => 1.2, 'total' => 180, 'status' => 'Pending', 'customer_id' => $customer->id]);
+    $this->patch(route('customer.orders.cancel', $order))->assertRedirect(route('customer.orders.index'));
+    $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'Cancelled']);
+});
+
+test('customers cannot modify protected or other customer orders', function (string $condition): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    if ($condition === 'other') {
+        $order->update(['customer_id' => CustomerFactory::new()->create()->id]);
+    } elseif (in_array($condition, ['Processing', 'Completed', 'Cancelled'], true)) {
+        $order->update(['status' => $condition]);
+    } elseif ($condition === 'Paid') {
+        $order->update(['payment_status' => 'Paid']);
+    } else {
+        PaymentFactory::new()->for($order)->create(['status' => $condition]);
+    }
+    $expectedStatus = $condition === 'other' ? 404 : 403;
+    $original = $order->fresh()->getAttributes();
+    $this->actingAs($user)->get(route('customer.orders.edit', $order))->assertStatus($expectedStatus);
+    $this->put(route('customer.orders.update', $order), [
+        'quantity' => '1.2', 'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertStatus($expectedStatus);
+    $this->patch(route('customer.orders.cancel', $order))->assertStatus($expectedStatus);
+    expect($order->fresh()->getAttributes())->toBe($original);
+})->with(['other', 'Processing', 'Completed', 'Cancelled', 'Paid', 'Pending']);
+
+test('customer order edits reject invalid weights and pickup dates', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $this->actingAs($user)->put(route('customer.orders.update', $order), [
+        'quantity' => '9.5', 'pickup_date' => today()->subDay()->toDateString(),
+    ])->assertSessionHasErrors(['quantity', 'pickup_date']);
+    $this->assertDatabaseHas('orders', ['id' => $order->id, 'quantity' => 2, 'total' => 150]);
+});
+
+test('customers attach private payment proof for electronic payment methods', function (string $method): void {
+    Storage::fake('local');
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create(['total' => 200]);
+    $this->actingAs($user)->get(route('customer.payments.checkout', $order))->assertOk()->assertSee('multipart/form-data');
+    $this->post(route('customer.payments.checkout.store', $order), [
+        'amount' => 100, 'payment_method' => $method, 'reference_number' => 'REF-123',
+        'proof_image' => UploadedFile::fake()->image('receipt.png'),
+    ])->assertRedirect()->assertSessionHasNoErrors();
+    $payment = Payment::sole();
+    expect($payment->status)->toBe('Pending');
+    expect($payment->proof_image_path)->toStartWith('payment-proofs/');
+    Storage::disk('local')->assertExists($payment->proof_image_path);
+    $this->get(route('payments.proof', $payment))->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+    $this->get(route('customer.payments.show', $payment))->assertSee(route('payments.proof', $payment), false);
+})->with(['GCash', 'Bank Transfer', 'Card']);
+
+test('payment proof access is restricted to the owner and staff accounts', function (string $role): void {
+    Storage::fake('local');
+    $owner = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $owner->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $payment = PaymentFactory::new()->for($order)->create(['proof_image_path' => 'payment-proofs/receipt.png']);
+    Storage::disk('local')->put($payment->proof_image_path, 'proof');
+    if ($role === 'guest') {
+        $this->get(route('payments.proof', $payment))->assertRedirect(route('login'));
+    } else {
+        $user = User::factory()->create(['role' => $role]);
+        $this->actingAs($user)->get(route('payments.proof', $payment))->assertStatus(in_array($role, ['admin', 'staff'], true) ? 200 : 404);
+    }
+})->with(['admin', 'staff', 'customer', 'guest']);
+
+test('invalid payment proof does not create a payment or save files', function (): void {
+    Storage::fake('local');
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $this->actingAs($user)->post(route('customer.payments.checkout.store', $order), [
+        'amount' => 100, 'payment_method' => 'Card',
+        'proof_image' => UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf'),
+    ])->assertSessionHasErrors('proof_image');
+    $this->assertDatabaseCount('payments', 0);
+    Storage::disk('local')->assertDirectoryEmpty('payment-proofs');
+});
+
+test('customer receipts distinguish submitted payments from verified payments', function (string $status): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $payment = PaymentFactory::new()->for($order)->create(['status' => $status, 'reference_number' => 'REF-RECEIPT']);
+    $response = $this->actingAs($user)->get(route('customer.payments.show', $payment))->assertOk();
+    if ($status === 'Failed') {
+        $response->assertDontSee('id="payment-receipt"', false);
+    } else {
+        $response->assertSee('id="payment-receipt"', false)->assertSee('REF-RECEIPT');
+        $response->assertSee('Payment Receipt')->assertSee('Print Receipt');
+        if ($status === 'Pending') {
+            $response->assertSee('This receipt does not confirm that payment has been received.');
+        }
+    }
+})->with(['Pending', 'Completed', 'Failed']);
+
+test('all payment portals render the same modern receipt', function (string $role): void {
+    $user = User::factory()->create(['role' => $role]);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $payment = PaymentFactory::new()->for($order)->create(['status' => 'Completed']);
+    $response = $this->actingAs($user)->get(route($role.'.payments.show', $payment))->assertOk();
+    $response->assertSee('class="receipt-header"', false)->assertSee('class="receipt-amount"', false)
+        ->assertSee('Verified payment')->assertSee('Print Receipt');
+    expect(substr_count($response->getContent(), 'id="payment-receipt"'))->toBe(1);
+})->with(['admin', 'staff', 'customer']);
+
+test('customer record actions only allow editing and cancelling eligible orders', function (string $state): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create(['total' => 150, 'status' => $state === 'Cancelled' ? 'Cancelled' : 'Pending']);
+    if (in_array($state, ['Pending', 'Completed'], true)) {
+        $payment = PaymentFactory::new()->for($order)->create(['amount' => 150, 'status' => $state]);
+    }
+    $response = $this->actingAs($user)->get(route('customer.orders.index'))->assertOk()
+        ->assertSee(route('customer.orders.show', $order), false)->assertDontSee('View Order');
+    $response->assertDontSee(route('customer.payments.checkout', $order), false);
+    if ($state === 'Unpaid') {
+        $response->assertSee(route('customer.orders.edit', $order), false)->assertSee('Cancel');
+    } else {
+        $response->assertDontSee(route('customer.orders.edit', $order), false)->assertSee('&mdash;', false);
+    }
+    if (isset($payment)) {
+        $response->assertDontSee(route('customer.payments.show', $payment), false);
+    }
+})->with(['Unpaid', 'Pending', 'Completed', 'Cancelled']);

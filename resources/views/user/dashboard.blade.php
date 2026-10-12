@@ -871,6 +871,7 @@
         }
 
     </style>
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
 
 <body>
@@ -937,10 +938,13 @@
                 <span>Settings</span>
             </a>
 
-            <a href="{{ route('logout.confirm') }}" aria-label="Sign Out">
-                <i data-lucide="log-out"></i>
-                <span>Sign Out</span>
-            </a>
+            <form method="POST" action="{{ route('logout') }}" data-confirm-logout>
+                @csrf
+                <button type="submit" aria-label="Sign Out" style="display:flex;align-items:center;gap:14px;width:100%;padding:13px 15px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer">
+                    <i data-lucide="log-out"></i>
+                    <span>Sign Out</span>
+                </button>
+            </form>
         </nav>
 
         <div class="admin-profile">
@@ -1738,5 +1742,6 @@
 
 </script>
 
+@include('partials.logout-dialog')
 </body>
 </html>

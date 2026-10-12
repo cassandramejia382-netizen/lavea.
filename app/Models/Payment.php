@@ -18,6 +18,7 @@ class Payment extends Model
         'payment_date',
         'status',
         'notes',
+        'proof_image_path',
     ];
 
     public function order()

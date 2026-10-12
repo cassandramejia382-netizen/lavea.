@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -28,11 +29,18 @@ class ServiceController extends Controller
     /**
      * Display all services.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $services = Service::latest()->get();
+        $search = trim($request->query('search', ''));
+        $services = Service::query()
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $query) use ($search): void {
+                    $query->where('service_name', 'like', '%'.$search.'%')
+                        ->orWhere('description', 'like', '%'.$search.'%');
+                });
+            })->latest()->get();
 
-        return view('admin.services.index', compact('services'));
+        return view('admin.services.index', compact('services', 'search'));
     }
 
     /**
@@ -52,7 +60,11 @@ class ServiceController extends Controller
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+        ], [
+            'image.uploaded' => 'The image upload failed. Please try again.',
+            'image.image' => 'The selected file must be a valid image.',
+            'image.mimes' => 'Choose a JPG, JPEG, PNG or WEBP image.',
         ]);
 
         $validated['image'] = $request->hasFile('image')
@@ -73,7 +85,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.services.index')
-            ->with('success', 'Service added successfully.');
+            ->with('success', $validated['image'] ? 'Service and image uploaded successfully.' : 'Service added successfully.');
     }
 
     /**
@@ -101,7 +113,11 @@ class ServiceController extends Controller
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+        ], [
+            'image.uploaded' => 'The image upload failed. Please try again.',
+            'image.image' => 'The selected file must be a valid image.',
+            'image.mimes' => 'Choose a JPG, JPEG, PNG or WEBP image.',
         ]);
 
         $oldImage = $service->image;
@@ -125,7 +141,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.services.index')
-            ->with('success', 'Service updated successfully.');
+            ->with('success', $request->hasFile('image') ? 'Service updated and image uploaded successfully.' : 'Service updated successfully.');
     }
 
     /**

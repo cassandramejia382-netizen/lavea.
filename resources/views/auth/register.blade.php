@@ -13,6 +13,13 @@
         header strong { display: block; font-size: 27px; letter-spacing: 3px; }
         header span { display: block; margin-top: 6px; color: #c6d0e2; font-size: 13px; }
         main { padding: 28px 32px; }
+        .register-brand-header { display:flex;align-items:flex-start;gap:10px; }
+        .back-home { position:relative;left:-6px;display:inline-flex;align-items:center;justify-content:center;flex:none;width:26px;height:26px;margin-top:3px;padding:5px;border:1px solid #ffffff30;border-radius:6px;background:#ffffff0a;color:#dce6fa; }
+        .back-home svg { width:14px;height:14px; }
+        .back-home:hover { background:#ffffff20;color:#fff; }
+        .back-home:focus-visible { outline:2px solid #4169c8;outline-offset:3px; }
+        html[data-lavea-theme="dark"] .back-home { background:#273449;border-color:#64748b;color:#bfdbfe; }
+        @media(max-width:600px) { .register-brand-header { padding:24px 20px;gap:10px; } .register-brand-header strong { font-size:24px; } .register-brand-header span { font-size:11px; } }
         h1 { margin: 0 0 8px; font-size: 24px; }
         p { color: #526078; font-size: 14px; }
         label { display: block; margin: 0 0 7px; font-size: 13px; font-weight: 700; }
@@ -30,10 +37,11 @@
         @media (min-width: 520px) { .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .field-full { grid-column: 1 / -1; } }
         @media (max-width: 519px) { body { padding: 16px; } main { padding: 24px 20px; } header { padding: 24px 20px; } }
     </style>
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
-<body>
+<body class="auth-page">
 <section class="card">
-    <header><strong>LAVEA</strong><span>Laundry Management System</span></header>
+    <header class="register-brand-header"><a class="back-home" href="{{ route('home') }}" aria-label="Back to home" title="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg></a><div><strong>LAVEA</strong><span>Laundry Management System</span></div></header>
     <main>
         <h1>Create Customer Account</h1>
         <p>Sign up to get started. We’ll email you a link to verify your address.</p>

@@ -1,5 +1,5 @@
 @if (request()->cookie('lavea_theme') === 'dark')
-    <link rel="stylesheet" href="{{ asset('css/lavea-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/lavea-theme.css') }}?v={{ filemtime(public_path('css/lavea-theme.css')) }}">
 @endif
 <script>
     document.documentElement.dataset.laveaTheme = @json(request()->cookie('lavea_theme') === 'dark' ? 'dark' : 'light');

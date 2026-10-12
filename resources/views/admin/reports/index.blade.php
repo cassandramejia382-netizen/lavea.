@@ -262,7 +262,6 @@
                         <option>Orders Report</option>
                         <option>Payments Report</option>
                         <option>Services Report</option>
-                        <option>Schedule Report</option>
                     </select>
                 </div>
 

@@ -31,13 +31,12 @@ test('customer login preserves email verification for both new and existing sess
         ->assertRedirect(route('verification.notice'));
 })->with([false, true]);
 
-test('homepage login link opens the existing login form even with an active session', function (string $role): void {
+test('homepage login link returns authenticated accounts to their dashboard', function (string $role): void {
     $this->actingAs(User::factory()->create(['role' => $role]));
     $this->get(route('home'))->assertOk()
         ->assertSee('href="'.route('login').'" class="signin-btn"', false);
 
-    $this->get(route('login'))->assertOk()->assertViewIs('auth.login')
-        ->assertSee('action="'.route('login.submit').'" method="POST"', false);
+    $this->get(route('login'))->assertRedirect(route(($role === 'user' ? 'customer' : $role).'.dashboard'));
 })->with(['admin', 'staff', 'customer', 'user']);
 
 test('login form submits and authenticates each role without history protection', function (string $role): void {
@@ -57,7 +56,11 @@ test('login form submits and authenticates each role without history protection'
 test('guest and email verification routes do not use protected page cache middleware', function (string $routeName): void {
     $middleware = Route::getRoutes()->getByName($routeName)->gatherMiddleware();
 
-    expect($middleware)->not->toContain('no-cache');
+    if (str_starts_with($routeName, 'verification.')) {
+        expect($middleware)->toContain('auth', 'no-cache');
+    } else {
+        expect($middleware)->not->toContain('no-cache');
+    }
 })->with(['login', 'login.submit', 'register', 'register.submit', 'password.request', 'password.email', 'password.reset', 'password.update', 'verification.notice', 'verification.verify', 'verification.send']);
 
 test('every admin staff customer and legacy user route requires authentication', function (): void {
@@ -80,8 +83,11 @@ test('logout destroys the session and protected pages redirect to login for ever
         ->assertDontSee('js/session-history.js', false);
     expect($page->headers->get('Cache-Control'))->toContain('no-store', 'no-cache', 'must-revalidate', 'max-age=0');
     $page->assertHeader('Expires', '0');
+    $page->assertSee('action="'.route('logout').'"', false)
+        ->assertSee('data-confirm-logout', false)->assertSee('id="logout-dialog"', false)
+        ->assertDontSee(route('logout.confirm'), false);
 
-    $this->post(route('logout'))->assertRedirect(route('login'))
+    $this->post(route('logout'))->assertRedirect(route('home'))
         ->assertSessionMissing('logout_marker');
 
     $this->assertGuest();
@@ -189,3 +195,43 @@ test('every admin page renders the dashboard navigation and topbar once', functi
     'reports' => ['reports', null],
     'settings' => ['settings', null],
 ]);
+
+test('admin list searches show matching rows and preserve the search term', function (string $area, string $field): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    if ($area === 'services') {
+        $match = ServiceFactory::new()->create(['service_name' => 'Matching Laundry', $field => 'needle']);
+        ServiceFactory::new()->create(['service_name' => 'Excluded Laundry', 'description' => 'Other description']);
+    } elseif ($area === 'staff') {
+        $match = StaffFactory::new()->create(['name' => 'Matching Staff', $field => $field === 'email' ? 'needle@example.com' : 'needle']);
+        StaffFactory::new()->create(['name' => 'Excluded Staff', 'email' => 'other@example.com', 'phone' => '09123456789']);
+    } else {
+        $match = OrderFactory::new()->for(ServiceFactory::new()->create(['service_name' => 'needle']))->create();
+        OrderFactory::new()->for(ServiceFactory::new()->create(['service_name' => 'Excluded Laundry']))->create();
+    }
+    $response = $this->actingAs($admin)->get(route('admin.'.$area.'.index', ['search' => 'needle']))
+        ->assertOk()->assertSee('name="search"', false)->assertSee('value="needle"', false);
+    if ($area === 'services') {
+        $response->assertSee($match->service_name)->assertDontSee('Excluded Laundry');
+    } elseif ($area === 'staff') {
+        $response->assertSee($match->name)->assertDontSee('Excluded Staff');
+    } else {
+        $response->assertSee('needle')->assertDontSee('Excluded Laundry');
+    }
+})->with([
+    ['services', 'service_name'], ['services', 'description'],
+    ['staff', 'name'], ['staff', 'email'], ['staff', 'phone'], ['orders', 'service_name'],
+]);
+
+test('all account profiles share the modern design and retain their own save routes', function (string $role, string $badge): void {
+    $user = User::factory()->create(['role' => $role]);
+    if ($role === 'customer') {
+        CustomerFactory::new()->create(['email' => $user->email, 'phone' => '09123456789']);
+    }
+    if ($role === 'staff') {
+        StaffFactory::new()->create(['email' => $user->email, 'phone' => '09123456789']);
+    }
+    $this->actingAs($user)->get(route($role.'.profile'))->assertOk()
+        ->assertSee('class="profile-account-badge"', false)->assertSee($badge)
+        ->assertSee('Personal information')->assertSee('Change photo')
+        ->assertSee('action="'.route($role.'.profile.update').'"', false);
+})->with([['admin', 'Administrator'], ['staff', 'Staff Account'], ['customer', 'Customer Account']]);

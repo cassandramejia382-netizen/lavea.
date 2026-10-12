@@ -23,13 +23,13 @@
 
     <form class="customer-record-filters" method="GET" action="{{ route('customer.orders.index') }}">
         <select name="order_status" aria-label="Filter by order status">
-            <option value="">All order statuses</option>
+            <option value="">Order status</option>
             @foreach(['Pending', 'Processing', 'Completed', 'Cancelled'] as $option)
                 <option value="{{ $option }}" @selected($orderStatus === $option)>{{ $option }}</option>
             @endforeach
         </select>
         <select name="payment_status" aria-label="Filter by payment status">
-            <option value="">All payment statuses</option>
+            <option value="">Payment status</option>
             @foreach(['Unpaid', 'Partial', 'Paid'] as $option)
                 <option value="{{ $option }}" @selected($paymentStatus === $option)>{{ $option }}</option>
             @endforeach

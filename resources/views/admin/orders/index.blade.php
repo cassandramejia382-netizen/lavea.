@@ -234,6 +234,7 @@
             @endif
 
 
+            @include('admin.partials.list-search', ['searchRoute' => 'admin.orders.index', 'searchPlaceholder' => 'Order ID, customer, service, staff or status', 'search' => $search])
             <div class="card">
 
                 <div class="table-container">

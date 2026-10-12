@@ -158,6 +158,13 @@ Route::post('/notifications/{notificationId}/read', [NotificationController::cla
 
     ->name('notifications.read');
 
+Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+    ->middleware(['auth', 'no-cache'])
+    ->name('notifications.read-all');
+
+Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof'])
+    ->middleware(['auth', 'no-cache'])->name('payments.proof');
+
 /*
 
 |--------------------------------------------------------------------------
@@ -245,6 +252,10 @@ Route::middleware(['auth', 'no-cache', 'role:customer'])->group(function (): voi
                 ->whereNumber('order')
 
                 ->name('orders.show');
+
+            Route::get('/orders/{order}/edit', [CustomerDashboardController::class, 'editOrder'])->whereNumber('order')->name('orders.edit');
+            Route::put('/orders/{order}', [CustomerDashboardController::class, 'updateOrder'])->whereNumber('order')->name('orders.update');
+            Route::patch('/orders/{order}/cancel', [CustomerDashboardController::class, 'cancelOrder'])->whereNumber('order')->name('orders.cancel');
 
             /*
 

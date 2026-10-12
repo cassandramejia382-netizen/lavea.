@@ -8,9 +8,26 @@ use App\Models\User;
 use App\Notifications\SystemNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentController extends Controller
 {
+    public function proof(Request $request, Payment $payment): StreamedResponse
+    {
+        $user = $request->user();
+        if (! in_array($user->role, ['admin', 'staff'], true)) {
+            abort_unless(in_array($user->role, ['customer', 'user'], true)
+                && $user->customerProfile?->id === $payment->order?->customer_id, 404);
+        }
+
+        $path = $payment->proof_image_path;
+        abort_unless(is_string($path) && preg_match('/\Apayment-proofs\/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)\z/i', $path), 404);
+        abort_unless(Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
     public function index(Request $request)
     {
         $search = trim($request->query('search', ''));

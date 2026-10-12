@@ -21,8 +21,9 @@
         button { width: 100%; background: #111d38; color: white; }
         .cancel { background: #edf0f5; color: #111d38; }
     </style>
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
-<body>
+<body class="auth-page">
     <section class="card">
         <header><strong>LAVEA</strong><span>Laundry Management System</span></header>
         <main>

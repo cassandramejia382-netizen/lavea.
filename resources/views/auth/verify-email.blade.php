@@ -150,9 +150,10 @@
             }
         }
     </style>
+<link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
 
-<body>
+<body class="auth-page">
 
 <main class="card">
 
@@ -231,7 +232,8 @@
     </form>
 
     <!-- Sign Out -->
-    <form method="GET" action="{{ route('logout.confirm') }}">
+    <form method="POST" action="{{ route('logout') }}" data-confirm-logout>
+        @csrf
         <button
             class="logout"
             type="submit"
@@ -250,5 +252,6 @@
     });
 </script>
 
+@include('partials.logout-dialog')
 </body>
 </html>

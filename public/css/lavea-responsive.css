@@ -1,0 +1,115 @@
+/* Keep wide content inside its own scroll area rather than widening the page. */
+.dashboard .main,
+.dashboard .content,
+.dashboard .card,
+.dashboard .grid > *,
+.dashboard .cols > *,
+.dashboard .form-grid > * { min-width: 0; }
+.dashboard .sidebar { overflow-y: auto; }
+.dashboard .table-wrap,
+.dashboard .table-container { max-width: 100%; overflow-x: auto; }
+.dashboard .page-head,
+.dashboard .page-header,
+.dashboard .card-header,
+.dashboard .actions { gap: 12px; flex-wrap: wrap; }
+.dashboard .field input,
+.dashboard .field select,
+.dashboard .field textarea { max-width: 100%; }
+.dashboard .value,
+.dashboard .customer-name,
+.dashboard .customer-email { overflow-wrap: anywhere; }
+.dashboard .content img { max-width: 100%; }
+.dashboard .payment-section,
+.dashboard .customer-checkout-panel,
+.dashboard .customer-checkout-grid > *,
+.dashboard .checkout-form > * { min-width: 0; }
+
+@media screen and (max-width: 700px) {
+    .dashboard .payment-search input { min-width: 0; flex-basis: 100%; width: 100%; }
+    .dashboard .payment-search select { min-width: 0; flex: 1; }
+    .dashboard .customer-record-filters select { min-width: 0; width: 100%; }
+    .dashboard .customer-checkout-grid { grid-template-columns: minmax(0, 1fr); }
+    .dashboard .checkout-method-option { min-width: 0; }
+    .dashboard .checkout-method-option strong { overflow-wrap: anywhere; }
+}
+
+@media screen and (max-width: 900px) {
+    .dashboard .sidebar { width: 70px; padding: 20px 8px; }
+    .dashboard .sidebar .logo { font-size: 16px; text-align: center; }
+    .dashboard .sidebar .logo-area { padding: 5px 4px 25px; }
+    .dashboard .sidebar .logo-subtitle,
+    .dashboard .sidebar .menu span,
+    .dashboard .sidebar .staff-info { display: none; }
+    .dashboard .sidebar .menu a { justify-content: center; padding: 13px 6px; }
+    .dashboard .main { margin-left: 70px; width: calc(100% - 70px); }
+    .dashboard .lavea-admin-topbar { left: 70px; }
+    .dashboard .cols { grid-template-columns: minmax(0, 1fr); }
+    .dashboard .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard .lavea-search-box,
+    .dashboard .lavea-search-spacer { flex: 1; min-width: 0; width: auto; }
+}
+
+@media screen and (max-width: 600px) {
+    body.auth-page { padding: 16px; }
+    .auth-page .card { max-width: 100%; }
+    .auth-page header,
+    .auth-page main { padding: 22px; }
+    .auth-page input,
+    .auth-page select,
+    .auth-page textarea { font-size: 16px; }
+    .auth-page .form-grid { grid-template-columns: minmax(0, 1fr); }
+    .auth-page p,
+    .auth-page .email { overflow-wrap: anywhere; }
+    .dashboard .content { padding: 16px 12px; }
+    .dashboard .card,
+    .dashboard .stat-card { padding: 16px; }
+    .dashboard .service-card { padding: 0; }
+    .dashboard .grid,
+    .dashboard .service-grid,
+    .dashboard .form-grid,
+    .dashboard .profile-fields,
+    .dashboard .details { grid-template-columns: minmax(0, 1fr); }
+    .dashboard .field.full { grid-column: 1 / -1; }
+    .dashboard .page-head,
+    .dashboard .page-header,
+    .dashboard #services-page-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .dashboard .page-head h1,
+    .dashboard .page-header h1 { font-size: 23px; overflow-wrap: anywhere; }
+    .dashboard .lavea-admin-topbar { height: 64px; min-height: 64px; padding: 8px 12px; flex-wrap: nowrap; }
+    .dashboard .lavea-admin-topbar-spacer { height: 64px; }
+    .dashboard .lavea-search-box,
+    .dashboard .lavea-search-spacer { display: none; }
+    .dashboard .lavea-top-right { width: 100%; gap: 8px; justify-content: flex-end; }
+    .dashboard .lavea-admin-profile { padding-left: 0; gap: 6px; }
+    .dashboard .lavea-admin-profile > div:nth-child(2),
+    .dashboard .lavea-admin-profile > svg:last-child { display: none; }
+    .dashboard .lavea-notification-dropdown { position: fixed; top: 68px; right: 12px; width: min(320px, calc(100vw - 94px)); max-height: calc(100dvh - 84px); }
+    .dashboard .staff-account-dropdown { max-width: calc(100vw - 94px); }
+    .dashboard .list-search,
+    .dashboard .customer-search { flex-wrap: wrap; }
+    .dashboard .list-search input,
+    .dashboard .customer-search input { flex-basis: 100%; }
+    .dashboard .list-search button,
+    .dashboard .customer-search button { width: 100%; min-height: 44px; }
+    .dashboard input,
+    .dashboard select,
+    .dashboard textarea { font-size: 16px; }
+    .dashboard .btn { min-height: 44px; justify-content: center; }
+    .dashboard .profile-photo-row,
+    .dashboard .customer-profile-photo-row { flex-wrap: wrap; }
+    .dashboard .profile-photo-copy { min-width: 0; }
+    .dashboard .customer-checkout-panel { padding: 16px; }
+    .dashboard .checkout-methods { grid-template-columns: minmax(0, 1fr); }
+    .dashboard .checkout-actions { flex-wrap: wrap; }
+    .dashboard .payment-section-heading,
+    .dashboard .payment-history-title { flex-wrap: wrap; }
+    .dashboard .payable-order-grid { grid-template-columns: minmax(0, 1fr); }
+    .dashboard .profile-toast { right: 12px; left: 82px; max-width: calc(100vw - 94px); }
+    .dashboard .card > .grid { grid-template-columns: minmax(0, 1fr) !important; }
+    .home-page .hero-image img { max-width: 100%; height: auto; }
+    .home-page .hero-buttons { flex-wrap: wrap; gap: 12px; }
+    .home-page .hero h2 { font-size: clamp(32px, 9vw, 48px); }
+    .home-page .navbar { gap: 8px; }
+    .home-page .nav-menu { flex-wrap: wrap; justify-content: flex-end; }
+}
