@@ -471,11 +471,25 @@
         @media (max-width: 700px) {
 
             .navbar {
-                padding: 0 20px;
+                padding: 0 16px;
             }
 
             .nav-menu {
+                display: flex;
+                gap: 8px;
+            }
+
+            .nav-menu a:not(.signup-btn):not(.signin-btn) {
                 display: none;
+            }
+
+            .nav-menu .signup-btn,
+            .nav-menu .signin-btn {
+                padding: 10px 12px;
+            }
+
+            .logo h1 {
+                font-size: 26px;
             }
 
             .hero {

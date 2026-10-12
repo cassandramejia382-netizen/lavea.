@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Notifications\SystemNotification;
 use Closure;
 use Exception;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,7 +37,7 @@ class AuthController extends Controller
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()
                 ->withErrors([
-                    'email' => 'The email or password is incorrect.'
+                    'email' => 'The email or password is incorrect.',
                 ])
                 ->onlyInput('email');
         }
@@ -92,11 +91,10 @@ class AuthController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                'min:8'
+                'min:8',
             ],
         ], [
-            'email.unique' =>
-                'This email is already associated with an existing account or customer/staff record. Sign in, reset your password, or contact the shop for help.',
+            'email.unique' => 'This email is already associated with an existing account or customer/staff record. Sign in, reset your password, or contact the shop for help.',
         ]);
 
         /*
@@ -135,7 +133,7 @@ class AuthController extends Controller
             $admin->notify(
                 new SystemNotification(
                     'New Customer',
-                    $user->name . ' created a customer account.',
+                    $user->name.' created a customer account.',
                     route('admin.customers.index')
                 )
             );
@@ -173,14 +171,14 @@ class AuthController extends Controller
             */
 
             Mail::raw(
-                "Hello {$user->name},\n\n" .
-                "Thank you for registering with LAVEA Laundry Shop.\n\n" .
-                "Your email verification code is:\n\n" .
-                "{$verificationCode}\n\n" .
-                "This code will expire in 10 minutes.\n\n" .
-                "If you did not create this account, you can ignore this email.\n\n" .
-                "Thank you,\n" .
-                "LAVEA Laundry Shop",
+                "Hello {$user->name},\n\n".
+                "Thank you for registering with LAVEA Laundry Shop.\n\n".
+                "Your email verification code is:\n\n".
+                "{$verificationCode}\n\n".
+                "This code will expire in 10 minutes.\n\n".
+                "If you did not create this account, you can ignore this email.\n\n".
+                "Thank you,\n".
+                'LAVEA Laundry Shop',
                 function ($message) use ($user) {
 
                     $message
@@ -243,7 +241,7 @@ class AuthController extends Controller
         $request->validate([
             'verification_code' => [
                 'required',
-                'digits:6'
+                'digits:6',
             ],
         ]);
 
@@ -276,8 +274,7 @@ class AuthController extends Controller
         ) {
             return back()
                 ->withErrors([
-                    'verification_code' =>
-                        'The verification code is incorrect.'
+                    'verification_code' => 'The verification code is incorrect.',
                 ])
                 ->withInput();
         }
@@ -294,8 +291,7 @@ class AuthController extends Controller
         ) {
             return back()
                 ->withErrors([
-                    'verification_code' =>
-                        'The verification code has expired. Please request a new code.'
+                    'verification_code' => 'The verification code has expired. Please request a new code.',
                 ]);
         }
 
@@ -348,13 +344,13 @@ class AuthController extends Controller
             ]);
 
             Mail::raw(
-                "Hello {$user->name},\n\n" .
-                "Here is your new LAVEA email verification code:\n\n" .
-                "{$verificationCode}\n\n" .
-                "This code will expire in 10 minutes.\n\n" .
-                "If you did not request this code, you can ignore this email.\n\n" .
-                "Thank you,\n" .
-                "LAVEA Laundry Shop",
+                "Hello {$user->name},\n\n".
+                "Here is your new LAVEA email verification code:\n\n".
+                "{$verificationCode}\n\n".
+                "This code will expire in 10 minutes.\n\n".
+                "If you did not request this code, you can ignore this email.\n\n".
+                "Thank you,\n".
+                'LAVEA Laundry Shop',
                 function ($message) use ($user) {
 
                     $message
@@ -421,7 +417,7 @@ class AuthController extends Controller
         $this->normalizeEmail($request);
 
         $details = $request->validate([
-            'email' => ['required', 'email']
+            'email' => ['required', 'email'],
         ]);
 
         $details['email'] = $this->accountEmail(
@@ -476,7 +472,7 @@ class AuthController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                'min:8'
+                'min:8',
             ],
         ]);
 
@@ -509,8 +505,7 @@ class AuthController extends Controller
 
         return back()
             ->withErrors([
-                'email' =>
-                    'This password reset link is invalid or has expired.'
+                'email' => 'This password reset link is invalid or has expired.',
             ]);
     }
 
@@ -520,7 +515,7 @@ class AuthController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
 
@@ -528,7 +523,7 @@ class AuthController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return redirect()->route('login');
     }
 
     /*
@@ -546,7 +541,7 @@ class AuthController extends Controller
         $request->merge([
             'email' => Str::lower(
                 trim($request->input('email'))
-            )
+            ),
         ]);
     }
 

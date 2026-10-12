@@ -368,7 +368,15 @@
             <div class="welcome">
 
                 <div>
-                    <h1>Good evening, Admin!</h1>
+                    @php
+                        $philippineHour = now('Asia/Manila')->hour;
+                        $greeting = match (true) {
+                            $philippineHour < 12 => 'Good morning',
+                            $philippineHour < 18 => 'Good afternoon',
+                            default => 'Good evening',
+                        };
+                    @endphp
+                    <h1>{{ $greeting }}, Admin!</h1>
                     <p>Here's what's happening with your laundry business today.</p>
                 </div>
 

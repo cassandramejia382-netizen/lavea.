@@ -12,6 +12,19 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 
+test('staff account dropdown links to personal settings and sign out', function (): void {
+    $staff = createSettingsAccount('staff');
+
+    $this->actingAs($staff)->get(route('staff.settings'))
+        ->assertOk()
+        ->assertSee('id="staff-account-toggle" role="button" tabindex="0"', false)
+        ->assertSee('aria-expanded="false" aria-controls="staff-account-dropdown"', false)
+        ->assertSee('id="staff-account-dropdown" hidden', false)
+        ->assertSee('<a href="'.route('staff.settings').'">Profile / Account Settings</a>', false)
+        ->assertSee('<a href="'.route('logout.confirm').'">Sign Out</a>', false)
+        ->assertSee($staff->name);
+});
+
 /**
  * Match the existing isolated SQLite setup for missing legacy base migrations.
  */

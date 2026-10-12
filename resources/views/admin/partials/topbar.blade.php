@@ -1,4 +1,4 @@
-﻿<header class="lavea-admin-topbar">
+<header class="lavea-admin-topbar">
     @if (auth()->user()->role === 'admin' || !empty($hideSearch))
         <div class="lavea-search-spacer" aria-hidden="true"></div>
     @elseif (!empty($customerSearch))
@@ -80,7 +80,7 @@
                     <span>System Administrator</span>
                 @endif
             </div>
-            <i data-lucide="chevron-down"></i>
+            <i data-lucide="chevron-down" class="lavea-account-arrow"></i>
         </div>
         @endif
 
@@ -93,5 +93,26 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    (() => {
+        const accountMenu = document.querySelector('.lavea-admin-topbar .staff-account-menu');
+
+        if (!accountMenu) {
+            return;
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!accountMenu.contains(event.target)) {
+                accountMenu.open = false;
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && accountMenu.open) {
+                accountMenu.open = false;
+                accountMenu.querySelector('summary').focus();
+            }
+        });
+    })();
 
 </script>

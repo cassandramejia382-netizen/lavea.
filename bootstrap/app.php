@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\PreventAuthenticatedPageCaching;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,8 +16,19 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['lavea_theme']);
+        $middleware->redirectUsersTo(function (Request $request): string {
+            $user = $request->user();
+
+            return match ($user->role) {
+                'admin' => route('admin.dashboard'),
+                'staff' => route('staff.dashboard'),
+                'customer', 'user' => route($user->hasVerifiedEmail() ? 'customer.dashboard' : 'verification.notice'),
+                default => abort(403),
+            };
+        });
 
         $middleware->alias([
+            'no-cache' => PreventAuthenticatedPageCaching::class,
             'role' => RoleMiddleware::class,
         ]);
     })

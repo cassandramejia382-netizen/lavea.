@@ -287,58 +287,90 @@ html[data-lavea-theme="dark"] .lavea-notification-item p {
     color: #8792a6;
 }
 
-.staff-account-menu {
+.lavea-admin-topbar .staff-account-menu {
     position: relative;
 }
 
-.staff-account-menu summary {
+.lavea-admin-topbar .staff-account-menu > summary {
     list-style: none;
     cursor: pointer;
+    border-radius: 8px;
 }
 
-.staff-account-menu summary::-webkit-details-marker {
+.lavea-admin-topbar .staff-account-menu > summary::-webkit-details-marker {
     display: none;
 }
 
-.staff-account-menu[open] .lavea-admin-profile {
+.lavea-admin-topbar .staff-account-menu > summary:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 5px;
+}
+
+.lavea-admin-topbar .staff-account-menu[open] > summary {
     color: #4169c8;
 }
 
-.staff-account-dropdown {
+.lavea-admin-topbar .staff-account-dropdown {
     position: absolute;
     top: calc(100% + 14px);
     right: 0;
-    z-index: 1200;
     width: 220px;
+    max-width: calc(100vw - 30px);
     padding: 6px;
+    background: #fff;
     border: 1px solid #e3e8f0;
     border-radius: 10px;
-    background: #fff;
     box-shadow: 0 12px 30px #17255424;
+    z-index: 1200;
 }
 
-.staff-account-dropdown a {
+.lavea-admin-topbar .staff-account-dropdown a {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 11px 12px;
     border-radius: 7px;
     color: #172554;
-    font-size: 13px;
     text-decoration: none;
+    font-size: 13px;
+    line-height: 1.4;
 }
 
-.staff-account-dropdown a:hover {
+.lavea-admin-topbar .staff-account-dropdown a span {
+    color: inherit;
+    font-size: inherit;
+}
+
+.lavea-admin-topbar .staff-account-dropdown a:hover,
+.lavea-admin-topbar .staff-account-dropdown a:focus-visible {
     background: #f1f5fb;
 }
 
-.staff-account-dropdown svg {
+.lavea-admin-topbar .staff-account-dropdown svg {
     width: 17px;
     height: 17px;
 }
 
-.staff-account-dropdown .logout-link {
+.lavea-admin-topbar .staff-account-dropdown .logout-link {
     color: #a73545;
+}
+
+html[data-lavea-theme="dark"] .lavea-admin-topbar .staff-account-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+html[data-lavea-theme="dark"] .lavea-admin-topbar .staff-account-dropdown a {
+    color: #e5e7eb;
+}
+
+html[data-lavea-theme="dark"] .lavea-admin-topbar .staff-account-dropdown a:hover,
+html[data-lavea-theme="dark"] .lavea-admin-topbar .staff-account-dropdown a:focus-visible {
+    background: #273449;
+}
+
+html[data-lavea-theme="dark"] .lavea-admin-topbar .staff-account-dropdown .logout-link {
+    color: #fca5a5;
 }
 
 .lavea-page-date {

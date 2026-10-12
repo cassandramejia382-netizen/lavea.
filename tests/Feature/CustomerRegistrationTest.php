@@ -16,6 +16,30 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 
+test('Gmail SMTP accepts registration and resend verification and the signed link opens the customer dashboard', function (): void {
+    if (getenv('LAVEA_GMAIL_SMTP_TEST') !== '1') {
+        $this->markTestSkipped('Enable explicitly to send two verification emails to the configured Gmail sender.');
+    }
+
+    config(['mail.default' => 'smtp']);
+    Mail::purge();
+    $recipient = config('mail.mailers.smtp.username');
+    expect($recipient)->not->toBeEmpty();
+
+    $this->post(route('register.submit'), registrationPayload($recipient))
+        ->assertRedirect(route('verification.notice'))->assertSessionHas('status')->assertSessionMissing('email_error');
+    $customer = User::sole();
+    expect($customer->hasVerifiedEmail())->toBeFalse();
+    $this->get(route('customer.dashboard'))->assertRedirect(route('verification.notice'));
+    $this->from(route('verification.notice'))->post(route('verification.send'))
+        ->assertRedirect(route('verification.notice'))->assertSessionHas('status')->assertSessionMissing('email_error');
+
+    $verificationUrl = (new VerifyEmail)->toMail($customer)->actionUrl;
+    $this->get($verificationUrl)->assertRedirect(route('customer.dashboard'));
+    expect($customer->fresh()->hasVerifiedEmail())->toBeTrue();
+    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified.');
+});
+
 beforeEach(function (): void {
     Schema::create('customers', function (Blueprint $table): void {
         $table->id();
@@ -223,4 +247,14 @@ test('registration renders and delivers the real verification notification to th
     expect($email->getTo()[0]->getAddress())->toBe('new@example.com');
     expect($email->getHtmlBody())->toContain('Verify Email Address', '/email/verify/', 'signature=');
     expect(User::sole()->hasVerifiedEmail())->toBeFalse();
+
+    $this->get(route('customer.dashboard'))->assertRedirect(route('verification.notice'));
+    $this->from(route('verification.notice'))->post(route('verification.send'))
+        ->assertRedirect(route('verification.notice'))->assertSessionHas('status')->assertSessionMissing('email_error');
+    expect(Mail::mailer()->getSymfonyTransport()->messages())->toHaveCount(2);
+
+    $customer = User::sole();
+    $this->get((new VerifyEmail)->toMail($customer)->actionUrl)->assertRedirect(route('customer.dashboard'));
+    expect($customer->fresh()->hasVerifiedEmail())->toBeTrue();
+    $this->get(route('customer.dashboard'))->assertOk()->assertSee('Your email has been verified.');
 });
