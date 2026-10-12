@@ -3,7 +3,7 @@
     $unreadCount = auth()->user()->unreadNotifications()->count();
 @endphp
 
-<div class="lavea-notification">
+<div class="lavea-notification" data-unread-count="{{ $unreadCount }}">
     <button type="button" class="lavea-notification-button" id="notification-toggle" aria-label="Notifications" aria-expanded="false" aria-controls="notification-panel">
         <i data-lucide="bell"></i>
         @if ($unreadCount > 0 && (auth()->user()->show_notification_badge ?? true))
@@ -22,7 +22,7 @@
                     $notificationUrl = route('staff.'.$matches[1].'.show', $matches[2]);
                 }
             @endphp
-            <div class="lavea-notification-item {{ $notification->read_at ? '' : 'is-unread' }}">
+            <div class="lavea-notification-item {{ $notification->read_at ? '' : 'is-unread' }}" @if (! $notification->read_at) data-read-url="{{ route('notifications.read', $notification->id) }}" @endif>
                 @if ($notificationUrl)
                     <a class="lavea-notification-title" href="{{ $notificationUrl }}">
                         {{ $notification->data['title'] ?? 'Notification' }}
@@ -34,12 +34,6 @@
                 <p>{{ $notification->data['message'] ?? '' }}</p>
                 <small>{{ $notification->created_at->diffForHumans() }}</small>
 
-                @if (! $notification->read_at)
-                    <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
-                        @csrf
-                        <button type="submit" class="lavea-notification-read">Mark as read</button>
-                    </form>
-                @endif
             </div>
         @empty
             <p class="lavea-notification-empty">No notifications yet.</p>
@@ -56,9 +50,58 @@
             return;
         }
 
+        const notificationContainer = toggle.closest('.lavea-notification');
+        const csrfToken = @json(csrf_token());
+
+        function markVisibleNotificationsAsRead() {
+            panel.querySelectorAll('[data-read-url]').forEach(async function (item) {
+                if (item.dataset.readPending) {
+                    return;
+                }
+
+                item.dataset.readPending = 'true';
+
+                try {
+                    const response = await fetch(item.dataset.readUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok || response.redirected) {
+                        return;
+                    }
+
+                    delete item.dataset.readUrl;
+                    item.classList.remove('is-unread');
+                    const remaining = Math.max(0, Number(notificationContainer.dataset.unreadCount) - 1);
+                    notificationContainer.dataset.unreadCount = String(remaining);
+                    const badge = toggle.querySelector('.lavea-notification-count');
+
+                    if (badge) {
+                        if (remaining === 0) {
+                            badge.remove();
+                        } else {
+                            badge.textContent = remaining > 99 ? '99+' : String(remaining);
+                        }
+                    }
+                } catch (error) {
+                    // Keep unread notifications available for retry on the next opening.
+                } finally {
+                    delete item.dataset.readPending;
+                }
+            });
+        }
+
         toggle.addEventListener('click', function () {
             panel.hidden = !panel.hidden;
             toggle.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+            if (!panel.hidden) {
+                markVisibleNotificationsAsRead();
+            }
         });
 
         document.addEventListener('click', function (event) {

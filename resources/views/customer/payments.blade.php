@@ -40,6 +40,8 @@
     .payment-history-card td { padding:12px;font-size:12px; }
     .payment-history-card td a { color:#4169c8;text-decoration:none;font-weight:600; }
     .payment-history-card td a:hover { text-decoration:underline; }
+    .payment-history-card td .payment-receipt-link { display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #dfe5ef;border-radius:7px;white-space:nowrap; }
+    .payment-history-card td .payment-receipt-link:hover { background:#f1f5fb;text-decoration:none; }
     .payment-history-pagination { padding:0 16px 14px; }
     @media(max-width:700px) { .payment-overview { grid-template-columns:1fr;gap:8px; } .customer-payments-heading h1 { font-size:21px; } }
     @media(prefers-reduced-motion:reduce) { .payable-order-card { transition:none; } }
@@ -108,7 +110,7 @@
     <section class="card payment-history-card">
         <div class="payment-history-title"><h2>Payment history</h2><span>{{ $payments->total() }} transactions</span></div>
         <div class="table-wrap"><table>
-            <thead><tr><th>Payment</th><th>Order</th><th>Service</th><th>Date</th><th>Method</th><th>Status</th><th>Amount</th></tr></thead>
+            <thead><tr><th>Payment</th><th>Order</th><th>Service</th><th>Date</th><th>Method</th><th>Status</th><th>Amount</th><th>Receipt</th></tr></thead>
             <tbody>
                 @forelse($payments as $payment)
                     <tr>
@@ -119,9 +121,16 @@
                         <td>{{ $payment->payment_method }}</td>
                         <td><span class="pill" data-status="{{ $payment->status }}">{{ $payment->status }}</span></td>
                         <td>&#8369;{{ number_format($payment->amount, 2) }}</td>
+                        <td>
+                            @if ($payment->status === 'Completed')
+                                <a class="payment-receipt-link" href="{{ route('customer.payments.show', ['payment' => $payment, 'print' => 1]) }}" target="_blank" rel="noopener" aria-label="Print receipt for payment {{ $payment->id }}"><i data-lucide="printer" style="width:14px;height:14px"></i>Print Receipt</a>
+                            @else
+                                <span class="muted">—</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="empty">No payment records match your search.</td></tr>
+                    <tr><td colspan="8" class="empty">No payment records match your search.</td></tr>
                 @endforelse
             </tbody>
         </table></div>

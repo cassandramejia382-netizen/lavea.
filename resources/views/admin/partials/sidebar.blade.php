@@ -14,23 +14,18 @@
             ['payments.index', 'Payments / Transactions', 'credit-card', 'payments.*'],
             ['schedules.index', 'Schedule', 'calendar-days', 'schedules.*'],
             ['reports', 'Reports', 'bar-chart-3', 'reports'],
+            ['profile', 'My Profile', 'user-round', 'profile'],
             ['settings', 'Settings', 'settings', 'settings*'],
         ];
     @endphp
     <nav class="menu" aria-label="{{ $navigationPrefix === 'admin' ? 'Admin' : 'Staff' }} navigation">
         @foreach ($navigationItems as [$navigationRoute, $navigationLabel, $navigationIcon, $navigationPattern])
-            @if ($navigationPrefix === 'admin' || ! in_array($navigationRoute, ['staff.index', 'reports']))
+            @if (($navigationPrefix === 'admin' && $navigationRoute !== 'schedules.index') || ($navigationPrefix === 'staff' && ! in_array($navigationRoute, ['staff.index', 'reports', 'profile'])))
                 <a href="{{ route($navigationPrefix.'.'.$navigationRoute) }}" @class(['active' => request()->routeIs($navigationPrefix.'.'.$navigationPattern)]) aria-label="{{ $navigationLabel }}" @if (request()->routeIs($navigationPrefix.'.'.$navigationPattern)) aria-current="page" @endif>
                     <i data-lucide="{{ $navigationIcon }}"></i>
                     <span>{{ $navigationRoute === 'settings' ? 'Account Settings' : $navigationLabel }}</span>
                 </a>
             @endif
         @endforeach
-        @if ($navigationPrefix === 'admin')
-            <a href="{{ route('admin.profile') }}" @class(['active' => request()->routeIs('admin.profile')]) aria-label="My Profile" @if (request()->routeIs('admin.profile')) aria-current="page" @endif>
-                <i data-lucide="user-round"></i>
-                <span>My Profile</span>
-            </a>
-        @endif
     </nav>
 </aside>
