@@ -40,6 +40,19 @@ beforeEach(function (): void {
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
 });
 
+test('services api preserves the public collection response and all existing service fields', function (): void {
+    $active = ServiceFactory::new()->create(['service_name' => 'Wash & Fold', 'price' => 150]);
+    $inactive = ServiceFactory::new()->create(['service_name' => 'Ironing', 'is_active' => false]);
+    $this->getJson('/api/services')->assertOk()->assertHeader('Content-Type', 'application/json')
+        ->assertJsonCount(2)->assertJsonFragment(['id' => $active->id, 'service_name' => 'Wash & Fold'])
+        ->assertJsonFragment(['id' => $inactive->id, 'is_active' => false])
+        ->assertExactJson(Service::all()->toArray());
+});
+
+test('services api returns an empty collection when no services exist', function (): void {
+    $this->getJson('/api/services')->assertOk()->assertExactJson([]);
+});
+
 test('admin can deactivate and reactivate a service', function (): void {
     $service = ServiceFactory::new()->create();
     $admin = User::factory()->create(['role' => 'admin']);

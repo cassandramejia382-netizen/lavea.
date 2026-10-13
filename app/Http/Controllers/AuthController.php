@@ -402,30 +402,6 @@ class AuthController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Old Verification Link Method
-    |--------------------------------------------------------------------------
-    |
-    | We no longer use Laravel's email verification link.
-    |
-    */
-
-    public function verifyEmail(Request $request): RedirectResponse
-    {
-        if (! Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        if (! Auth::user()->hasVerifiedEmail()) {
-            return redirect()
-                ->route('verification.notice');
-        }
-
-        return redirect()
-            ->route('customer.dashboard');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
     | Forgot Password
     |--------------------------------------------------------------------------
     */

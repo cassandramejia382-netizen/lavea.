@@ -440,14 +440,6 @@ td {
         </nav>
     </aside>
     <main class="main">
-        @php
-            $customerSearch = request()->routeIs('manager.customers.*');
-            $orderSearch = request()->routeIs('manager.orders.*');
-            $paymentSearch = request()->routeIs('manager.payments.*');
-            $hideSearch = request()->routeIs('manager.customers.index', 'staff.orders.index', 'staff.payments.index')
-                || ! ($customerSearch || $orderSearch || $paymentSearch);
-            $orderRoutePrefix = 'manager.orders';
-        @endphp
         @include('admin.partials.topbar')
         <section class="content">
             @if (session('status'))<div class="flash" role="status">{{ session('status') }}</div>@endif

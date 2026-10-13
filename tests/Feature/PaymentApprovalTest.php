@@ -188,7 +188,7 @@ test('customer submission reuses its secure upload and ownership restrictions', 
     $payment = Payment::firstOrFail();
     expect($payment->status)->toBe('Pending');
     $this->get(route('payments.proof', $payment))->assertOk();
-    $this->actingAs(User::factory()->create(['role' => 'manager']))->get(route('manager.payments.show', $payment))->assertOk()->assertSee('View Proof');
+    $this->actingAs(User::factory()->create(['role' => 'manager']))->get(route('manager.payments.show', $payment))->assertOk()->assertSee('>View</span>', false);
     $this->actingAs(User::factory()->create(['role' => 'customer']))->get(route('payments.proof', $payment))->assertNotFound();
     $this->post(route('customer.payments.checkout.store', $order), $details)->assertNotFound();
     $this->get(route('customer.payments.show', $payment))->assertNotFound();

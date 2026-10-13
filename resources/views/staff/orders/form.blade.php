@@ -3,7 +3,7 @@
 @php
     $editing = isset($order) && $order->exists;
     $assignmentLocked = $editing && $order->status !== 'Pending';
-    $assignmentConfig = ['locked' => $assignmentLocked, 'editing' => $editing, 'originalServiceId' => $order->service_id, 'originalStaffId' => $order->staff_id, 'initialStaffId' => old('staff_id', $order->staff_id), 'currentWorker' => $editing && $order->staff ? ['id' => $order->staff->id, 'name' => $order->staff->name, 'job_position' => $order->staff->role] : null];
+    $assignmentConfig = ['locked' => $assignmentLocked, 'originalServiceId' => $order->service_id, 'originalStaffId' => $order->staff_id];
 @endphp
 <div class="page-head"><div><h1>{{ $editing ? 'Edit Record' : 'Create Laundry Record' }}</h1><div class="muted">Search and select a registered customer.</div></div></div>
 <form class="card form-grid" method="POST" action="{{ $editing ? route('manager.orders.update', $order) : route('manager.orders.store') }}">@csrf @if($editing)@method('PUT')@endif
