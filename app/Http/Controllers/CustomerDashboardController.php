@@ -142,7 +142,7 @@ class CustomerDashboardController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', 'in:Cash,GCash,Card,Bank Transfer'],
             'proof_image' => ['exclude_if:payment_method,Cash', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
-            'reference_number' => ['nullable', 'string', 'max:255'],
+            'reference_number' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 

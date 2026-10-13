@@ -356,9 +356,9 @@
                     </div>
                 </div>
                 <div class="field full" id="reference-field">
-                    <label for="reference_number">Transfer reference number <span id="reference-required">*</span></label>
-                    <input id="reference_number" name="reference_number" maxlength="255" value="{{ old('reference_number') }}" placeholder="Enter the reference from your transfer">
-                    <small class="muted">Required for GCash and bank transfers. You can attach payment proof for GCash, bank transfers and card payments.</small>
+                    <label for="reference_number">Payment reference number <span id="reference-required">*</span></label>
+                    <input id="reference_number" name="reference_number" required maxlength="255" value="{{ old('reference_number') }}" placeholder="Enter your payment reference number">
+                    <small class="muted">Required for every payment method. You can attach payment proof for GCash, bank transfers and card payments.</small>
                 </div>
                 <div class="field full">
                     <label for="notes">Note <span class="muted" style="font-weight:400">(optional)</span></label>
@@ -414,13 +414,13 @@
         }
         previousPaymentMethod = selectedMethod;
         document.getElementById('proof-label').textContent = `${selectedMethod} proof of payment (optional)`;
-        const requiresReference = ['GCash', 'Bank Transfer'].includes(selectedMethod);
+        const requiresReference = true;
         const allowsProof = ['GCash', 'Bank Transfer', 'Card'].includes(selectedMethod);
         document.getElementById('proof-field').hidden = !allowsProof;
         proofInput.disabled = !allowsProof;
         referenceInput.required = requiresReference;
         referenceRequired.hidden = !requiresReference;
-        referenceInput.placeholder = requiresReference ? 'Enter the reference from your transfer' : 'Optional';
+        referenceInput.placeholder = requiresReference ? 'Enter your payment reference number' : 'Optional';
         paymentMethodOptions.forEach((option) => {
             option.classList.toggle('is-selected', option.querySelector('input').checked);
         });

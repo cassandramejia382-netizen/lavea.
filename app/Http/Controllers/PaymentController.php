@@ -80,7 +80,7 @@ class PaymentController extends Controller
             'order_id' => 'required|exists:orders,id',
             'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|in:Cash,GCash,Card,Bank Transfer',
-            'reference_number' => 'nullable|string|max:255',
+            'reference_number' => 'required|string|max:255',
             'payment_date' => 'required|date|before_or_equal:today',
             'status' => 'required|in:Completed,Pending,Failed',
             'notes' => 'nullable|string',
@@ -167,7 +167,7 @@ class PaymentController extends Controller
         $details = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01', 'decimal:0,2'],
             'payment_method' => ['required', 'in:Cash,GCash,Card,Bank Transfer'],
-            'reference_number' => ['nullable', 'string', 'max:255'],
+            'reference_number' => ['required', 'string', 'max:255'],
             'payment_date' => ['required', 'date', 'before_or_equal:today'],
             'status' => ['required', 'in:Completed,Pending,Failed'],
             'notes' => ['nullable', 'string', 'max:2000'],

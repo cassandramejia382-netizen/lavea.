@@ -27,7 +27,6 @@
         @endforeach
     </div>
     @if($payment->order)
-        <div style="margin-top:16px"><a class="btn secondary" href="{{ route('customer.orders.show', $payment->order_id) }}">View Order</a></div>
     @endif
 </div>
 

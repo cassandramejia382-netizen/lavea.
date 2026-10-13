@@ -46,6 +46,15 @@ beforeEach(function (): void {
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
 });
 
+test('each payment method requires a reference number for customer submissions', function (string $method): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create(['total' => 150]);
+    $this->actingAs($user)->post(route('customer.payments.checkout.store', $order), ['amount' => 50, 'payment_method' => $method])
+        ->assertSessionHasErrors('reference_number');
+    $this->assertDatabaseCount('payments', 0);
+})->with(['Cash', 'GCash', 'Card', 'Bank Transfer']);
+
 test('staff edits and deletes payments while recalculating the order balance', function (): void {
     Storage::fake('local');
     $staff = User::factory()->create(['role' => 'staff']);
@@ -114,7 +123,7 @@ test('dashboard totals and recent orders contain only the signed in customer dat
     $response = $this->actingAs($user)->get(route('customer.dashboard'));
 
     $response->assertOk()->assertSee('Welcome, Maria Santos')->assertSee('Wash and Fold')
-        ->assertSee('₱200.00')->assertDontSee('9,876.00')->assertDontSee($otherOrder->customer->name)
+        ->assertSee('â‚±200.00')->assertDontSee('9,876.00')->assertDontSee($otherOrder->customer->name)
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 3 && $stats['pending'] === 1 && $stats['completed'] === 1 && (float) $stats['payments'] === 200.0)
         ->assertViewHas('recentOrders', fn ($orders): bool => $orders->count() === 3 && $orders->every(fn ($order): bool => $order->customer_id === $customer->id));
 });
@@ -154,7 +163,7 @@ test('renders customer detail pages for owned records', function (string $resour
     $record = $resource === 'orders' ? $order : $payment;
 
     $this->actingAs($user)->get(route('customer.'.$resource.'.show', $record))
-        ->assertOk()->assertSee('₱150.00')->assertSee('Customer Account');
+        ->assertOk()->assertSee('â‚±150.00')->assertSee('Customer Account');
 })->with(['orders', 'payments']);
 
 test('customer pages require login', function (string $route): void {
@@ -179,7 +188,7 @@ test('accounts without a customer profile see empty data instead of other custom
     PaymentFactory::new()->for($otherOrder)->create();
 
     $this->actingAs($user)->get(route('customer.dashboard'))->assertOk()
-        ->assertSee('No orders yet')->assertSee('₱0.00')
+        ->assertSee('No orders yet')->assertSee('â‚±0.00')
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 0 && $stats['pending'] === 0 && $stats['completed'] === 0);
     $this->get(route('customer.payments.index'))->assertSee('No payment records match your search.');
     $this->get(route('customer.profile'))->assertSee('Your customer profile is not linked yet.');
