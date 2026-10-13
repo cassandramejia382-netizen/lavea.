@@ -340,15 +340,13 @@ html[data-lavea-theme="dark"] .profile-account-badge svg {
             <div class="profile-toast" id="profile-toast" role="status"><i data-lucide="circle-check"></i><span>{{ session('profile_saved') }}</span></div>
         @endif
 
-        @if($profileRole === 'customer')
-            <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-                <a class="btn danger" href="#delete-account-panel" onclick="document.querySelector('#delete-account-panel details').open = true" style="font-size:12px;padding:9px 13px">Delete Account</a>
-            </div>
-        @endif
         @if($profileLinked ?? true)
 <section class="profile-card" aria-label="Profile details">
             <form class="profile-form" method="POST" action="{{ route($profileRole.'.profile.update') }}" enctype="multipart/form-data">
                 @csrf
+                @if ($profileRole === 'customer')
+                    @method('PATCH')
+                @endif
                 <div class="profile-photo-row">
                     <div class="profile-photo" aria-label="Profile photo preview">
                         @if (auth()->user()->profile_photo_path)

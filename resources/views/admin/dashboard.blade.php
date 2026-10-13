@@ -106,11 +106,12 @@
 }
 .lavea-admin-content .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 17px;
     margin-bottom: 22px;
 }
 .lavea-admin-content .card {
+    min-width: 0;
     background: white;
     border: 1px solid #e7ebf2;
     border-radius: 10px;
@@ -138,10 +139,11 @@
     height: 245px;
     display: flex;
     align-items: flex-end;
-    gap: 18px;
+    gap: clamp(2px, 0.3vw, 6px);
     padding: 15px 5px 0;
     border-bottom: 1px solid #e6eaf1;
     position: relative;
+    overflow-x: auto;
 }
 .lavea-admin-content .chart::before,
 .lavea-admin-content .chart::after {
@@ -159,6 +161,7 @@
 }
 .lavea-admin-content .bar-wrap {
     flex: 1;
+    min-width: 14px;
     height: 100%;
     display: flex;
     flex-direction: column;

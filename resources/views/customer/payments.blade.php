@@ -260,7 +260,7 @@
 
     <section class="payment-overview" aria-label="Payment summary">
         <article class="payment-overview-card"><span class="payment-overview-icon"><i data-lucide="receipt-text"></i></span><div><span class="payment-overview-label">Payment records</span><strong class="payment-overview-value">{{ $paymentCount }}</strong></div></article>
-        <article class="payment-overview-card"><span class="payment-overview-icon"><i data-lucide="circle-check"></i></span><div><span class="payment-overview-label">Completed payments</span><strong class="payment-overview-value">&#8369;{{ number_format($completedTotal, 2) }}</strong></div></article>
+        <article class="payment-overview-card"><span class="payment-overview-icon"><i data-lucide="circle-check"></i></span><div><span class="payment-overview-label">Confirmed payments</span><strong class="payment-overview-value">&#8369;{{ number_format($completedTotal, 2) }}</strong></div></article>
         <article class="payment-overview-card"><span class="payment-overview-icon"><i data-lucide="clock-3"></i></span><div><span class="payment-overview-label">Pending payments</span><strong class="payment-overview-value">&#8369;{{ number_format($pendingTotal, 2) }}</strong></div></article>
     </section>
 
@@ -295,7 +295,7 @@
                 @endforeach
             </div>
         @else
-            <div style="display:flex;align-items:center;gap:10px;padding:14px;border-radius:9px;background:#f7f9fc;color:#78869d;font-size:13px"><i data-lucide="badge-check" style="width:18px;height:18px;color:#21865a"></i>All your orders are paid in full.</div>
+            <div class="payment-clear-notice" style="display:flex;align-items:center;gap:10px;padding:14px;border-radius:9px;background:#f7f9fc;color:#78869d;font-size:13px"><i data-lucide="badge-check" style="width:18px;height:18px;color:#21865a"></i>All your orders are paid in full.</div>
         @endif
     </section>
 
@@ -303,7 +303,7 @@
         <input name="search" value="{{ $search }}" placeholder="Search order, service, method or reference" aria-label="Search payments">
         <select name="status" aria-label="Filter payment status">
             <option value="">All statuses</option>
-            @foreach(['Completed', 'Pending', 'Failed'] as $option)
+            @foreach(['Confirmed', 'Pending', 'Rejected'] as $option)
                 <option value="{{ $option }}" @selected($status === $option)>{{ $option }}</option>
             @endforeach
         </select>
@@ -326,11 +326,11 @@
                         <td><span class="pill" data-status="{{ $payment->status }}">{{ $payment->status }}</span></td>
                         <td>&#8369;{{ number_format($payment->amount, 2) }}</td>
                         <td>
-                            @if (in_array($payment->status, ['Completed', 'Pending'], true))
-                                <a class="payment-receipt-link" href="{{ route('customer.payments.show', ['payment' => $payment, 'print' => 1]) }}" target="_blank" rel="noopener" aria-label="Print receipt for payment {{ $payment->id }}"><i data-lucide="printer" style="width:14px;height:14px"></i>Print Receipt</a>
+                            @can('print-receipt', $payment)
+                                <a class="payment-receipt-link" href="{{ route('payments.receipt', $payment) }}" target="_blank" rel="noopener" aria-label="Print receipt for payment {{ $payment->id }}"><i data-lucide="printer" style="width:14px;height:14px"></i>Print Receipt</a>
                             @else
                                 <span class="muted">—</span>
-                            @endif
+                            @endcan
                         </td>
                     </tr>
                 @empty

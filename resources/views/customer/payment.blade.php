@@ -3,10 +3,10 @@
 <div class="page-head no-print">
     <div><h1>Payment #LVE-PAY-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</h1><div class="muted">Payment details for Order #LVE-{{ str_pad($payment->order_id, 4, '0', STR_PAD_LEFT) }}.</div></div>
     <div class="actions">
-        <a class="btn secondary" href="{{ route('customer.payments.index') }}">Back to Payments</a>
-        @if(in_array($payment->status, ['Completed', 'Pending'], true))
-            <button class="btn" type="button" onclick="window.print()">Print Receipt</button>
-        @endif
+        <a href="{{ route('customer.payments.index') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back to Payments</a>
+        @can('print-receipt', $payment)
+            <a class="btn" href="{{ route('payments.receipt', $payment) }}" target="_blank" rel="noopener"><i data-lucide="printer" aria-hidden="true"></i>Print Receipt</a>
+        @endcan
     </div>
 </div>
 
@@ -31,15 +31,10 @@
 </div>
 
 @if($payment->status === 'Pending')
-    <p class="muted no-print">Payment is pending staff verification.</p>
+    <p class="muted no-print">Payment is pending Admin approval.</p>
 @endif
-@if(in_array($payment->status, ['Completed', 'Pending'], true))
+@can('print-receipt', $payment)
     @include('partials.payment-receipt', ['payment' => $payment])
-@endif
-@if (in_array($payment->status, ['Completed', 'Pending'], true) && request()->boolean('print'))
-    <script>
-        window.addEventListener('load', () => window.print(), { once: true });
-    </script>
-@endif
+@endcan
 @include('partials.payment-proof', ['payment' => $payment])
 @endsection

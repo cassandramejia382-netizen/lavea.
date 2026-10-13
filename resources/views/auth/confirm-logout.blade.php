@@ -97,9 +97,9 @@ button {
             <div class="actions">
                 @if (auth()->user()->role === 'admin')
                     <a class="cancel" href="{{ route('admin.dashboard') }}">Cancel</a>
-                @elseif (auth()->user()->role === 'staff')
-                    <a class="cancel" href="{{ route('staff.dashboard') }}">Cancel</a>
-                @elseif (auth()->user()->role === 'customer' || auth()->user()->role === 'user')
+                @elseif (auth()->user()->role === 'manager')
+                    <a class="cancel" href="{{ route('manager.dashboard') }}">Cancel</a>
+                @elseif (auth()->user()->role === 'customer')
                     <a class="cancel" href="{{ route('customer.dashboard') }}">Cancel</a>
                 @else
                     <a class="cancel" href="{{ route('home') }}">Cancel</a>

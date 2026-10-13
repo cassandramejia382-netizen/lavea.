@@ -345,6 +345,7 @@
                         @endforeach
                     </div>
                 </fieldset>
+                @include('partials.gcash-payment')
                 <div class="field full" id="proof-field">
                     <label for="proof_image" id="proof-label">Proof of payment (optional)</label>
                     <input id="proof_image" name="proof_image" type="file" accept="image/jpeg,image/png,image/webp">
@@ -364,7 +365,7 @@
                     <label for="notes">Note <span class="muted" style="font-weight:400">(optional)</span></label>
                     <textarea id="notes" name="notes" maxlength="2000" placeholder="Add a note for staff">{{ old('notes') }}</textarea>
                 </div>
-                <div class="checkout-notice field full"><i data-lucide="info"></i><span>Your payment will remain <strong>Pending</strong> until staff verifies it. The order balance updates after confirmation.</span></div>
+                <div class="checkout-notice field full"><i data-lucide="info"></i><span>Your payment will remain <strong>Pending</strong> until Admin approves it. The order balance updates after confirmation.</span></div>
                 <div class="checkout-actions field full">
                     <button class="btn" type="submit">Submit Payment</button>
                     <a class="btn secondary" href="{{ route('customer.payments.index') }}">Cancel</a>
@@ -413,7 +414,9 @@
             referenceInput.value = '';
         }
         previousPaymentMethod = selectedMethod;
-        document.getElementById('proof-label').textContent = `${selectedMethod} proof of payment (optional)`;
+        const requiresProof = ['GCash', 'Bank Transfer'].includes(selectedMethod);
+        document.getElementById('proof-label').textContent = `${selectedMethod} proof of payment (${requiresProof ? 'required' : 'optional'})`;
+        proofInput.required = requiresProof;
         const requiresReference = true;
         const allowsProof = ['GCash', 'Bank Transfer', 'Card'].includes(selectedMethod);
         document.getElementById('proof-field').hidden = !allowsProof;

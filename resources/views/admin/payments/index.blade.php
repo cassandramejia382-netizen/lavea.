@@ -138,7 +138,7 @@
     font-size: 11px;
     font-weight: 600;
 }
-.lavea-admin-content .completed {
+.lavea-admin-content .confirmed {
     background: #e5f8ef;
     color: #168458;
 }
@@ -146,7 +146,7 @@
     background: #fff4d6;
     color: #a56a00;
 }
-.lavea-admin-content .failed {
+.lavea-admin-content .rejected {
     background: #ffe9ec;
     color: #d14a5b;
 }
@@ -224,7 +224,7 @@
             <form method="GET" action="{{ route('admin.payments.index') }}" class="filters">
                 <select name="status" aria-label="Filter by payment status">
                     <option value="">All statuses</option>
-                    @foreach (['Completed', 'Pending', 'Failed'] as $paymentStatus)
+                    @foreach (['Confirmed', 'Pending', 'Rejected'] as $paymentStatus)
                         <option value="{{ $paymentStatus }}" @selected($status === $paymentStatus)>{{ $paymentStatus }}</option>
                     @endforeach
                 </select>

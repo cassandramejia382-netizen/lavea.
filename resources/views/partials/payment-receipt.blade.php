@@ -7,20 +7,26 @@
         size: A4;
         margin: 18mm;
     }
-    .sidebar, .lavea-admin-topbar, .lavea-admin-topbar-spacer, .no-print, .flash, .error-list {
+    .sidebar, .lavea-admin-topbar, .lavea-admin-topbar-spacer, .lavea-sidebar-backdrop, .no-print, .flash, .error-list {
         display: none !important;
     }
     html, body {
         background: #fff !important;
+        overflow: visible !important;
     }
     .main {
         margin: 0 !important;
         width: 100% !important;
+        min-height: 0 !important;
+    }
+    .dashboard {
+        display: block !important;
+        min-height: 0 !important;
     }
     .content {
         padding: 0 !important;
     }
-    .lavea-admin-content > :not(#payment-receipt) {
+    .dashboard .content > :not(#payment-receipt) {
         display: none !important;
     }
     #payment-receipt {
@@ -33,6 +39,7 @@
         font: 14px/1.5 Arial,Helvetica,sans-serif;
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
+        width: 100%;
     }
     #payment-receipt * {
         box-sizing: border-box;
@@ -112,6 +119,7 @@
         padding: 16px 12px;
         border-bottom: 1px solid #e2e8f0;
         font-size: 14px;
+        overflow-wrap: anywhere;
     }
     #payment-receipt .receipt-amount {
         display: flex;
@@ -146,12 +154,16 @@
     #payment-receipt .receipt-header, #payment-receipt .receipt-amount, #payment-receipt tr {
         break-inside: avoid;
     }
+    #payment-receipt .receipt-info,
+    #payment-receipt .receipt-footer {
+        break-inside: avoid;
+    }
 }
 </style>
 <div id="payment-receipt" class="receipt">
     <div class="receipt-header">
         <div><div class="receipt-brand">LAVEA</div><div class="receipt-subtitle">Laundry Management System</div></div>
-        <div class="receipt-identity"><h1>Payment Receipt</h1><div class="receipt-subtitle">#LVE-PAY-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</div><span class="receipt-status">{{ $payment->status === 'Completed' ? 'Verified payment' : 'Pending verification' }}</span></div>
+        <div class="receipt-identity"><h1>Payment Receipt</h1><div class="receipt-subtitle">#LVE-PAY-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</div><span class="receipt-status">{{ $payment->status === 'Confirmed' ? 'Verified payment' : ($payment->status === 'Rejected' ? 'Failed payment' : 'Pending verification') }}</span></div>
     </div>
     <div class="receipt-info">
         <div><span class="receipt-label">Customer</span><div class="receipt-value">{{ $payment->order?->customer?->name ?? 'Not available' }}</div></div>
@@ -165,9 +177,17 @@
         <td>{{ $payment->order?->quantity ?? 'Not available' }} {{ $payment->order?->service?->billingUnit() ?? 'kg' }}</td>
         <td>&#8369;{{ number_format($payment->order?->total ?? 0, 2) }}</td>
     </tr></tbody></table>
-    <div class="receipt-amount"><div><span class="receipt-label">{{ $payment->status === 'Completed' ? 'Amount paid' : 'Payment amount' }}</span><span>{{ $payment->payment_method }}</span></div><strong>&#8369;{{ number_format($payment->amount, 2) }}</strong></div>
-    @if($payment->status !== 'Completed')
-        <div class="receipt-note">Payment is pending staff verification. This receipt does not confirm that payment has been received.</div>
+    <div class="receipt-amount"><div><span class="receipt-label">{{ $payment->status === 'Confirmed' ? 'Amount paid' : 'Payment amount' }}</span><span>{{ $payment->payment_method }}</span></div><strong>&#8369;{{ number_format($payment->amount, 2) }}</strong></div>
+    @if($payment->status !== 'Confirmed')
+        <div class="receipt-note">{{ $payment->status === 'Rejected' ? 'Payment failed.' : 'Payment is pending Admin approval.' }} This receipt does not confirm that payment has been received.</div>
     @endif
     <div class="receipt-footer">Thank you for choosing LAVEA.<br>Keep this receipt for your records.</div>
 </div>
+@if ($autoPrint ?? false)
+    <script>
+        window.addEventListener('load', async () => {
+            await document.fonts.ready;
+            window.print();
+        }, { once: true });
+    </script>
+@endif

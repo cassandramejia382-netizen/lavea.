@@ -11,6 +11,10 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
+    public const LOGIN_ROLES = ['admin', 'manager', 'customer'];
+
+    protected $attributes = ['role' => 'customer'];
+
     protected $fillable = [
         'name',
         'email',
@@ -35,11 +39,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
         'show_notification_badge' => 'boolean',
     ];
-
-    public function staffProfile()
-    {
-        return $this->hasOne(Staff::class, 'email', 'email');
-    }
 
     public function customerProfile()
     {

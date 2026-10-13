@@ -1,14 +1,13 @@
 <aside class="sidebar">
     <div class="logo-area">
-        <div class="logo">LAVEA</div>
-        <div class="logo-subtitle">Laundry Made Easy</div>
+        @include('partials.lavea-logo')
     </div>
     @php
-        $navigationPrefix = auth()->user()->role === 'staff' ? 'staff' : 'admin';
+        $navigationPrefix = auth()->user()->role === 'manager' ? 'manager' : 'admin';
         $navigationItems = [
             ['dashboard', 'Dashboard', 'layout-dashboard', 'dashboard'],
             ['customers.index', 'Customers', 'users', 'customers.*'],
-            ['staff.index', 'Staff', 'user-round-cog', 'staff.*'],
+            ['staff.index', 'Staff', 'users', 'staff.*'],
             ['services.index', 'Services', 'package', 'services.*'],
             ['orders.index', 'Records', 'clipboard-list', 'orders.*'],
             ['payments.index', 'Payments / Transactions', 'credit-card', 'payments.*'],
@@ -18,9 +17,9 @@
             ['settings', 'Settings', 'settings', 'settings*'],
         ];
     @endphp
-    <nav class="menu" aria-label="{{ $navigationPrefix === 'admin' ? 'Admin' : 'Staff' }} navigation">
+    <nav class="menu" aria-label="{{ $navigationPrefix === 'admin' ? 'Admin' : 'Manager' }} navigation">
         @foreach ($navigationItems as [$navigationRoute, $navigationLabel, $navigationIcon, $navigationPattern])
-            @if (($navigationPrefix === 'admin' && $navigationRoute !== 'schedules.index') || ($navigationPrefix === 'staff' && ! in_array($navigationRoute, ['staff.index', 'reports', 'profile'])))
+            @if (($navigationPrefix === 'admin' && $navigationRoute !== 'schedules.index') || ($navigationPrefix === 'manager' && ! in_array($navigationRoute, ['managers.index', 'reports'])))
                 <a href="{{ route($navigationPrefix.'.'.$navigationRoute) }}" @class(['active' => request()->routeIs($navigationPrefix.'.'.$navigationPattern)]) aria-label="{{ $navigationLabel }}" @if (request()->routeIs($navigationPrefix.'.'.$navigationPattern)) aria-current="page" @endif>
                     <i data-lucide="{{ $navigationIcon }}"></i>
                     <span>{{ $navigationRoute === 'settings' ? 'Account Settings' : $navigationLabel }}</span>

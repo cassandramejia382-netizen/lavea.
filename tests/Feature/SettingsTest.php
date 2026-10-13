@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\SystemNotification;
 use Database\Factories\CustomerFactory;
@@ -13,13 +14,13 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 
 test('staff account dropdown links to personal settings and sign out', function (): void {
-    $staff = createSettingsAccount('staff');
+    $staff = createSettingsAccount('manager');
 
-    $this->actingAs($staff)->get(route('staff.settings'))
+    $this->actingAs($staff)->get(route('manager.settings'))
         ->assertOk()
         ->assertSee('<details class="staff-account-menu">', false)
-        ->assertSee('aria-label="Staff account"', false)
-        ->assertSee('href="'.route('staff.settings').'"', false)
+        ->assertSee('aria-label="Manager account"', false)
+        ->assertSee('href="'.route('manager.settings').'"', false)
         ->assertSee('action="'.route('logout').'"', false)
         ->assertSee('data-confirm-logout', false)
         ->assertSee($staff->name);
@@ -62,11 +63,11 @@ function createSettingsAccount(string $role): User
 {
     $user = User::factory()->create(['role' => $role]);
 
-    if (in_array($role, ['customer', 'user'])) {
+    if (in_array($role, ['customer'])) {
         CustomerFactory::new()->create(['email' => $user->email, 'name' => $user->name]);
     }
 
-    if ($role === 'staff') {
+    if ($role === 'manager') {
         StaffFactory::new()->create(['email' => $user->email, 'name' => $user->name]);
     }
 
@@ -83,7 +84,7 @@ test('each role opens its own settings with personal sections and sidebar link',
         ->assertSee('href="'.route($portal.'.settings').'"', false)
         ->assertSee('action="'.route($portal.'.settings.profile').'"', false)
         ->assertSee('css/lavea-settings.css', false);
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('personal settings exclude shop and administrative controls', function (string $role): void {
     $user = createSettingsAccount($role);
@@ -92,7 +93,7 @@ test('personal settings exclude shop and administrative controls', function (str
     $this->actingAs($user)->get(route($portal.'.settings'))
         ->assertDontSee('Shop Information')->assertDontSee('admin/settings')
         ->assertDontSee('name="role"', false)->assertDontSee('name="permissions"', false);
-})->with(['staff', 'customer', 'user']);
+})->with(['manager', 'customer']);
 
 test('admin settings retain the existing shop section', function (): void {
     $user = createSettingsAccount('admin');
@@ -109,7 +110,7 @@ test('guests cannot read or write settings', function (string $role, string $sec
     }
 
     $response->assertRedirect(route('login'));
-})->with(['admin', 'staff', 'customer'])->with(['index', 'profile', 'password', 'appearance', 'notifications']);
+})->with(['admin', 'manager', 'customer'])->with(['index', 'profile', 'password', 'appearance', 'notifications']);
 
 test('role middleware blocks settings reads and writes belonging to another role', function (string $role, string $targetRole, string $section): void {
     $user = createSettingsAccount($role);
@@ -124,10 +125,10 @@ test('role middleware blocks settings reads and writes belonging to another role
     $response->assertRedirect(route($portal.'.dashboard'))->assertCookieMissing('lavea_theme');
     expect($user->fresh()->getAttributes())->toBe($original);
 })->with([
-    ['admin', 'staff'], ['admin', 'customer'],
-    ['staff', 'admin'], ['staff', 'customer'],
-    ['customer', 'admin'], ['customer', 'staff'],
-    ['user', 'admin'], ['user', 'staff'],
+    ['admin', 'manager'], ['admin', 'customer'],
+    ['manager', 'admin'], ['manager', 'customer'],
+    ['customer', 'admin'], ['customer', 'manager'],
+    ['customer', 'admin'], ['customer', 'manager'],
 ])->with(['index', 'profile', 'password', 'appearance', 'notifications']);
 
 test('unverified customer accounts cannot read or write settings', function (string $role, string $section): void {
@@ -138,7 +139,7 @@ test('unverified customer accounts cannot read or write settings', function (str
         : $this->actingAs($user)->post(route('customer.settings.'.$section), []);
 
     $response->assertRedirect(route('verification.notice'));
-})->with(['customer', 'user'])->with(['index', 'profile', 'password', 'appearance', 'notifications']);
+})->with(['customer'])->with(['index', 'profile', 'password', 'appearance', 'notifications']);
 
 test('profile updates ignore account identifiers roles and protected fields', function (string $role): void {
     $user = createSettingsAccount($role);
@@ -159,7 +160,7 @@ test('profile updates ignore account identifiers roles and protected fields', fu
     $this->assertDatabaseHas('users', ['id' => $other->id, 'name' => 'Other Account']);
     expect($user->fresh()->password)->toBe($originalPassword);
     expect($user->fresh()->email_verified_at->equalTo($originalVerification))->toBeTrue();
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('customer contact updates affect only their existing profile', function (): void {
     $user = createSettingsAccount('customer');
@@ -175,20 +176,20 @@ test('customer contact updates affect only their existing profile', function ():
     $this->assertDatabaseHas('customers', ['id' => $other->id, 'name' => 'Other Customer', 'phone' => '09000000000']);
 });
 
-test('staff email changes keep their staff record linked without changing job controls', function (): void {
-    $user = createSettingsAccount('staff');
-    $staff = $user->staffProfile;
+test('manager profile changes leave ordinary staff records untouched', function (): void {
+    $user = createSettingsAccount('manager');
+    $staff = Staff::where('email', $user->email)->firstOrFail();
     $other = StaffFactory::new()->create(['name' => 'Other Staff']);
 
-    $this->actingAs($user)->post(route('staff.settings.profile'), [
+    $this->actingAs($user)->post(route('manager.settings.profile'), [
         'name' => 'Updated Staff', 'email' => 'updated.staff@example.com',
         'staff_id' => $other->id, 'role' => 'Manager', 'status' => 'Inactive', 'phone' => '000',
-    ])->assertRedirect(route('staff.settings'));
+    ])->assertRedirect(route('manager.settings'));
 
-    $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Staff', 'email' => 'updated.staff@example.com', 'role' => 'staff']);
-    $this->assertDatabaseHas('staff', ['id' => $staff->id, 'name' => 'Updated Staff', 'email' => 'updated.staff@example.com', 'role' => 'Staff', 'status' => 'Active', 'phone' => $staff->phone]);
+    $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Staff', 'email' => 'updated.staff@example.com', 'role' => 'manager']);
+    $this->assertDatabaseHas('staff', ['id' => $staff->id, 'name' => $staff->name, 'email' => $staff->email, 'role' => 'Staff', 'status' => 'Active', 'phone' => $staff->phone]);
     $this->assertDatabaseHas('staff', ['id' => $other->id, 'name' => 'Other Staff']);
-    expect($user->fresh()->staffProfile->id)->toBe($staff->id);
+    expect($user->fresh()->phone)->toBe('000');
 });
 
 test('customer email changes preserve the customer link and require fresh verification', function (string $role): void {
@@ -206,7 +207,7 @@ test('customer email changes preserve the customer link and require fresh verifi
     expect($user->fresh()->customerProfile->id)->toBe($customer->id);
     Notification::assertSentTo($user, VerifyEmail::class);
     $this->get(route('customer.settings'))->assertRedirect(route('verification.notice'));
-})->with(['customer', 'user']);
+})->with(['customer']);
 
 test('email delivery failures preserve the saved profile and the verification requirement', function (): void {
     $user = createSettingsAccount('customer');
@@ -228,7 +229,7 @@ test('personal settings still work when no linked profile exists', function (str
     $portal = $role === 'user' ? 'customer' : $role;
 
     $response = $this->actingAs($user)->get(route($portal.'.settings'))->assertOk();
-    if ($role === 'staff') {
+    if ($role === 'manager') {
         $response->assertSee('name="phone"', false);
     } else {
         $response->assertDontSee('name="phone"', false);
@@ -239,7 +240,7 @@ test('personal settings still work when no linked profile exists', function (str
     $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Name']);
     $this->assertDatabaseCount('customers', 0);
     $this->assertDatabaseCount('staff', 0);
-})->with(['staff', 'customer', 'user']);
+})->with(['manager', 'customer']);
 
 test('profile updates reject an email already belonging to a user customer or staff record', function (string $table): void {
     $user = createSettingsAccount('customer');
@@ -298,7 +299,7 @@ test('password changes verify the current password hash the new password and aff
     expect(Hash::check('password', $user->fresh()->password))->toBeFalse();
     expect($user->fresh()->remember_token)->not->toBe($rememberToken);
     expect($other->fresh()->password)->toBe($otherPassword);
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('password validation preserves the existing password on failure', function (string $role, array $details, string $field, string $message): void {
     $user = createSettingsAccount($role);
@@ -309,7 +310,7 @@ test('password validation preserves the existing password on failure', function 
         ->assertSessionHasErrors([$field => $message]);
 
     expect($user->fresh()->password)->toBe($originalPassword);
-})->with(['admin', 'staff', 'customer', 'user'])->with([
+})->with(['admin', 'manager', 'customer'])->with([
     'incorrect current password' => [['current_password' => 'incorrect', 'password' => 'new-password', 'password_confirmation' => 'new-password'], 'current_password', 'The password is incorrect.'],
     'missing current password' => [['password' => 'new-password', 'password_confirmation' => 'new-password'], 'current_password', 'The current password field is required.'],
     'missing new password' => [['current_password' => 'password'], 'password', 'The password field is required.'],
@@ -331,12 +332,12 @@ test('appearance saves the existing theme cookie and renders the selected role t
     } else {
         $response->assertDontSee('css/lavea-theme.css', false);
     }
-})->with(['admin', 'staff', 'customer', 'user'])->with(['light', 'dark']);
+})->with(['admin', 'manager', 'customer'])->with(['light', 'dark']);
 
 test('invalid appearance values cannot change the theme cookie', function (mixed $theme, string $message): void {
-    $user = createSettingsAccount('staff');
+    $user = createSettingsAccount('manager');
 
-    $this->actingAs($user)->post(route('staff.settings.appearance'), ['theme' => $theme])
+    $this->actingAs($user)->post(route('manager.settings.appearance'), ['theme' => $theme])
         ->assertSessionHasErrors(['theme' => $message])->assertCookieMissing('lavea_theme');
 })->with([
     ['sepia', 'The selected theme is invalid.'],
@@ -362,7 +363,7 @@ test('notification preferences affect only the account badge and preserve its in
     } else {
         $response->assertDontSee('class="lavea-notification-count"', false);
     }
-})->with(['admin', 'staff', 'customer', 'user'])->with([0, 1]);
+})->with(['admin', 'manager', 'customer'])->with([0, 1]);
 
 test('notification preferences reject missing or invalid values without updating the account', function (array $details, string $message): void {
     $user = createSettingsAccount('customer');
@@ -399,7 +400,7 @@ test('staff and customers cannot save shop information through admin settings', 
         ->assertRedirect(route($portal.'.dashboard'));
 
     $this->assertDatabaseCount('shop_settings', 0);
-})->with(['staff', 'customer', 'user']);
+})->with(['manager', 'customer']);
 
 test('shop validation preserves saved information on failure', function (string $field, mixed $value, string $message): void {
     $user = createSettingsAccount('admin');
@@ -434,7 +435,7 @@ test('settings pages ignore account ids in query parameters', function (string $
 
     $this->actingAs($user)->get(route($portal.'.settings', ['user_id' => $other->id, 'id' => $other->id]))
         ->assertSee('value="'.$user->email.'"', false)->assertDontSee('value="'.$other->email.'"', false);
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('settings do not expose account editing routes with user ids', function (string $role): void {
     $user = createSettingsAccount($role);
@@ -444,7 +445,7 @@ test('settings do not expose account editing routes with user ids', function (st
         ->assertNotFound();
 
     $this->assertDatabaseHas('users', ['id' => $other->id, 'name' => $other->name]);
-})->with(['admin', 'staff', 'customer']);
+})->with(['admin', 'manager', 'customer']);
 
 test('opening the notification bell clears all unread notifications only for the signed in account', function (): void {
     $user = createSettingsAccount('customer');

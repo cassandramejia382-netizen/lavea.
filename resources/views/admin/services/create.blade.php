@@ -45,6 +45,7 @@
     margin-bottom: 7px;
 }
 .lavea-admin-content input,
+.lavea-admin-content select,
 .lavea-admin-content textarea {
     width: 100%;
     min-height: 42px;
@@ -57,6 +58,7 @@
     background: white;
 }
 .lavea-admin-content input:focus,
+.lavea-admin-content select:focus,
 .lavea-admin-content textarea:focus {
     border-color: #4169c8;
 }
@@ -163,7 +165,9 @@
                             @enderror
                         </div>
 
-                        <div class="form-group full">
+                        @include('partials.service-job-position')
+
+<div class="form-group full">
                             <label for="description">Description</label>
                             <textarea
                                 id="description"

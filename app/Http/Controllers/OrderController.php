@@ -5,14 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Service;
-use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\SystemNotification;
+use App\OrderStaffAssignment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
+    public function __construct(private OrderStaffAssignment $assignment) {}
+
     /**
      * Display all orders.
      */
@@ -45,8 +49,8 @@ class OrderController extends Controller
 
         $orders = $orders->latest()->paginate(15)->withQueryString();
 
-        $orderRoutePrefix = auth()->user()->role === 'staff' ? 'staff.orders' : 'admin.orders';
-        $canManageOrders = auth()->user()->role === 'staff';
+        $orderRoutePrefix = auth()->user()->role === 'manager' ? 'manager.orders' : 'admin.orders';
+        $canManageOrders = auth()->user()->role === 'manager';
 
         return view($canManageOrders ? 'staff.orders.index' : 'admin.orders.index', compact('orders', 'search', 'orderRoutePrefix', 'canManageOrders'));
     }
@@ -59,13 +63,11 @@ class OrderController extends Controller
         $order = new Order;
         $customers = Customer::all();
         $services = Service::where('is_active', true)->get();
-        $staff = Staff::where('status', 'Active')->orderBy('name')->get();
-        $orderRoutePrefix = 'staff.orders';
+        $orderRoutePrefix = 'manager.orders';
 
         return view('staff.orders.form', compact(
             'customers',
             'services',
-            'staff',
             'orderRoutePrefix',
             'order'
         ));
@@ -79,46 +81,39 @@ class OrderController extends Controller
         $details = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'service_id' => ['required', Rule::exists('services', 'id')->where('is_active', true)],
-            'staff_id' => 'nullable|exists:staff,id',
+            'staff_id' => ['nullable', 'integer'],
             'quantity' => 'required|numeric|min:1',
             'order_date' => 'required|date',
             'pickup_date' => 'nullable|date|after_or_equal:today|after_or_equal:order_date',
-            'delivery_date' => 'nullable|date|after_or_equal:today|after_or_equal:pickup_date',
+            'delivery_date' => ['nullable', 'date', 'after_or_equal:today', $request->filled('pickup_date') ? 'after_or_equal:pickup_date' : 'after_or_equal:order_date'],
             'status' => ['required', Rule::in(Order::STATUSES)],
             'notes' => 'nullable|string|max:2000',
         ]);
 
-        $service = Service::findOrFail($request->service_id);
-        if ($service->billingUnit() !== 'kg') {
-            $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
-        }
+        $order = DB::transaction(function () use ($details, $request): Order {
+            $service = Service::query()->lockForUpdate()->findOrFail($details['service_id']);
+            if (! $service->is_active) {
+                throw ValidationException::withMessages(['service_id' => 'This service is no longer active. Choose an active service.']);
+            }
+            $request->validate(['quantity' => $service->quantityRules()]);
+            $staffId = $this->assignment->validateSelection($service, isset($details['staff_id']) ? (int) $details['staff_id'] : null, $details['status']);
 
-        $total = $service->price * $request->quantity;
-
-        $order = Order::create([
-            'customer_id' => $request->customer_id,
-            'service_id' => $request->service_id,
-            'staff_id' => $request->user()->staffProfile?->id,
-            'quantity' => $request->quantity,
-            'order_date' => $request->order_date,
-            'pickup_date' => $request->pickup_date,
-            'delivery_date' => $request->delivery_date,
-            'total' => $total,
-            'status' => $request->status,
-            'payment_status' => 'Unpaid',
-            'notes' => $details['notes'] ?? null,
-        ]);
-
+            return Order::create(array_merge($details, [
+                'staff_id' => $staffId,
+                'total' => $service->price * $details['quantity'],
+                'payment_status' => 'Unpaid',
+            ]));
+        });
         foreach (User::where('role', 'admin')->get() as $admin) {
             $admin->notify(new SystemNotification(
                 'New Order',
-                'Staff added order #'.$order->id.'.',
+                'Manager added order #'.$order->id.'.',
                 route('admin.orders.show', $order->id)
             ));
         }
 
         return redirect()
-            ->route('staff.orders.index')
+            ->route('manager.orders.index')
             ->with('success', 'Order added successfully.');
     }
 
@@ -133,8 +128,8 @@ class OrderController extends Controller
             'staff',
         ]);
 
-        $orderRoutePrefix = auth()->user()->role === 'staff' ? 'staff.orders' : 'admin.orders';
-        $canManageOrders = auth()->user()->role === 'staff';
+        $orderRoutePrefix = auth()->user()->role === 'manager' ? 'manager.orders' : 'admin.orders';
+        $canManageOrders = auth()->user()->role === 'manager';
 
         return view($canManageOrders ? 'staff.orders.show' : 'admin.orders.show', compact('order', 'orderRoutePrefix', 'canManageOrders'));
     }
@@ -144,16 +139,15 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
+        $order->load('staff');
         $customers = Customer::all();
         $services = Service::where('is_active', true)->orWhere('id', $order->service_id)->get();
-        $staff = Staff::where('status', 'Active')->orderBy('name')->get();
-        $orderRoutePrefix = 'staff.orders';
+        $orderRoutePrefix = 'manager.orders';
 
         return view('staff.orders.form', compact(
             'order',
             'customers',
             'services',
-            'staff',
             'orderRoutePrefix'
         ));
     }
@@ -166,46 +160,39 @@ class OrderController extends Controller
         $details = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'service_id' => ['required', Rule::exists('services', 'id')->where(fn ($query) => $query->where('is_active', true)->orWhere('id', $order->service_id))],
-            'staff_id' => 'nullable|exists:staff,id',
+            'staff_id' => ['nullable', 'integer'],
             'quantity' => 'required|numeric|min:1',
             'order_date' => 'required|date',
             'pickup_date' => 'nullable|date|after_or_equal:today|after_or_equal:order_date',
-            'delivery_date' => 'nullable|date|after_or_equal:today|after_or_equal:pickup_date',
+            'delivery_date' => ['nullable', 'date', 'after_or_equal:today', $request->filled('pickup_date') ? 'after_or_equal:pickup_date' : 'after_or_equal:order_date'],
             'status' => ['required', Rule::in(Order::STATUSES)],
             'notes' => 'nullable|string|max:2000',
         ]);
 
-        $service = Service::findOrFail($request->service_id);
-        if ($service->billingUnit() !== 'kg') {
-            $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
-        }
-
-        $total = $service->price * $request->quantity;
-
-        $order->update([
-            'customer_id' => $request->customer_id,
-            'service_id' => $request->service_id,
-            'staff_id' => $order->staff_id ?? $request->user()->staffProfile?->id,
-            'quantity' => $request->quantity,
-            'order_date' => $request->input('order_date', $order->order_date),
-            'pickup_date' => $request->input('pickup_date', $order->pickup_date),
-            'delivery_date' => $request->input('delivery_date', $order->delivery_date),
-            'total' => $total,
-            'status' => $request->status,
-            'payment_status' => $order->payment_status,
-            'notes' => $details['notes'] ?? null,
-        ]);
-
+        DB::transaction(function () use ($details, $request, $order): void {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $service = Service::query()->lockForUpdate()->findOrFail($details['service_id']);
+            if (! $service->is_active && $service->id !== (int) $lockedOrder->service_id) {
+                throw ValidationException::withMessages(['service_id' => 'This service is no longer active. Choose an active service.']);
+            }
+            $request->validate(['quantity' => $service->quantityRules()]);
+            $staffId = array_key_exists('staff_id', $details) ? $details['staff_id'] : ($lockedOrder->status !== 'Pending' ? $lockedOrder->staff_id : null);
+            $staffId = $this->assignment->validateSelection($service, $staffId === null ? null : (int) $staffId, $details['status'], $lockedOrder);
+            $lockedOrder->update(array_merge($details, [
+                'staff_id' => $staffId,
+                'total' => $service->price * $details['quantity'],
+            ]));
+        });
         foreach (User::where('role', 'admin')->get() as $admin) {
             $admin->notify(new SystemNotification(
                 'Order Updated',
-                'Staff updated order #'.$order->id.'.',
+                'Manager updated order #'.$order->id.'.',
                 route('admin.orders.show', $order->id)
             ));
         }
 
         return redirect()
-            ->route('staff.orders.show', $order)
+            ->route('manager.orders.show', $order)
             ->with('success', 'Order updated successfully.');
     }
 
@@ -213,6 +200,6 @@ class OrderController extends Controller
     {
         $order->delete();
 
-        return redirect()->route('staff.orders.index')->with('success', 'Order deleted successfully.');
+        return redirect()->route('manager.orders.index')->with('success', 'Order deleted successfully.');
     }
 }

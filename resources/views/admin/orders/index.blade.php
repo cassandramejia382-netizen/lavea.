@@ -205,7 +205,7 @@
                             <i data-lucide="plus"></i>
                             Add Record
                         </a>
-                        <a href="{{ route('staff.payments.create') }}" class="add-btn">
+                        <a href="{{ route('manager.payments.create') }}" class="add-btn">
                             <i data-lucide="credit-card"></i>
                             Add Payment
                         </a>
@@ -298,7 +298,7 @@
 
                                         {{ $order->order_date
                                             ? $order->order_date->format('M d, Y')
-                                            : 'â€”'
+                                            : '—'
                                         }}
 
                                     </td>
@@ -307,7 +307,7 @@
 
                                         {{ $order->pickup_date
                                             ? $order->pickup_date->format('M d, Y')
-                                            : 'â€”'
+                                            : '—'
                                         }}
 
                                     </td>
@@ -316,7 +316,7 @@
 
                                         {{ $order->delivery_date
                                             ? $order->delivery_date->format('M d, Y')
-                                            : 'â€”'
+                                            : '—'
                                         }}
 
                                     </td>

@@ -43,3 +43,22 @@ test('admin can view staff details with the existing navigation and theme', func
         ->assertSee('Manager')->assertSee($status)->assertSee('Back to Staff')->assertSee('STAFF SINCE')
         ->assertSee($staff->created_at->format('F d, Y'))->assertSee('lavea-admin-topbar')->assertSee('class="sidebar"', false);
 })->with(['Active', 'Inactive'])->with(['light', 'dark']);
+
+test('admin can edit staff contact details using the populated form', function (): void {
+    $staff = StaffFactory::new()->create(['name' => 'Alex Example', 'email' => 'alex@example.com', 'role' => 'Manager', 'status' => 'Inactive']);
+    $user = User::factory()->create(['email' => $staff->email, 'role' => 'manager']);
+
+    $this->actingAs(User::factory()->create(['role' => 'admin']))
+        ->get(route('admin.staff.edit', $staff))->assertOk()
+        ->assertSee('Edit Staff')->assertSee('value="Alex Example"', false)
+        ->assertSee('name="_method" value="PUT"', false)
+        ->assertDontSee('name="password"', false);
+
+    $this->put(route('admin.staff.update', $staff), [
+        'name' => 'Updated Staff', 'email' => 'updated@example.com',
+        'phone' => '09123456789', 'role' => 'Laundry Attendant', 'status' => 'Active',
+    ])->assertRedirect(route('admin.staff.index'))->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('staff', ['id' => $staff->id, 'name' => 'Updated Staff', 'email' => 'updated@example.com', 'status' => 'Active']);
+    $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => $user->name, 'email' => 'alex@example.com', 'role' => 'manager']);
+});

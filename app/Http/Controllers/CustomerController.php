@@ -21,7 +21,7 @@ class CustomerController extends Controller
             });
         }
 
-        if ($request->user()->role === 'staff') {
+        if ($request->user()->role === 'manager') {
             $customers = $customers->latest()->paginate(15)->withQueryString();
 
             return view('staff.customers.index', compact('customers', 'search'));
@@ -48,14 +48,14 @@ class CustomerController extends Controller
 
         $customer = Customer::create($details);
 
-        return redirect()->route('staff.customers.show', $customer)->with('success', 'Customer registered.');
+        return redirect()->route('manager.customers.show', $customer)->with('success', 'Customer registered.');
     }
 
     public function show(Customer $customer)
     {
         $customer->load(['orders.service', 'orders.staff']);
 
-        if (request()->user()->role === 'staff') {
+        if (request()->user()->role === 'manager') {
             return view('staff.customers.show', compact('customer'));
         }
 
@@ -65,13 +65,13 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         if ($customer->orders()->exists()) {
-            return redirect()->route('staff.customers.index')
+            return redirect()->route('manager.customers.index')
                 ->with('error', 'This customer has order history and cannot be deleted.');
         }
 
         $customer->delete();
 
-        return redirect()->route('staff.customers.index')->with('success', 'Customer deleted successfully.');
+        return redirect()->route('manager.customers.index')->with('success', 'Customer deleted successfully.');
     }
 
     public function edit(Customer $customer)
@@ -90,6 +90,6 @@ class CustomerController extends Controller
 
         $customer->update($details);
 
-        return redirect()->route('staff.customers.show', $customer)->with('success', 'Customer updated.');
+        return redirect()->route('manager.customers.show', $customer)->with('success', 'Customer updated.');
     }
 }

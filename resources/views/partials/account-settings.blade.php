@@ -28,10 +28,10 @@
                 <textarea id="account_address" name="address" maxlength="255" autocomplete="street-address" required>{{ old('address', $customerProfile->address) }}</textarea>
                 @error('address')<div class="field-error">{{ $message }}</div>@enderror
             </div>
-        @elseif (in_array($settingsRole, ['admin', 'staff']))
+        @elseif (in_array($settingsRole, ['admin', 'manager']))
             <div class="form-group">
                 <label for="account_phone">Phone Number</label>
-                <input id="account_phone" name="phone" type="tel" value="{{ old('phone', $settingsRole === 'staff' ? $staffProfile?->phone : auth()->user()->phone) }}" maxlength="20" autocomplete="tel">
+            <input id="account_phone" name="phone" type="tel" value="{{ old('phone', auth()->user()->phone) }}" maxlength="20" autocomplete="tel">
                 @error('phone')<div class="field-error">{{ $message }}</div>@enderror
             </div>
             <div class="form-group">

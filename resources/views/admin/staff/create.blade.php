@@ -1,8 +1,9 @@
-@extends('admin.layout', ['title' => 'Add Staff'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => ($isEditing ?? false) ? 'Edit Staff' : 'Add Staff'])
 
 @push('styles')
 
 <style>
+#custom-position-field[hidden] { display: none !important; }
 .lavea-admin-content * {
     margin: 0;
     padding: 0;
@@ -139,6 +140,8 @@
 @endpush
 
 @section('content')
+@php($staffRoutePrefix = auth()->user()->role.'.staff')
+<div class="lavea-admin-content">
 
     <!-- =========================
          SIDEBAR
@@ -154,10 +157,10 @@
 
             <div class="page-header">
 
-                <h2>Add Staff</h2>
+                <h2>{{ ($isEditing ?? false) ? 'Edit Staff' : 'Add Staff' }}</h2>
 
                 <p>
-                    Enter the staff member's information below.
+                    {{ ($isEditing ?? false) ? 'Update the staff member\'s information below.' : 'Enter the staff member\'s information below.' }}
                 </p>
 
             </div>
@@ -166,11 +169,14 @@
             <div class="card">
 
                 <form
-                    action="{{ route('admin.staff.store') }}"
+                    action="{{ ($isEditing ?? false) ? route($staffRoutePrefix.'.update', $staff) : route($staffRoutePrefix.'.store') }}"
                     method="POST"
                 >
 
                     @csrf
+                    @if ($isEditing ?? false)
+                        @method('PUT')
+                    @endif
 
                     <div class="form-grid">
 
@@ -185,7 +191,7 @@
                                 type="text"
                                 id="name"
                                 name="name"
-                                value="{{ old('name') }}"
+                                value="{{ old('name', $staff->name ?? '') }}"
                                 placeholder="Enter full name"
                                 required
                             >
@@ -198,73 +204,6 @@
 
                         </div>
 
-                        <!-- EMAIL -->
-                        <div class="form-group">
-
-                            <label for="email">
-                                Email
-                            </label>
-
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value="{{ old('email') }}"
-                                placeholder="Enter email address"
-                                required
-                            >
-
-                            @error('email')
-                                <div class="error">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-
-                        </div>
-
-                        <!-- PASSWORD -->
-                        <div class="form-group">
-
-                            <label for="password">
-                                Password
-                            </label>
-
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="Enter password (at least 8 characters)"
-                                autocomplete="new-password"
-                                required
-                            >
-
-                            @error('password')
-                                <div class="error">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-
-                        </div>
-
-                        <!-- CONFIRM PASSWORD -->
-                        <div class="form-group">
-
-                            <label for="password_confirmation">
-                                Confirm Password
-                            </label>
-
-                            <input
-                                type="password"
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                placeholder="Re-enter password"
-                                autocomplete="new-password"
-                                required
-                            >
-
-                        </div>
-
-                        <!-- PHONE -->
                         <div class="form-group">
 
                             <label for="phone">
@@ -275,7 +214,7 @@
                                 type="text"
                                 id="phone"
                                 name="phone"
-                                value="{{ old('phone') }}"
+                                value="{{ old('phone', $staff->phone ?? '') }}"
                                 placeholder="Enter phone number"
                             >
 
@@ -291,35 +230,18 @@
                         <div class="form-group">
 
                             <label for="role">
-                                Role
+                                Job Position
                             </label>
 
-                            <select
-                                id="role"
-                                name="role"
-                                required
-                            >
-
-                                <option value="">
-                                    Select role
-                                </option>
-
-                                <option
-                                    value="Staff"
-                                    {{ old('role') == 'Staff' ? 'selected' : '' }}
-                                >
-                                    Staff
-                                </option>
-
-                                <option
-                                    value="Manager"
-                                    {{ old('role') == 'Manager' ? 'selected' : '' }}
-                                >
-                                    Manager
-                                </option>
-
+                            @php($currentPosition = $staff->role ?? '')
+                            @php($selectedPosition = old('role', in_array($currentPosition, \App\Models\Staff::JOB_POSITIONS, true) ? $currentPosition : ($currentPosition !== '' ? 'Other' : '')))
+                            <select id="role" name="role" required>
+                                <option value="">Select a job position</option>
+                                @foreach(\App\Models\Staff::JOB_POSITIONS as $position)
+                                    <option value="{{ $position }}" @selected($selectedPosition === $position)>{{ $position }}</option>
+                                @endforeach
+                                <option value="Other" @selected($selectedPosition === 'Other')>Other</option>
                             </select>
-
                             @error('role')
                                 <div class="error">
                                     {{ $message }}
@@ -328,6 +250,11 @@
 
                         </div>
 
+                        <div class="form-group" id="custom-position-field" @if($selectedPosition !== 'Other') hidden @endif>
+                            <label for="custom_position">Custom Job Position</label>
+                            <input id="custom_position" name="custom_position" type="text" maxlength="100" value="{{ old('custom_position', !in_array($currentPosition, \App\Models\Staff::JOB_POSITIONS, true) ? $currentPosition : '') }}" placeholder="Enter job position" @required($selectedPosition === 'Other') @disabled($selectedPosition !== 'Other')>
+                            @error('custom_position')<div class="error">{{ $message }}</div>@enderror
+                        </div>
                         <!-- STATUS -->
                         <div class="form-group">
 
@@ -343,14 +270,14 @@
 
                                 <option
                                     value="Active"
-                                    {{ old('status', 'Active') == 'Active' ? 'selected' : '' }}
+                                    {{ old('status', $staff->status ?? 'Active') == 'Active' ? 'selected' : '' }}
                                 >
                                     Active
                                 </option>
 
                                 <option
                                     value="Inactive"
-                                    {{ old('status') == 'Inactive' ? 'selected' : '' }}
+                                    {{ old('status', $staff->status ?? 'Active') == 'Inactive' ? 'selected' : '' }}
                                 >
                                     Inactive
                                 </option>
@@ -371,7 +298,7 @@
                     <div class="form-actions">
 
                         <a
-                            href="{{ route('admin.staff.index') }}"
+                            href="{{ route($staffRoutePrefix.'.index') }}"
                             class="btn btn-cancel"
                         >
                             Cancel
@@ -381,8 +308,8 @@
                             type="submit"
                             class="btn btn-primary"
                         >
-                            <i data-lucide="user-plus"></i>
-                            Add Staff
+                            <i data-lucide="{{ ($isEditing ?? false) ? 'save' : 'plus' }}"></i>
+                            {{ ($isEditing ?? false) ? 'Save Changes' : 'Add Staff' }}
                         </button>
 
                     </div>
@@ -391,4 +318,20 @@
 
             </div>
 
+</div>
+<script>
+    (() => {
+        const position = document.getElementById('role');
+        const field = document.getElementById('custom-position-field');
+        const input = document.getElementById('custom_position');
+        const renderPosition = () => {
+            const isOther = position.value === 'Other';
+            field.hidden = !isOther;
+            input.disabled = !isOther;
+            input.required = isOther;
+        };
+        position.addEventListener('change', renderPosition);
+        renderPosition();
+    })();
+</script>
 @endsection

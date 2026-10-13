@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Customer Details'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'Customer Details'])
 
 @push('styles')
 
@@ -123,14 +123,13 @@
 @endpush
 
 @section('content')
+<div class="lavea-admin-content">
 <div class="container">
 
     <a
-        href="{{ route('admin.customers.index') }}"
-        class="back"
-    >
-        &larr; Back to Customers
-    </a>
+        href="{{ route(auth()->user()->role.'.customers.index') }}"
+
+     class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back to Customers</a>
 
     <div class="card">
         <div class="customer-header">
@@ -162,6 +161,19 @@
         </dl>
 
         <p class="customer-updated muted">Last updated: {{ $customer->updated_at?->format('F d, Y') ?: 'Not available' }}</p>
+        @if(auth()->user()->role === 'manager')
+            <div class="actions" style="margin-top:16px;flex-wrap:wrap">
+                <a class="btn secondary" href="{{ route('manager.customers.edit', $customer) }}">Edit</a>
+                <a class="btn" href="{{ route('manager.orders.create', ['customer_id' => $customer->id]) }}">Create Order</a>
+            </div>
+        @endif
     </div>
+    @if(auth()->user()->role === 'manager')
+        <div class="card">
+            <h2 style="margin-bottom:16px">Order History</h2>
+            @include('staff.partials.orders-table', ['orders' => $customer->orders])
+        </div>
+    @endif
+</div>
 </div>
 @endsection

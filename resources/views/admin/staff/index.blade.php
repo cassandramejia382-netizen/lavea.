@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Staff'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'Staff'])
 
 @push('styles')
 
@@ -155,6 +155,8 @@
 @endpush
 
 @section('content')
+@php($staffRoutePrefix = auth()->user()->role.'.staff')
+<div class="lavea-admin-content">
 
     <!-- =========================
          SIDEBAR
@@ -175,7 +177,7 @@
         </div>
 
         <!-- SUCCESS MESSAGE -->
-        @if(session('success'))
+        @if(session('success') && auth()->user()->role === 'admin')
 
             <div class="success">
                 {{ session('success') }}
@@ -196,7 +198,7 @@
                 <h2>Staff List</h2>
 
                 <a
-                    href="{{ route('admin.staff.create') }}"
+                    href="{{ route($staffRoutePrefix.'.create') }}"
                     class="btn btn-primary"
                 >
                     <i data-lucide="plus"></i>
@@ -215,7 +217,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Role</th>
+                            <th>Job Position</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -268,18 +270,9 @@
 
                                     <div class="actions">
 
-                                        @if($member->user)
-                                            <form action="{{ route('admin.staff.invitation', $member) }}" method="POST">
-                                                @csrf
-                                                <button type="submit" class="btn btn-view" title="Resend password setup link" aria-label="Resend password setup link">
-                                                    <i data-lucide="mail"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-
-                                        <!-- VIEW -->
+<!-- VIEW -->
                                         <a
-                                            href="{{ route('admin.staff.show', $member->id) }}"
+                                            href="{{ route($staffRoutePrefix.'.show', $member->id) }}"
                                             class="btn btn-view"
                                             title="View"
                                         >
@@ -288,7 +281,7 @@
 
                                         <!-- EDIT -->
                                         <a
-                                            href="{{ route('admin.staff.edit', $member->id) }}"
+                                            href="{{ route($staffRoutePrefix.'.edit', $member->id) }}"
                                             class="btn btn-edit"
                                             title="Edit"
                                         >
@@ -297,7 +290,7 @@
 
                                         <!-- DELETE -->
                                         <form
-                                            action="{{ route('admin.staff.destroy', $member->id) }}"
+                                            action="{{ route($staffRoutePrefix.'.destroy', $member->id) }}"
                                             method="POST"
                                             onsubmit="return confirm('Delete this staff member?');"
                                         >
@@ -344,4 +337,5 @@
 
         </div>
 
+</div>
 @endsection

@@ -1,12 +1,18 @@
 <header class="lavea-admin-topbar">
+    <div class="lavea-topbar-brand">
+        <button class="lavea-sidebar-toggle" type="button" aria-label="Toggle navigation" aria-controls="lavea-sidebar" aria-expanded="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
+        </button>
+    </div>
+    <script src="{{ asset('sidebar-navigation.js') }}?v={{ filemtime(public_path('sidebar-navigation.js')) }}" defer></script>
     <div class="lavea-search-spacer" aria-hidden="true"></div>
 
     <div class="lavea-top-right">
         @include('admin.partials.notifications')
 
-        @if (in_array(auth()->user()->role, ['staff', 'admin', 'customer', 'user']))
+        @if (in_array(auth()->user()->role, ['manager', 'admin', 'customer']))
             @php
-                $accountRoutePrefix = in_array(auth()->user()->role, ['customer', 'user']) ? 'customer' : auth()->user()->role;
+                $accountRoutePrefix = in_array(auth()->user()->role, ['customer']) ? 'customer' : auth()->user()->role;
             @endphp
             <details class="staff-account-menu">
                 <summary class="lavea-admin-profile" aria-label="{{ ucfirst(auth()->user()->role) }} account menu">
@@ -22,7 +28,7 @@
                     </div>
                     <div>
                         <strong>{{ auth()->user()->role === 'admin' ? 'Admin' : auth()->user()->name }}</strong>
-                        <span>{{ auth()->user()->role === 'admin' ? 'System Administrator' : (auth()->user()->role === 'staff' ? 'Staff Account' : 'Customer Account') }}</span>
+                        <span>{{ auth()->user()->role === 'admin' ? 'System Administrator' : (auth()->user()->role === 'manager' ? 'Manager Account' : 'Customer Account') }}</span>
                     </div>
                     <i data-lucide="chevron-down"></i>
                 </summary>
@@ -44,12 +50,12 @@
                 </svg>
             </div>
             <div>
-                @if (in_array(auth()->user()->role, ['customer', 'user']))
+                @if (in_array(auth()->user()->role, ['customer']))
                     <strong>{{ auth()->user()->name }}</strong>
                     <span>Customer Account</span>
-                @elseif (auth()->user()->role === 'staff')
+                @elseif (auth()->user()->role === 'manager')
                     <strong>{{ auth()->user()->name }}</strong>
-                    <span>Staff Account</span>
+                    <span>Manager Account</span>
                 @else
                     <strong>Admin</strong>
                     <span>System Administrator</span>

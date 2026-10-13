@@ -1,13 +1,16 @@
 <?php
 
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Database\Factories\CustomerFactory;
 use Database\Factories\OrderFactory;
 use Database\Factories\PaymentFactory;
 use Database\Factories\ServiceFactory;
+use Database\Factories\StaffFactory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -44,6 +47,7 @@ beforeEach(function (): void {
     });
 
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
+    DB::table('shop_settings')->updateOrInsert(['id' => 1], ['shop_name' => 'Test Shop', 'gcash_number' => '09123456789', 'gcash_account_name' => 'Test Merchant']);
 });
 
 test('each payment method requires a reference number for customer submissions', function (string $method): void {
@@ -55,37 +59,33 @@ test('each payment method requires a reference number for customer submissions',
     $this->assertDatabaseCount('payments', 0);
 })->with(['Cash', 'GCash', 'Card', 'Bank Transfer']);
 
-test('staff edits and deletes payments while recalculating the order balance', function (): void {
+test('staff corrects rejected payments without deleting history or marking orders paid', function (): void {
     Storage::fake('local');
-    $staff = User::factory()->create(['role' => 'staff']);
-    $order = OrderFactory::new()->create(['total' => 150, 'payment_status' => 'Paid']);
-    $payment = PaymentFactory::new()->for($order)->create(['amount' => 150, 'status' => 'Completed', 'proof_image_path' => 'payment-proofs/receipt.jpg']);
+    $staff = User::factory()->create(['role' => 'manager']);
+    $order = OrderFactory::new()->create(['total' => 150, 'payment_status' => 'Unpaid']);
+    $payment = PaymentFactory::new()->for($order)->create(['amount' => 150, 'status' => 'Rejected', 'proof_image_path' => 'payment-proofs/receipt.jpg']);
     Storage::disk('local')->put('payment-proofs/receipt.jpg', 'proof');
-    $this->actingAs($staff)->get(route('staff.payments.index'))->assertOk()->assertSee(route('staff.payments.edit', $payment), false);
-    $this->get(route('staff.payments.edit', $payment))->assertOk()->assertSee('Edit Payment');
-    $details = ['amount' => 50, 'payment_method' => 'GCash', 'payment_date' => today()->toDateString(), 'status' => 'Completed', 'reference_number' => 'CORRECTED-123'];
-    $this->put(route('staff.payments.update', $payment), $details)->assertRedirect(route('staff.payments.index'))->assertSessionHasNoErrors();
-    expect($order->fresh()->payment_status)->toBe('Partial');
+    $this->actingAs($staff)->get(route('manager.payments.index'))->assertOk()->assertSee(route('manager.payments.edit', $payment), false);
+    $this->get(route('manager.payments.edit', $payment))->assertOk()->assertSee('Edit Payment');
+    $details = ['amount' => 50, 'payment_method' => 'GCash', 'payment_date' => today()->toDateString(), 'status' => 'Confirmed', 'reference_number' => 'CORRECTED-123'];
+    $this->put(route('manager.payments.update', $payment), $details)->assertRedirect(route('manager.payments.show', $payment))->assertSessionHasNoErrors();
+    expect($order->fresh()->payment_status)->toBe('Unpaid');
+    expect($payment->fresh()->status)->toBe('Pending');
     expect($payment->fresh()->reference_number)->toBe('CORRECTED-123');
-    $this->put(route('staff.payments.update', $payment), [...$details, 'status' => 'Pending'])->assertSessionHasNoErrors();
-    expect($order->fresh()->payment_status)->toBe('Unpaid');
-    $this->put(route('staff.payments.update', $payment), [...$details, 'amount' => 150])->assertSessionHasNoErrors();
-    expect($order->fresh()->payment_status)->toBe('Paid');
-    $this->delete(route('staff.payments.destroy', $payment))->assertRedirect(route('staff.payments.index'));
-    expect($order->fresh()->payment_status)->toBe('Unpaid');
-    $this->assertDatabaseMissing('payments', ['id' => $payment->id]);
-    $this->assertDatabaseHas('orders', ['id' => $order->id]);
-    Storage::disk('local')->assertMissing('payment-proofs/receipt.jpg');
+    $this->put(route('manager.payments.update', $payment), [...$details, 'amount' => 150])->assertForbidden();
+    $this->delete(route('manager.payments.destroy', $payment))->assertForbidden();
+    $this->assertDatabaseHas('payments', ['id' => $payment->id]);
+    Storage::disk('local')->assertExists('payment-proofs/receipt.jpg');
 });
 
 test('payment corrections reject invalid amounts and customer access', function (): void {
-    $payment = PaymentFactory::new()->create();
-    $staff = User::factory()->create(['role' => 'staff']);
-    $this->actingAs($staff)->put(route('staff.payments.update', $payment), ['amount' => -1])->assertSessionHasErrors('amount');
+    $payment = PaymentFactory::new()->create(['status' => 'Rejected']);
+    $staff = User::factory()->create(['role' => 'manager']);
+    $this->actingAs($staff)->put(route('manager.payments.update', $payment), ['amount' => -1])->assertSessionHasErrors('amount');
     $customer = User::factory()->create(['role' => 'customer']);
-    $this->actingAs($customer)->get(route('staff.payments.edit', $payment))->assertRedirect();
-    $this->put(route('staff.payments.update', $payment), ['amount' => 1])->assertRedirect();
-    $this->delete(route('staff.payments.destroy', $payment))->assertRedirect();
+    $this->actingAs($customer)->get(route('manager.payments.edit', $payment))->assertRedirect();
+    $this->put(route('manager.payments.update', $payment), ['amount' => 1])->assertRedirect();
+    $this->delete(route('manager.payments.destroy', $payment))->assertRedirect();
     $this->assertDatabaseHas('payments', ['id' => $payment->id]);
 });
 
@@ -116,14 +116,14 @@ test('dashboard totals and recent orders contain only the signed in customer dat
     PaymentFactory::new()->for($pending)->create(['amount' => 50]);
     PaymentFactory::new()->for($completed)->create(['amount' => 150]);
     PaymentFactory::new()->for($pending)->create(['amount' => 900, 'status' => 'Pending']);
-    PaymentFactory::new()->for($pending)->create(['amount' => 900, 'status' => 'Failed']);
+    PaymentFactory::new()->for($pending)->create(['amount' => 900, 'status' => 'Rejected']);
     $otherOrder = OrderFactory::new()->create(['total' => 9876]);
     PaymentFactory::new()->for($otherOrder)->create(['amount' => 9876]);
 
     $response = $this->actingAs($user)->get(route('customer.dashboard'));
 
     $response->assertOk()->assertSee('Welcome, Maria Santos')->assertSee('Wash and Fold')
-        ->assertSee('â‚±200.00')->assertDontSee('9,876.00')->assertDontSee($otherOrder->customer->name)
+        ->assertSee('₱200.00')->assertDontSee('9,876.00')->assertDontSee($otherOrder->customer->name)
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 3 && $stats['pending'] === 1 && $stats['completed'] === 1 && (float) $stats['payments'] === 200.0)
         ->assertViewHas('recentOrders', fn ($orders): bool => $orders->count() === 3 && $orders->every(fn ($order): bool => $order->customer_id === $customer->id));
 });
@@ -163,7 +163,7 @@ test('renders customer detail pages for owned records', function (string $resour
     $record = $resource === 'orders' ? $order : $payment;
 
     $this->actingAs($user)->get(route('customer.'.$resource.'.show', $record))
-        ->assertOk()->assertSee('â‚±150.00')->assertSee('Customer Account');
+        ->assertOk()->assertSee('₱150.00')->assertSee('Customer Account');
 })->with(['orders', 'payments']);
 
 test('customer pages require login', function (string $route): void {
@@ -180,15 +180,15 @@ test('admin and staff users are redirected to their own dashboards', function (s
     $user = User::factory()->create(['role' => $role]);
 
     $this->actingAs($user)->get(route('customer.dashboard'))->assertRedirect(route($role.'.dashboard'));
-})->with(['admin', 'staff']);
+})->with(['admin', 'manager']);
 
 test('accounts without a customer profile see empty data instead of other customer data', function (): void {
-    $user = User::factory()->create(['role' => 'user']);
+    $user = User::factory()->create(['role' => 'customer']);
     $otherOrder = OrderFactory::new()->create();
     PaymentFactory::new()->for($otherOrder)->create();
 
     $this->actingAs($user)->get(route('customer.dashboard'))->assertOk()
-        ->assertSee('No orders yet')->assertSee('â‚±0.00')
+        ->assertSee('No orders yet')->assertSee('₱0.00')
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 0 && $stats['pending'] === 0 && $stats['completed'] === 0);
     $this->get(route('customer.payments.index'))->assertSee('No payment records match your search.');
     $this->get(route('customer.profile'))->assertSee('Your customer profile is not linked yet.');
@@ -200,7 +200,11 @@ test('customers update only their own contact details and cannot change account 
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
     $otherCustomer = CustomerFactory::new()->create(['name' => 'Other Customer']);
 
-    $response = $this->actingAs($user)->patch(route('customer.profile.update'), [
+    $this->actingAs($user)->get(route('customer.profile'))
+        ->assertSee('name="_method" value="PATCH"', false);
+
+    $response = $this->post(route('customer.profile.update'), [
+        '_method' => 'PATCH',
         'name' => 'Updated Customer',
         'phone' => '09123456789',
         'address' => '123 Laundry Street',
@@ -230,7 +234,7 @@ test('profile updates reject missing contact information without changing saved 
 });
 
 test('legacy user pages redirect to working customer pages', function (string $source, string $destination): void {
-    $user = User::factory()->create(['role' => 'user']);
+    $user = User::factory()->create(['role' => 'customer']);
 
     $this->actingAs($user)->get(route($source))->assertRedirect(route($destination));
 })->with([
@@ -248,7 +252,7 @@ test('shared layout keeps admin and staff dashboards working', function (string 
     $this->actingAs($user)->get(route($role.'.dashboard'))->assertOk()->assertSee($label)->assertDontSee('Customer Account');
 })->with([
     ['admin', 'System Administrator'],
-    ['staff', 'Staff Account'],
+    ['manager', 'Manager Account'],
 ]);
 
 test('customer pages render services profile and saved theme with escaped content', function (): void {
@@ -300,6 +304,138 @@ test('order pagination and recent orders stay scoped and show the newest orders 
     $this->get(route('customer.dashboard'))->assertViewHas('recentOrders', fn ($orders): bool => $orders->count() === 6 && $orders->first()->id === $latestOrder->id);
 });
 
+test('customers choose pickup or delivery and persist only the applicable details', function (string $method): void {
+    StaffFactory::new()->create(['role' => 'Delivery Rider']);
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email, 'address' => 'Original profile address']);
+    $service = ServiceFactory::new()->create(['price' => 100]);
+    $date = today()->addDays(3)->toDateString();
+    $this->actingAs($user)->post(route('customer.services.order', $service), [
+        'quantity' => 2, 'fulfillment_method' => $method, 'pickup_date' => $date,
+        'delivery_date' => $date, 'delivery_address' => 'Complete delivery address', 'customer_id' => 999,
+    ])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('orders', ['customer_id' => $customer->id, 'fulfillment_method' => $method,
+        'delivery_address' => $method === 'Delivery' ? 'Complete delivery address' : null, 'total' => 200]);
+    expect($customer->fresh()->address)->toBe('Original profile address');
+    $order = Order::sole();
+    expect($order->pickup_date?->toDateString())->toBe($method === 'Pickup' ? $date : null);
+    expect($order->delivery_date?->toDateString())->toBe($method === 'Delivery' ? $date : null);
+    $this->get(route('customer.orders.show', $order))->assertOk()->assertSee($method);
+    if ($method === 'Delivery') {
+        $this->get(route('customer.orders.show', $order))->assertSee('Complete delivery address');
+        $this->actingAs(User::factory()->create(['role' => 'manager']))->get(route('manager.orders.show', $order))->assertSee('Complete delivery address');
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('admin.orders.show', $order))->assertSee('Complete delivery address');
+    }
+})->with(['Pickup', 'Delivery']);
+
+test('fulfillment validates the selected date and required delivery address', function (array $fields, array $errors): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create();
+    $this->actingAs($user)->post(route('customer.services.order', $service), ['quantity' => 1, ...$fields])->assertSessionHasErrors($errors);
+    $this->assertDatabaseCount('orders', 0);
+})->with([
+    [['fulfillment_method' => 'Pickup'], ['pickup_date']],
+    [['fulfillment_method' => 'Delivery'], ['delivery_date', 'delivery_address']],
+    [['fulfillment_method' => 'Other'], ['fulfillment_method']],
+    [['fulfillment_method' => 'Delivery', 'delivery_date' => '2000-01-01', 'delivery_address' => str_repeat('x', 1001)], ['delivery_date', 'delivery_address']],
+]);
+
+test('customers switch fulfillment methods and old details are cleared when editing', function (): void {
+    StaffFactory::new()->create(['role' => 'Delivery Rider']);
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create(['fulfillment_method' => 'Pickup', 'pickup_date' => today()->addDays(2)]);
+    $this->actingAs($user)->put(route('customer.orders.update', $order), [
+        'quantity' => 1, 'fulfillment_method' => 'Delivery', 'delivery_date' => today()->addDays(3)->toDateString(), 'delivery_address' => 'New delivery address',
+    ])->assertSessionHasNoErrors();
+    expect($order->fresh()->pickup_date)->toBeNull();
+    expect($order->fresh()->fulfillment_method)->toBe('Delivery');
+    $this->get(route('customer.orders.edit', $order))->assertOk()->assertSee('New delivery address');
+    $this->put(route('customer.orders.update', $order), ['quantity' => 1, 'fulfillment_method' => 'Pickup', 'pickup_date' => today()->addDays(4)->toDateString()])->assertSessionHasNoErrors();
+    expect($order->fresh()->delivery_date)->toBeNull();
+    expect($order->fresh()->delivery_address)->toBeNull();
+    expect($order->fresh()->fulfillment_method)->toBe('Pickup');
+});
+
+test('delivery automatically chooses the least busy active rider and ignores submitted assignment ids', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create();
+    $busy = StaffFactory::new()->create(['role' => 'Delivery Rider']);
+    $idle = StaffFactory::new()->create(['role' => 'Delivery Rider', 'name' => 'Available Rider']);
+    $inactive = StaffFactory::new()->create(['role' => 'Delivery Rider', 'status' => 'Inactive']);
+    $managerRecord = StaffFactory::new()->create(['role' => 'Manager']);
+    $laundryWorker = StaffFactory::new()->create(['role' => 'Laundry Attendant']);
+    OrderFactory::new()->create(['delivery_rider_id' => $busy->id, 'fulfillment_method' => 'Delivery', 'status' => 'Processing']);
+    OrderFactory::new()->create(['delivery_rider_id' => $idle->id, 'fulfillment_method' => 'Delivery', 'status' => 'Completed']);
+    $this->actingAs($user)->post(route('customer.services.order', $service), [
+        'quantity' => 1, 'fulfillment_method' => 'Delivery', 'delivery_date' => today()->addDays(2)->toDateString(),
+        'delivery_address' => 'Delivery address', 'delivery_rider_id' => $managerRecord->id, 'staff_id' => $laundryWorker->id,
+    ])->assertSessionHasNoErrors();
+    $order = Order::where('customer_id', $customer->id)->sole();
+    expect($order->delivery_rider_id)->toBe($idle->id);
+    expect($order->staff_id)->toBeNull();
+    $this->get(route('customer.orders.show', $order))->assertSee('Available Rider');
+    $this->put(route('customer.orders.update', $order), ['quantity' => 1, 'fulfillment_method' => 'Pickup', 'pickup_date' => today()->addDays(2)->toDateString()])->assertSessionHasNoErrors();
+    expect($order->fresh()->delivery_rider_id)->toBeNull();
+    $this->actingAs(User::factory()->create(['role' => 'manager']))->delete(route('manager.staff.destroy', $busy))->assertSessionHas('error');
+    $this->assertModelExists($busy);
+});
+
+test('delivery without an active rider fails without creating an order and pickup still works', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create();
+    StaffFactory::new()->create(['role' => 'Delivery Rider', 'status' => 'Inactive']);
+    StaffFactory::new()->create(['role' => 'Manager']);
+    StaffFactory::new()->create(['role' => 'Laundry Attendant']);
+    $this->actingAs($user)->post(route('customer.services.order', $service), [
+        'quantity' => 1, 'fulfillment_method' => 'Delivery', 'delivery_date' => today()->addDays(2)->toDateString(), 'delivery_address' => 'Address',
+    ])->assertSessionHasErrors('fulfillment_method');
+    $this->assertDatabaseCount('orders', 0);
+    $this->post(route('customer.services.order', $service), ['quantity' => 1, 'fulfillment_method' => 'Pickup', 'pickup_date' => today()->addDays(2)->toDateString()])->assertSessionHasNoErrors();
+    expect(Order::sole()->delivery_rider_id)->toBeNull();
+});
+
+test('editing delivery preserves an active rider or replaces an unavailable rider independently of laundry staff', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $original = StaffFactory::new()->create(['role' => 'Delivery Rider']);
+    $replacement = StaffFactory::new()->create(['role' => 'Delivery Rider']);
+    $laundry = StaffFactory::new()->create(['role' => 'Laundry Attendant']);
+    $order = OrderFactory::new()->for($customer)->create(['fulfillment_method' => 'Delivery', 'delivery_rider_id' => $original->id, 'staff_id' => $laundry->id]);
+    $details = ['quantity' => 1, 'fulfillment_method' => 'Delivery', 'delivery_date' => today()->addDays(2)->toDateString(), 'delivery_address' => 'Address'];
+    $this->actingAs($user)->put(route('customer.orders.update', $order), $details)->assertSessionHasNoErrors();
+    expect($order->fresh()->delivery_rider_id)->toBe($original->id);
+    $original->update(['status' => 'Inactive']);
+    $this->put(route('customer.orders.update', $order), $details)->assertSessionHasNoErrors();
+    expect($order->fresh()->delivery_rider_id)->toBe($replacement->id);
+    expect($order->fresh()->staff_id)->toBe($laundry->id);
+});
+
+test('delivery orders cannot be updated or read by another customer', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->create(['fulfillment_method' => 'Delivery', 'delivery_address' => 'Private address']);
+    $this->actingAs($user)->get(route('customer.orders.show', $order))->assertNotFound();
+    $this->put(route('customer.orders.update', $order), ['quantity' => 1, 'fulfillment_method' => 'Pickup', 'pickup_date' => today()->addDays(3)->toDateString()])->assertNotFound();
+    expect($order->fresh()->delivery_address)->toBe('Private address');
+});
+
+test('manager can update progress on delivery orders without requiring a pickup date', function (): void {
+    $worker = StaffFactory::new()->create(['role' => 'Laundry Attendant']);
+    $service = ServiceFactory::new()->create(['required_job_position' => 'Laundry Attendant']);
+    $order = OrderFactory::new()->for($service)->create(['staff_id' => $worker->id, 'fulfillment_method' => 'Delivery', 'pickup_date' => null, 'delivery_date' => today()->addDays(3), 'delivery_address' => 'Saved delivery address']);
+    $this->actingAs(User::factory()->create(['role' => 'manager']))->put(route('manager.orders.update', $order), [
+        'customer_id' => $order->customer_id, 'service_id' => $service->id, 'quantity' => $order->quantity,
+        'order_date' => $order->order_date->toDateString(), 'delivery_date' => $order->delivery_date->toDateString(), 'status' => 'Processing',
+    ])->assertSessionHasNoErrors();
+    expect($order->fresh()->status)->toBe('Processing');
+    expect($order->fresh()->delivery_address)->toBe('Saved delivery address');
+    expect($order->fresh()->fulfillment_method)->toBe('Delivery');
+});
+
 test('customers can order decimal laundry weights with the correct total', function (): void {
     $user = User::factory()->create(['role' => 'customer']);
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
@@ -318,6 +454,31 @@ test('customers can order decimal laundry weights with the correct total', funct
         'quantity' => 1.2,
         'total' => 180,
     ]);
+});
+
+test('customers can order decimal sets with the correct total', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create(['service_name' => 'Bedsheet Cleaning', 'price' => 150]);
+
+    $this->actingAs($user)->get(route('customer.services.show', $service))
+        ->assertOk()->assertSee('step="0.01"', false);
+    $this->post(route('customer.services.order', $service), [
+        'quantity' => '1.01',
+        'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertRedirect(route('customer.services.show', $service))->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('orders', [
+        'customer_id' => $customer->id,
+        'service_id' => $service->id,
+        'quantity' => 1.01,
+        'total' => 151.5,
+    ]);
+
+    $this->post(route('customer.services.order', $service), [
+        'quantity' => '1.001',
+        'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertSessionHasErrors('quantity');
 });
 
 test('customers edit and cancel their pending unpaid orders', function (): void {
@@ -398,9 +559,9 @@ test('payment proof access is restricted to the owner and staff accounts', funct
         $this->get(route('payments.proof', $payment))->assertRedirect(route('login'));
     } else {
         $user = User::factory()->create(['role' => $role]);
-        $this->actingAs($user)->get(route('payments.proof', $payment))->assertStatus(in_array($role, ['admin', 'staff'], true) ? 200 : 404);
+        $this->actingAs($user)->get(route('payments.proof', $payment))->assertStatus(in_array($role, ['admin', 'manager'], true) ? 200 : 404);
     }
-})->with(['admin', 'staff', 'customer', 'guest']);
+})->with(['admin', 'manager', 'customer', 'guest']);
 
 test('invalid payment proof does not create a payment or save files', function (): void {
     Storage::fake('local');
@@ -415,39 +576,114 @@ test('invalid payment proof does not create a payment or save files', function (
     Storage::disk('local')->assertDirectoryEmpty('payment-proofs');
 });
 
-test('customer receipts distinguish submitted payments from verified payments', function (string $status): void {
+test('customer receipts are available only for verified payments', function (string $status): void {
     $user = User::factory()->create(['role' => 'customer']);
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
     $order = OrderFactory::new()->for($customer)->create();
     $payment = PaymentFactory::new()->for($order)->create(['status' => $status, 'reference_number' => 'REF-RECEIPT']);
     $response = $this->actingAs($user)->get(route('customer.payments.show', $payment))->assertOk();
-    if ($status === 'Failed') {
+    if ($status !== 'Confirmed') {
         $response->assertDontSee('id="payment-receipt"', false);
     } else {
         $response->assertSee('id="payment-receipt"', false)->assertSee('REF-RECEIPT');
         $response->assertSee('Payment Receipt')->assertSee('Print Receipt');
-        if ($status === 'Pending') {
-            $response->assertSee('This receipt does not confirm that payment has been received.');
-        }
     }
-})->with(['Pending', 'Completed', 'Failed']);
+})->with(['Pending', 'Confirmed', 'Rejected']);
 
 test('all payment portals render the same modern receipt', function (string $role): void {
     $user = User::factory()->create(['role' => $role]);
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
     $order = OrderFactory::new()->for($customer)->create();
-    $payment = PaymentFactory::new()->for($order)->create(['status' => 'Completed']);
+    $payment = PaymentFactory::new()->for($order)->create(['status' => 'Confirmed', 'processed_by' => $user->id]);
     $response = $this->actingAs($user)->get(route($role.'.payments.show', $payment))->assertOk();
     $response->assertSee('class="receipt-header"', false)->assertSee('class="receipt-amount"', false)
         ->assertSee('Verified payment')->assertSee('Print Receipt');
     expect(substr_count($response->getContent(), 'id="payment-receipt"'))->toBe(1);
-})->with(['admin', 'staff', 'customer']);
+})->with(['admin', 'manager', 'customer']);
+
+test('receipt endpoint enforces role ownership confirmation and processor access', function (string $role, string $status, bool $ownsPayment, bool $processedPayment, int $expectedStatus): void {
+    $user = User::factory()->create(['role' => $role]);
+    $customer = CustomerFactory::new()->create(['email' => $ownsPayment ? $user->email : 'other-receipt@example.com']);
+    $order = OrderFactory::new()->for($customer)->create();
+    $payment = PaymentFactory::new()->for($order)->create([
+        'status' => $status,
+        'processed_by' => $processedPayment ? $user->id : null,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('payments.receipt', $payment));
+    $response->assertStatus($expectedStatus);
+    if ($expectedStatus === 200) {
+        $response->assertSee('id="payment-receipt"', false)->assertSee('window.print()', false);
+    } else {
+        $response->assertDontSee('id="payment-receipt"', false);
+    }
+})->with([
+    'admin confirmed' => ['admin', 'Confirmed', false, false, 200],
+    'admin pending' => ['admin', 'Pending', false, false, 403],
+    'admin failed' => ['admin', 'Rejected', false, false, 403],
+    'staff processor' => ['manager', 'Confirmed', false, true, 200],
+    'staff other transaction' => ['manager', 'Confirmed', false, false, 200],
+    'customer confirmed own' => ['customer', 'Confirmed', true, false, 200],
+    'customer pending own' => ['customer', 'Pending', true, false, 403],
+    'customer failed own' => ['customer', 'Rejected', true, false, 403],
+    'customer other receipt' => ['customer', 'Confirmed', false, false, 404],
+    'legacy customer own' => ['user', 'Confirmed', true, false, 404],
+]);
+
+test('receipt endpoint requires login', function (): void {
+    $payment = PaymentFactory::new()->create();
+    $this->get(route('payments.receipt', $payment))->assertRedirect(route('login'));
+});
+
+test('admin confirmation records the reviewer while preserving the staff processor', function (): void {
+    $staff = User::factory()->create(['role' => 'manager']);
+    $admin = User::factory()->create(['role' => 'admin']);
+    $payment = PaymentFactory::new()->create(['status' => 'Pending', 'processed_by' => $staff->id]);
+    $this->actingAs($staff)->get(route('payments.receipt', $payment))->assertNotFound();
+    $this->actingAs($admin)->patch(route('admin.payments.review', $payment), [
+        'status' => 'Confirmed', 'processed_by' => 999,
+    ])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'Confirmed', 'processed_by' => $staff->id, 'reviewed_by' => $admin->id]);
+    $this->actingAs($staff)->get(route('payments.receipt', $payment))->assertOk()->assertSee('Verified payment');
+});
+
+test('staff payment creation records the processor for receipt permissions', function (): void {
+    $staff = User::factory()->create(['role' => 'manager']);
+    $otherStaff = User::factory()->create(['role' => 'manager']);
+    $order = OrderFactory::new()->create();
+    $this->actingAs($staff)->post(route('manager.payments.store'), [
+        'order_id' => $order->id, 'amount' => 150, 'payment_method' => 'Cash',
+        'reference_number' => 'RECEIPT-CASH', 'payment_date' => today()->toDateString(),
+        'status' => 'Confirmed', 'processed_by' => $otherStaff->id,
+    ])->assertSessionHasNoErrors();
+
+    $payment = Payment::where('reference_number', 'RECEIPT-CASH')->firstOrFail();
+    expect($payment->processed_by)->toBe($staff->id);
+    $this->get(route('payments.receipt', $payment))->assertNotFound();
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('admin.payments.review', $payment), ['status' => 'Confirmed'])->assertSessionHasNoErrors();
+    $this->actingAs($staff)->get(route('payments.receipt', $payment))->assertOk();
+    $this->actingAs($otherStaff)->get(route('payments.receipt', $payment))->assertOk();
+    $this->get(route('manager.payments.show', $payment))->assertSee('Print Receipt')->assertSee('id="payment-receipt"', false);
+});
+
+test('staff editing a payment cannot claim another processor receipt', function (): void {
+    $processor = User::factory()->create(['role' => 'manager']);
+    $editor = User::factory()->create(['role' => 'manager']);
+    $payment = PaymentFactory::new()->create(['processed_by' => $processor->id, 'reference_number' => 'RECEIPT-EDIT']);
+    $this->actingAs($editor)->put(route('manager.payments.update', $payment), [
+        'amount' => 150, 'payment_method' => 'Cash', 'reference_number' => 'RECEIPT-EDIT',
+        'payment_date' => today()->toDateString(), 'status' => 'Confirmed',
+        'processed_by' => $editor->id,
+    ])->assertForbidden();
+    expect($payment->fresh()->processed_by)->toBe($processor->id);
+    $this->get(route('payments.receipt', $payment))->assertOk();
+});
 
 test('customer record actions only allow editing and cancelling eligible orders', function (string $state): void {
     $user = User::factory()->create(['role' => 'customer']);
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
     $order = OrderFactory::new()->for($customer)->create(['total' => 150, 'status' => $state === 'Cancelled' ? 'Cancelled' : 'Pending']);
-    if (in_array($state, ['Pending', 'Completed'], true)) {
+    if (in_array($state, ['Pending', 'Confirmed'], true)) {
         $payment = PaymentFactory::new()->for($order)->create(['amount' => 150, 'status' => $state]);
     }
     $response = $this->actingAs($user)->get(route('customer.orders.index'))->assertOk()
@@ -461,7 +697,7 @@ test('customer record actions only allow editing and cancelling eligible orders'
     if (isset($payment)) {
         $response->assertDontSee(route('customer.payments.show', $payment), false);
     }
-})->with(['Unpaid', 'Pending', 'Completed', 'Cancelled']);
+})->with(['Unpaid', 'Pending', 'Confirmed', 'Cancelled']);
 
 test('service orders use sets and items instead of kilograms', function (string $name, string $unit): void {
     $user = User::factory()->create(['role' => 'customer']);
@@ -469,11 +705,17 @@ test('service orders use sets and items instead of kilograms', function (string 
     $service = ServiceFactory::new()->create(['service_name' => $name, 'price' => 150]);
     expect($service->billingUnit())->toBe($unit);
     $this->actingAs($user)->get(route('customer.services.show', $service))->assertOk()
-        ->assertSee('per '.$unit)->assertSee('step="1"', false)->assertDontSee('Maximum: 9 kg');
-    $this->post(route('customer.services.order', $service), [
+        ->assertSee('per '.$unit)->assertSee('step="'.($unit === 'set' ? '0.01' : '1').'"', false)->assertDontSee('Maximum: 9 kg');
+    $decimalResponse = $this->post(route('customer.services.order', $service), [
         'quantity' => '1.2', 'pickup_date' => today()->addDays(3)->toDateString(),
-    ])->assertSessionHasErrors('quantity');
-    $this->assertDatabaseCount('orders', 0);
+    ]);
+    if ($unit === 'item') {
+        $decimalResponse->assertSessionHasErrors('quantity');
+        $this->assertDatabaseCount('orders', 0);
+    } else {
+        $decimalResponse->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('orders', ['service_id' => $service->id, 'quantity' => 1.2, 'total' => 180]);
+    }
     $this->post(route('customer.services.order', $service), [
         'quantity' => 2, 'pickup_date' => today()->addDays(3)->toDateString(),
     ])->assertSessionHasNoErrors()->assertRedirect(route('customer.services.show', $service));
@@ -521,4 +763,4 @@ test('staff and admins cannot delete accounts through the customer endpoint', fu
     $user = User::factory()->create(['role' => $role]);
     $this->actingAs($user)->delete(route('customer.profile.destroy'), ['password' => 'password', 'confirm_deletion' => 1])->assertRedirect(route($role.'.dashboard'));
     $this->assertModelExists($user);
-})->with(['admin', 'staff']);
+})->with(['admin', 'manager']);

@@ -5,199 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up | LAVEA</title>
-    <style>
-* {
-    box-sizing: border-box;
-}
-body {
-    margin: 0;
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: #f4f6fa;
-    color: #111d38;
-    font-family: Arial, sans-serif;
-}
-.card {
-    width: min(100%, 520px);
-    overflow: hidden;
-    border-radius: 16px;
-    background: white;
-    box-shadow: 0 18px 55px #111d3817;
-}
-header {
-    padding: 25px 30px;
-    background: #111d38;
-    color: white;
-}
-header strong {
-    display: block;
-    font-size: 27px;
-    letter-spacing: 3px;
-}
-header span {
-    display: block;
-    margin-top: 6px;
-    color: #c6d0e2;
-    font-size: 13px;
-}
-main {
-    padding: 28px 32px;
-}
-.register-brand-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-.back-home {
-    position: relative;
-    left: -6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: 26px;
-    height: 26px;
-    margin-top: 3px;
-    padding: 5px;
-    border: 1px solid #ffffff30;
-    border-radius: 6px;
-    background: #ffffff0a;
-    color: #dce6fa;
-}
-.back-home svg {
-    width: 14px;
-    height: 14px;
-}
-.back-home:hover {
-    background: #ffffff20;
-    color: #fff;
-}
-.back-home:focus-visible {
-    outline: 2px solid #4169c8;
-    outline-offset: 3px;
-}
-html[data-lavea-theme="dark"] .back-home {
-    background: #273449;
-    border-color: #64748b;
-    color: #bfdbfe;
-}
-@media(max-width:600px) {
-    .register-brand-header {
-        padding: 24px 20px;
-        gap: 10px;
-    }
-    .register-brand-header strong {
-        font-size: 24px;
-    }
-    .register-brand-header span {
-        font-size: 11px;
-    }
-}
-h1 {
-    margin: 0 0 8px;
-    font-size: 24px;
-}
-p {
-    color: #526078;
-    font-size: 14px;
-}
-label {
-    display: block;
-    margin: 0 0 7px;
-    font-size: 13px;
-    font-weight: 700;
-}
-input, textarea {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #94a3b8;
-    border-radius: 8px;
-    font: inherit;
-}
-input {
-    height: 44px;
-}
-textarea {
-    min-height: 76px;
-    resize: vertical;
-}
-button {
-    width: 100%;
-    height: 46px;
-    margin-top: 22px;
-    border: 0;
-    border-radius: 8px;
-    background: #111d38;
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-}
-a {
-    color: #3459b1;
-    font-weight: 700;
-    text-decoration: none;
-}
-.error {
-    margin: 5px 0 0;
-    color: #b42318;
-    font-size: 12px;
-}
-.notice {
-    margin: 14px 0;
-    padding: 12px;
-    border-radius: 8px;
-    background: #fff1f0;
-    color: #b42318;
-    font-size: 13px;
-}
-.login {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 13px;
-}
-.grid {
-    display: grid;
-    gap: 18px;
-    margin-top: 22px;
-}
-.field {
-    min-width: 0;
-}
-input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
-    outline: 2px solid #4169c8;
-    outline-offset: 3px;
-}
-@media (min-width: 520px) {
-    .grid {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-    .field-full {
-        grid-column: 1 / -1;
-    }
-}
-@media (max-width: 519px) {
-    body {
-        padding: 16px;
-    }
-    main {
-        padding: 24px 20px;
-    }
-    header {
-        padding: 24px 20px;
-    }
-}
-</style>
+<link rel="stylesheet" href="{{ asset('css/lavea-auth.css') }}?v={{ filemtime(public_path('css/lavea-auth.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/lavea-responsive.css') }}?v={{ filemtime(public_path('css/lavea-responsive.css')) }}">
 </head>
-<body class="auth-page">
+<body class="login-page register-page">
 <section class="card">
-    <header class="register-brand-header"><a class="back-home" href="{{ route('home') }}" aria-label="Back to home" title="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg></a><div><strong>LAVEA</strong><span>Laundry Management System</span></div></header>
+    <header class="login-brand-header">
+        <div><strong>LAVEA</strong><span>Laundry Management System</span></div>
+        <a aria-label="Back to home" title="Back to home" href="{{ route('home') }}" class="login-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back</a>
+    </header>
     <main>
-        <h1>Create Customer Account</h1>
-        <p>Sign up to get started. We’ll email you a link to verify your address.</p>
+        <h1>Sign Up</h1>
+        <p>Create your account to manage your laundry orders.</p>
         @if ($errors->any()) <div class="notice" role="alert">Please review the highlighted fields.</div> @endif
         <form method="POST" action="{{ route('register.submit') }}">
             @csrf
@@ -224,18 +43,53 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visib
                 </div>
                 <div class="field">
                     <label for="password">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+                    <div class="password-field">
+                        <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password" data-password-target="password" aria-pressed="false">
+                            <svg data-password-show viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg data-password-hide viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="m3 3 18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a19 19 0 0 1-3 3.8M6.5 6.5A21 21 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                        </button>
+                    </div>
                     @error('password')<div class="error">{{ $message }}</div>@enderror
                 </div>
                 <div class="field">
                     <label for="password_confirmation">Confirm Password</label>
-                    <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required>
+                    <div class="password-field">
+                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password_confirmation" data-password-target="password_confirmation" aria-pressed="false">
+                            <svg data-password-show viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg data-password-hide viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="m3 3 18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a19 19 0 0 1-3 3.8M6.5 6.5A21 21 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button type="submit">Create Account</button>
+            <button class="sign-in-button" type="submit">Create Account</button>
         </form>
-        <div class="login">Already have an account? <a href="{{ route('login') }}">Sign In</a></div>
+        <div class="signup-link">Already have an account? <a href="{{ route('login') }}">Sign In</a></div>
     </main>
 </section>
+<script>
+    const registrationForm = document.querySelector('form[action="{{ route('register.submit') }}"]');
+    const registrationButton = registrationForm.querySelector('button[type="submit"]');
+    registrationForm.addEventListener('submit', () => {
+        registrationButton.disabled = true;
+        registrationButton.setAttribute('aria-busy', 'true');
+    });
+    window.addEventListener('pageshow', () => {
+        registrationButton.disabled = false;
+        registrationButton.removeAttribute('aria-busy');
+    });
+    document.querySelectorAll('[data-password-target]').forEach(toggle => {
+        const password = document.getElementById(toggle.dataset.passwordTarget);
+        toggle.addEventListener('click', () => {
+            const showPassword = password.type === 'password';
+            password.type = showPassword ? 'text' : 'password';
+            toggle.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+            toggle.setAttribute('aria-pressed', String(showPassword));
+            toggle.querySelector('[data-password-show]').hidden = showPassword;
+            toggle.querySelector('[data-password-hide]').hidden = !showPassword;
+        });
+    });
+</script>
 </body>
 </html>

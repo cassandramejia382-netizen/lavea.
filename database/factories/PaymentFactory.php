@@ -22,7 +22,7 @@ class PaymentFactory extends Factory
             'amount' => 150,
             'payment_method' => 'Cash',
             'payment_date' => '2026-10-01',
-            'status' => 'Completed',
+            'status' => 'Confirmed',
         ];
     }
 }

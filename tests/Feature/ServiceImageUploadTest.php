@@ -169,14 +169,19 @@ test('staff and customers cannot change service images', function (string $role,
     Storage::disk('public')->put('services/protected.png', 'image');
     $service = ServiceFactory::new()->create(['image' => 'services/protected.png']);
     $route = $method === 'post' ? route('admin.services.store') : route('admin.services.'.($method === 'put' ? 'update' : 'destroy'), $service);
-    $this->actingAs(User::factory()->create(['role' => $role]))->{$method}($route, [
+    $response = $this->actingAs(User::factory()->create(['role' => $role]))->{$method}($route, [
         'service_name' => 'Unauthorized', 'price' => 1, 'image' => UploadedFile::fake()->image('new.png'),
-    ])->assertRedirect(route($role === 'staff' ? 'staff.dashboard' : 'customer.dashboard'));
+    ]);
+    if ($role === 'user') {
+        $response->assertForbidden();
+    } else {
+        $response->assertRedirect(route($role.'.dashboard'));
+    }
     $this->assertDatabaseCount('services', 1);
     $this->assertDatabaseHas('services', ['id' => $service->id, 'image' => 'services/protected.png', 'service_name' => $service->service_name]);
     Storage::disk('public')->assertExists('services/protected.png');
     expect(Storage::disk('public')->allFiles('services'))->toHaveCount(1);
-})->with(['staff', 'customer', 'user'])->with(['post', 'put', 'delete']);
+})->with(['manager', 'customer', 'user'])->with(['post', 'put', 'delete']);
 
 test('guests cannot upload service images', function (): void {
     Storage::fake('public');
@@ -271,7 +276,7 @@ test('staff and customers see public storage service images', function (string $
     $this->actingAs(User::factory()->create(['role' => $role]))->get(route($role.'.services.index'))
         ->assertSee('/storage/services/visible.png', false);
     Storage::disk('public')->assertExists('services/visible.png');
-})->with(['staff', 'customer']);
+})->with(['manager', 'customer']);
 
 test('invalid database image paths cannot delete files outside service storage', function (): void {
     Storage::fake('public');

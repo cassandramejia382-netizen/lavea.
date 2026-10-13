@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Schedule | LAVEA'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'Schedule | LAVEA'])
 
 @push('styles')
 
@@ -188,6 +188,7 @@
 @endpush
 
 @section('content')
+<div class="lavea-admin-content">
 
     <!-- SIDEBAR -->
 
@@ -201,11 +202,11 @@
 
                 <div>
                     <h2>Schedule</h2>
-                    <p>{{ auth()->user()->role === 'staff' ? 'Manage pickup and delivery schedules.' : 'View pickup and delivery schedules.' }}</p>
+                    <p>{{ auth()->user()->role === 'manager' ? 'Manage pickup and delivery schedules.' : 'View pickup and delivery schedules.' }}</p>
                 </div>
 
                 <div class="lavea-page-header-actions">
-                    @if (auth()->user()->role === 'staff')
+                    @if (auth()->user()->role === 'manager')
                     <a href="{{ route($routePrefix.'.create') }}" class="add-btn">
                         <i data-lucide="plus"></i>
                         Add Schedule
@@ -334,7 +335,7 @@
                                                 <i data-lucide="eye"></i>
                                             </a>
 
-                                            @if (auth()->user()->role === 'staff')
+                                            @if (auth()->user()->role === 'manager')
                                                 <a
                                                     href="{{ route($routePrefix.'.edit', $schedule->id) }}"
                                                     class="action-btn edit-btn"
@@ -368,4 +369,5 @@
 
             </div>
 
+</div>
 @endsection

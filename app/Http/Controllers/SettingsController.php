@@ -9,14 +9,53 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
-    public function staffProfile(Request $request): View
+    public function updateGCash(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->role === 'admin', 403);
+        $details = $request->validate([
+            'gcash_number' => ['required_with:gcash_account_name', 'nullable', 'string', 'regex:/^(?:09\d{9}|\+639\d{9})$/'],
+            'gcash_account_name' => ['required_with:gcash_number', 'nullable', 'string', 'max:255'],
+            'gcash_qr' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'extensions:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_gcash_qr' => ['nullable', 'boolean'],
+        ]);
+        $settings = DB::table('shop_settings')->find(1);
+        $previousQR = $settings?->gcash_qr_path;
+        $newQR = $request->hasFile('gcash_qr') ? $request->file('gcash_qr')->store('gcash-qr', 'public') : null;
+        if ($newQR === false) {
+            throw ValidationException::withMessages(['gcash_qr' => 'The QR image could not be saved.']);
+        }
+        try {
+            DB::table('shop_settings')->updateOrInsert(['id' => 1], array_merge($settings ? [] : [
+                'shop_name' => config('app.name'), 'created_at' => now(),
+            ], [
+                'gcash_number' => $details['gcash_number'] ?? null,
+                'gcash_account_name' => $details['gcash_account_name'] ?? null,
+                'gcash_qr_path' => $newQR ?? ($request->boolean('remove_gcash_qr') ? null : $previousQR),
+                'updated_at' => now(),
+            ]));
+        } catch (\Throwable $exception) {
+            if ($newQR !== null) {
+                Storage::disk('public')->delete($newQR);
+            }
+            throw $exception;
+        }
+        if ($previousQR && $previousQR !== $newQR && ($newQR !== null || $request->boolean('remove_gcash_qr'))
+            && preg_match('/\Agcash-qr\/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)\z/i', $previousQR)) {
+            Storage::disk('public')->delete($previousQR);
+        }
+
+        return redirect()->route('admin.settings')->with('gcash_success', 'GCash account settings saved.');
+    }
+
+    public function managerProfile(Request $request): View
     {
         return view('staff.profile', [
-            'staff' => $request->user()->staffProfile,
+            'profilePhone' => $request->user()->phone,
             'profileAddress' => $request->user()->address,
         ]);
     }
@@ -70,10 +109,9 @@ class SettingsController extends Controller
         return redirect()->route('admin.profile')->with('profile_saved', 'Your profile was saved successfully.');
     }
 
-    public function updateStaffProfile(Request $request): RedirectResponse
+    public function updateManagerProfile(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $staff = $user->staffProfile;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
@@ -82,12 +120,12 @@ class SettingsController extends Controller
         ]);
 
         $hasChanges = $user->name !== $validated['name']
-            || ($staff !== null && $staff->phone !== ($validated['phone'] ?? null))
+            || ($user->phone !== ($validated['phone'] ?? null))
             || $user->address !== ($validated['address'] ?? null)
             || $request->hasFile('profile_photo');
 
         if (! $hasChanges) {
-            return redirect()->route('staff.profile');
+            return redirect()->route('manager.profile');
         }
 
         $previousPhoto = $user->profile_photo_path;
@@ -95,6 +133,7 @@ class SettingsController extends Controller
 
         $user->fill([
             'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
             'address' => $validated['address'] ?? null,
         ]);
 
@@ -104,18 +143,11 @@ class SettingsController extends Controller
 
         $user->save();
 
-        if ($staff !== null) {
-            $staff->update([
-                'name' => $validated['name'],
-                'phone' => $validated['phone'] ?? null,
-            ]);
-        }
-
         if ($newPhoto !== null && $previousPhoto !== null) {
             Storage::disk('public')->delete($previousPhoto);
         }
 
-        return redirect()->route('staff.profile')->with('profile_saved', 'Your profile was saved successfully.');
+        return redirect()->route('manager.profile')->with('profile_saved', 'Your profile was saved successfully.');
     }
 
     public function index(Request $request): View
@@ -125,7 +157,6 @@ class SettingsController extends Controller
         return view($settingsRole === 'admin' ? 'admin.settings.index' : 'staff.settings', [
             'settingsRole' => $settingsRole,
             'customerProfile' => $settingsRole === 'customer' ? $request->user()->customerProfile : null,
-            'staffProfile' => $settingsRole === 'staff' ? $request->user()->staffProfile : null,
             'shopSettings' => $settingsRole === 'admin' ? DB::table('shop_settings')->find(1) : null,
         ]);
     }
@@ -162,7 +193,6 @@ class SettingsController extends Controller
         $user = $request->user();
         $settingsRole = $this->settingsRole($request);
         $customer = $settingsRole === 'customer' ? $user->customerProfile : null;
-        $staff = $settingsRole === 'staff' ? $user->staffProfile : null;
 
         $rules = [
             'name' => 'required|string|max:255',
@@ -170,9 +200,12 @@ class SettingsController extends Controller
                 'required', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($user),
                 Rule::unique('customers', 'email')->ignore($customer?->getKey()),
-                Rule::unique('staff', 'email')->ignore($staff?->getKey()),
             ],
         ];
+
+        if ($settingsRole !== 'manager') {
+            $rules['email'][] = Rule::unique('staff', 'email');
+        }
 
         if ($customer !== null) {
             $rules['phone'] = 'required|string|max:20';
@@ -185,7 +218,7 @@ class SettingsController extends Controller
         $details = $request->validate($rules);
         $emailChanged = $user->email !== $details['email'];
 
-        DB::transaction(function () use ($user, $customer, $staff, $details, $emailChanged, $settingsRole): void {
+        DB::transaction(function () use ($user, $customer, $details, $emailChanged, $settingsRole): void {
             $user->fill([
                 'name' => $details['name'],
                 'email' => $details['email'],
@@ -201,14 +234,6 @@ class SettingsController extends Controller
 
             if ($customer !== null) {
                 $customer->update($details);
-            }
-
-            if ($staff !== null) {
-                $staff->update([
-                    'name' => $details['name'],
-                    'email' => $details['email'],
-                    'phone' => $details['phone'] ?? null,
-                ]);
             }
         });
 
@@ -271,8 +296,8 @@ class SettingsController extends Controller
     {
         return match ($request->user()->role) {
             'admin' => 'admin',
-            'staff' => 'staff',
-            'customer', 'user' => 'customer',
+            'manager' => 'manager',
+            'customer' => 'customer',
             default => abort(403),
         };
     }

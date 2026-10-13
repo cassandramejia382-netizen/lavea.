@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Staff Details'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'Staff Details'])
 
 @push('styles')
 
@@ -138,9 +138,11 @@
 @endpush
 
 @section('content')
+@php($staffRoutePrefix = auth()->user()->role.'.staff')
+<div class="lavea-admin-content">
 
         <div class="container">
-            <a href="{{ route('admin.staff.index') }}" class="back">&larr; Back to Staff</a>
+            <a href="{{ route($staffRoutePrefix.'.index') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back to Staff</a>
             <section class="card" aria-labelledby="staff-name">
                 <div class="staff-header">
                     <div class="avatar" aria-hidden="true"><i data-lucide="user-round-cog"></i></div>
@@ -148,7 +150,7 @@
                 </div>
                 <dl class="details">
                     <div class="detail"><dt class="label">STAFF ID</dt><dd class="value">{{ $staff->id }}</dd></div>
-                    <div class="detail"><dt class="label">ROLE</dt><dd class="value">{{ $staff->role ?: 'Not provided' }}</dd></div>
+                    <div class="detail"><dt class="label">JOB POSITION</dt><dd class="value">{{ $staff->role ?: 'Not provided' }}</dd></div>
                     <div class="detail"><dt class="label">EMAIL</dt><dd class="value">{{ $staff->email ?: 'No email provided' }}</dd></div>
                     <div class="detail"><dt class="label">PHONE NUMBER</dt><dd class="value">{{ $staff->phone ?: 'No phone provided' }}</dd></div>
                     <div class="detail"><dt class="label">STATUS</dt><dd class="value"><span class="pill" data-status="{{ $staff->status }}">{{ $staff->status ?: 'Not available' }}</span></dd></div>
@@ -157,4 +159,5 @@
             </section>
         </div>
 
+</div>
 @endsection

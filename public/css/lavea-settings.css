@@ -69,7 +69,8 @@
 .settings-layout:has(#change-password:target) a[href="#change-password"],
 .settings-layout:has(#appearance:target) a[href="#appearance"],
 .settings-layout:has(#notifications:target) a[href="#notifications"],
-.settings-layout:has(#shop-information:target) a[href="#shop-information"] {
+.settings-layout:has(#shop-information:target) a[href="#shop-information"],
+.settings-layout:has(#gcash-account:target) a[href="#gcash-account"] {
     background: #edf2ff;
     color: #3558ad;
 }
@@ -77,6 +78,11 @@
     display: grid;
     gap: 20px;
     min-width: 0;
+}
+.manager-accounts {
+    --settings-border: #e4e9f2;
+    --settings-muted: #738198;
+    --settings-ink: #172554;
 }
 .settings-card {
     padding: 24px;
@@ -154,7 +160,7 @@
     box-shadow: 0 0 0 3px rgb(65 105 200 / 10%);
     background: #fff;
 }
-.settings-card .btn {
+.settings-card .btn, .manager-heading .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -171,10 +177,10 @@
     font-weight: 600;
     cursor: pointer;
 }
-.settings-card .btn:hover {
+.settings-card .btn:hover, .manager-heading .btn:hover {
     background: #3558ad;
 }
-.settings-card .btn:focus-visible,.settings-nav a:focus-visible,.theme-button:focus-visible {
+.settings-card .btn:focus-visible,.manager-heading .btn:focus-visible,.settings-nav a:focus-visible,.theme-button:focus-visible {
     outline: 2px solid #7393e6;
     outline-offset: 3px;
 }
@@ -300,6 +306,16 @@ html[data-lavea-theme="dark"] .settings-layout {
     --settings-border: #34415a;
     --settings-muted: #b6c2d3;
     --settings-ink: #e7edf9;
+}
+html[data-lavea-theme="dark"] .settings-layout:not(:has(.settings-card:target)) .settings-nav a:first-child,
+html[data-lavea-theme="dark"] .settings-layout:has(#profile-information:target) a[href="#profile-information"],
+html[data-lavea-theme="dark"] .settings-layout:has(#change-password:target) a[href="#change-password"],
+html[data-lavea-theme="dark"] .settings-layout:has(#appearance:target) a[href="#appearance"],
+html[data-lavea-theme="dark"] .settings-layout:has(#notifications:target) a[href="#notifications"],
+html[data-lavea-theme="dark"] .settings-layout:has(#shop-information:target) a[href="#shop-information"],
+html[data-lavea-theme="dark"] .settings-layout:has(#gcash-account:target) a[href="#gcash-account"] {
+    background: #263a60 !important;
+    color: #e7edf9 !important;
 }
 html[data-lavea-theme="dark"] .settings-layout .settings-nav a:hover,
 html[data-lavea-theme="dark"] .settings-layout .settings-nav a:focus-visible {

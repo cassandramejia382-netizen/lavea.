@@ -1,0 +1,285 @@
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #f4f6fa;
+    color: #111d38;
+    font-family: Arial, sans-serif;
+}
+.card {
+    width: min(100%, 440px);
+    overflow: hidden;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 18px 55px #111d3817;
+}
+header {
+    padding: 24px;
+    background: #111d38;
+    color: white;
+}
+header strong {
+    display: block;
+    font-size: 28px;
+    letter-spacing: 3px;
+}
+header span {
+    display: block;
+    margin-top: 6px;
+    color: #c6d0e2;
+    font-size: 11px;
+}
+main {
+    padding: 24px;
+}
+.login-shell {
+    position: relative;
+    width: min(100%,440px);
+}
+.login-brand-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.login-page .login-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    gap: 6px;
+    min-height: 36px;
+    padding: 8px 10px;
+    border: 1px solid #ffffff66 !important;
+    border-radius: 8px;
+    background: transparent !important;
+    color: #fff !important;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+@media(max-width:600px) {
+    .login-brand-header {
+        padding: 20px;
+        gap: 10px;
+    }
+    .login-brand-header strong {
+        font-size: 24px;
+    }
+    .login-brand-header span {
+        font-size: 10px;
+    }
+    main { padding: 20px; }
+    body { padding: 16px; }
+}
+.login-back svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: #fff !important;
+}
+.login-page .login-back:hover {
+    background: #ffffff18 !important;
+    border-color: #ffffff99 !important;
+}
+.login-back:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+.login-page .login-brand-header {
+    background: #111d38 !important;
+}
+@media(prefers-reduced-motion:reduce) {
+    .login-back {
+        transition: none;
+    }
+}
+h1 {
+    margin: 0 0 8px;
+    font-size: 25px;
+}
+p {
+    margin: 0 0 18px;
+    color: #718099;
+    font-size: 14px;
+}
+label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+input {
+    width: 100%;
+    height: 46px;
+    padding: 0 13px;
+    border: 1px solid #d9e0eb;
+    border-radius: 8px;
+    font: inherit;
+}
+input:focus {
+    outline: 3px solid #111d3822;
+    border-color: #111d38;
+}
+.sign-in-button {
+    width: 100%;
+    height: 47px;
+    margin-top: 18px;
+    border: 0;
+    border-radius: 8px;
+    background: #111d38;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+}
+.sign-in-button:hover { background: #1d3159; }
+.login-page .sign-in-button:focus-visible,
+.login-page main a:focus-visible,
+.password-toggle:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 3px;
+}
+.login-page main a:hover { text-decoration: underline; }
+.login-options {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    font-size: 13px;
+}
+.password-field { position: relative; }
+.password-field input { padding-right: 48px; }
+.password-toggle {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #53627e;
+    cursor: pointer;
+}
+.password-toggle:hover { background: #edf3ff; }
+.password-toggle svg { width: 20px; height: 20px; }
+.password-toggle [hidden] { display: none; }
+.signup-link { text-align: center; margin: 18px 0 0; font-size: 13px; }
+html[data-lavea-theme="dark"] .login-page .password-toggle:hover { background: #273449 !important; }
+html[data-lavea-theme="dark"] .login-page .password-toggle { background: transparent !important; color: #e5e7eb !important; }
+html[data-lavea-theme="dark"] .login-page .sign-in-button:hover { background: #31549c !important; }
+a {
+    color: #111d38;
+    font-weight: 700;
+    text-decoration: none;
+}
+.notice {
+    margin: 14px 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: #edf0f5;
+    color: #111d38;
+    font-size: 13px;
+}
+.error {
+    margin: 14px 0;
+    color: #b42318;
+    font-size: 13px;
+}
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+.remember input {
+    width: 16px;
+    height: 16px;
+}
+.register-page .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+}
+.register-page .field { min-width: 0; }
+.register-page label { margin: 0 0 6px; }
+.register-page textarea {
+    display: block;
+    width: 100%;
+    min-height: 60px;
+    padding: 10px 13px;
+    border: 1px solid #d9e0eb;
+    border-radius: 8px;
+    resize: vertical;
+    font: inherit;
+}
+.register-page textarea:focus {
+    outline: 3px solid #111d3822;
+    border-color: #111d38;
+}
+.register-page .error { margin: 5px 0 0; }
+@media (min-width: 520px) {
+    .register-page .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .register-page .field-full { grid-column: 1 / -1; }
+}
+.verification-page .verification-intro { text-align: center; }
+.verification-page .verification-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    border-radius: 14px;
+    background: #edf3ff;
+    color: #4169c8;
+}
+.verification-icon svg { width: 25px; height: 25px; }
+.verification-page .verification-intro p { margin: 0 0 8px; line-height: 1.6; }
+.verification-page .verification-email { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.verification-page label { margin-top: 24px; }
+.verification-page .code-input { height: 56px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 7px; padding: 0 8px 0 15px; }
+.verification-page .verification-help { margin: 8px 0 0; font-size: 12px; line-height: 1.5; }
+.verification-page .verification-alert { margin-top: 16px; padding: 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fff1f0; color: #b42318; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.verification-page .verification-footer { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5eaf2; text-align: center; }
+.verification-page .verification-footer p { margin-bottom: 12px; font-size: 13px; }
+.verification-page .resend-btn,
+.verification-page .logout {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+.verification-page .resend-btn { width: 100%; border: 1px solid #d9e0eb; background: #f4f6fa; color: #111d38; }
+.verification-page .resend-btn:hover { background: #edf3ff; border-color: #a8bce5; }
+.verification-page .logout { margin-top: 8px; border: 0; background: transparent; color: #64748b; }
+.verification-page .logout:hover { background: #f4f6fa; color: #111d38; }
+.verification-page button:focus-visible { outline: 2px solid #4169c8; outline-offset: 3px; }
+html[data-lavea-theme="dark"] .verification-page .verification-icon { background: var(--lavea-blue-background); color: var(--lavea-blue-text) !important; }
+html[data-lavea-theme="dark"] .verification-icon svg { color: inherit !important; }
+html[data-lavea-theme="dark"] .verification-page .verification-alert { background: var(--lavea-red-background); color: var(--lavea-red-text) !important; }
+html[data-lavea-theme="dark"] .verification-alert div { color: inherit !important; }
+html[data-lavea-theme="dark"] .verification-page .resend-btn { background: var(--lavea-raised) !important; color: var(--lavea-text) !important; }
+html[data-lavea-theme="dark"] .verification-page .resend-btn:hover { background: var(--lavea-blue-background) !important; }
+html[data-lavea-theme="dark"] .verification-page .logout { background: transparent !important; color: var(--lavea-muted) !important; }
+html[data-lavea-theme="dark"] .verification-page .logout:hover { background: var(--lavea-raised) !important; }
+@media (prefers-reduced-motion: reduce) {
+    .verification-page button { transition: none; }
+}

@@ -89,6 +89,43 @@ test('new customer registration creates one normalized login and profile and sen
     Notification::assertSentTo($admin, SystemNotification::class);
 });
 
+test('repeated registration resumes an unverified customer only with their correct password', function (): void {
+    Notification::fake();
+    Mail::fake();
+    $user = User::factory()->unverified()->create(['role' => 'customer', 'email' => '  Existing@Example.COM  ', 'name' => 'Original Customer', 'password' => 'StrongPassword123!', 'verification_code' => '123456', 'verification_code_expires_at' => now()->addMinutes(10)]);
+    $profile = CustomerFactory::new()->create(['email' => $user->email, 'name' => 'Original Customer']);
+    $this->post(route('register.submit'), registrationPayload('existing@example.com'))
+        ->assertRedirect(route('verification.notice'))->assertSessionHasNoErrors();
+    $this->assertAuthenticatedAs($user);
+    $this->assertDatabaseCount('users', 1);
+    $this->assertDatabaseCount('customers', 1);
+    expect($user->fresh()->name)->toBe('Original Customer');
+    expect($profile->fresh()->name)->toBe('Original Customer');
+    expect($user->fresh()->verification_code)->toBe('123456');
+    $this->get(route('verification.notice'))->assertOk()->assertSee('name="verification_code"', false);
+    $this->post(route('register.submit'), registrationPayload('existing@example.com'))->assertRedirect(route('verification.notice'));
+    $this->assertDatabaseCount('users', 1);
+    Notification::assertNothingSent();
+    Mail::assertNothingSent();
+});
+
+test('registration cannot resume verified customers or privileged accounts even with their password', function (string $role): void {
+    $user = User::factory()->create(['role' => $role, 'email' => 'existing@example.com', 'password' => 'StrongPassword123!']);
+    $this->post(route('register.submit'), registrationPayload($user->email))->assertSessionHasErrors('email');
+    $this->assertGuest();
+    $this->assertDatabaseCount('users', 1);
+})->with(['customer', 'admin', 'manager']);
+
+test('failed admin registration notification does not leave a created customer on sign up', function (): void {
+    Exceptions::fake();
+    User::factory()->create(['role' => 'admin']);
+    Notification::shouldReceive('send')->once()->andThrow(new RuntimeException('Notification unavailable'));
+    $this->post(route('register.submit'), registrationPayload('fresh@example.com'))->assertRedirect(route('verification.notice'));
+    $this->assertAuthenticatedAs(User::where('email', 'fresh@example.com')->sole());
+    $this->assertDatabaseCount('customers', 1);
+    Exceptions::assertReported(RuntimeException::class);
+});
+
 test('registration rejects emails owned by any login role including legacy accounts without profiles', function (string $role, string $storedEmail): void {
     $user = User::factory()->unverified()->create(['role' => $role, 'email' => $storedEmail]);
     Notification::fake();
@@ -133,7 +170,7 @@ test('login works for every role with normalized input and existing mixed case e
         ->assertRedirect(route($role === 'user' ? 'customer.dashboard' : $role.'.dashboard'));
     $this->assertAuthenticatedAs($user);
     $this->assertDatabaseCount('users', 1);
-})->with(['admin', 'staff', 'customer', 'user'])->with(['Existing@Example.com', '  Existing@Example.com  ']);
+})->with(['admin', 'manager', 'customer'])->with(['Existing@Example.com', '  Existing@Example.com  ']);
 
 test('unverified customers still must verify their email after login', function (): void {
     $user = User::factory()->unverified()->create(['role' => 'customer', 'email' => 'verify@example.com', 'password' => 'StrongPassword123!']);

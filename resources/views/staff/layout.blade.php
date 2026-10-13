@@ -3,7 +3,7 @@
 <head>
     @include('partials.theme-assets')
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Staff Portal' }} | LAVEA</title>
+    <title>{{ $title ?? 'Manager Portal' }} | LAVEA</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{{ asset('css/admin-topbar.css') }}?v={{ filemtime(public_path('css/admin-topbar.css')) }}">
     <style>
@@ -420,14 +420,14 @@ td {
 </head>
 <body>
 <div class="dashboard">
-    <aside class="sidebar"><div class="logo-area"><div class="logo">LAVEA</div><div class="logo-subtitle">Laundry Made Easy</div></div>
+    <aside class="sidebar"><div class="logo-area">@include('partials.lavea-logo')</div>
         <nav class="menu">
             @php
-                $isCustomerPortal = ($portal ?? 'staff') === 'customer';
+                $isCustomerPortal = ($portal ?? 'manager') === 'customer';
                 $navigation = $isCustomerPortal
                     ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','Records'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','My Profile']]
-                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['profile','user-round','My Profile']];
-                $portalPrefix = $isCustomerPortal ? 'customer' : 'staff';
+                    : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['staff','user-round-cog','Staff'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['profile','user-round','My Profile']];
+                $portalPrefix = $isCustomerPortal ? 'customer' : 'manager';
                 $navigation[] = ['settings', 'settings', $isCustomerPortal ? 'Account Settings' : 'Settings'];
             @endphp
             @foreach ($navigation as [$key,$icon,$label])
@@ -441,17 +441,17 @@ td {
     </aside>
     <main class="main">
         @php
-            $customerSearch = request()->routeIs('staff.customers.*');
-            $orderSearch = request()->routeIs('staff.orders.*');
-            $paymentSearch = request()->routeIs('staff.payments.*');
-            $hideSearch = request()->routeIs('staff.customers.index', 'staff.orders.index', 'staff.payments.index')
+            $customerSearch = request()->routeIs('manager.customers.*');
+            $orderSearch = request()->routeIs('manager.orders.*');
+            $paymentSearch = request()->routeIs('manager.payments.*');
+            $hideSearch = request()->routeIs('manager.customers.index', 'staff.orders.index', 'staff.payments.index')
                 || ! ($customerSearch || $orderSearch || $paymentSearch);
-            $orderRoutePrefix = 'staff.orders';
+            $orderRoutePrefix = 'manager.orders';
         @endphp
         @include('admin.partials.topbar')
         <section class="content">
             @if (session('status'))<div class="flash" role="status">{{ session('status') }}</div>@endif
-            @if (session('success') && ! request()->routeIs('staff.profile'))<div class="flash">{{ session('success') }}</div>@endif
+            @if (session('success') && ! request()->routeIs('manager.profile'))<div class="flash">{{ session('success') }}</div>@endif
             @if (session('error'))<div class="flash flash-error" style="background:#ffe9ec;color:#b42335">{{ session('error') }}</div>@endif
             @if ($errors->any())<ul class="error-list">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
             @yield('content')

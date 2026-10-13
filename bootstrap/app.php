@@ -21,8 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return match ($user->role) {
                 'admin' => route('admin.dashboard'),
-                'staff' => route('staff.dashboard'),
-                'customer', 'user' => route($user->hasVerifiedEmail() ? 'customer.dashboard' : 'verification.notice'),
+                'manager' => route('manager.dashboard'),
+                'customer' => route($user->hasVerifiedEmail() ? 'customer.dashboard' : 'verification.notice'),
                 default => abort(403),
             };
         });

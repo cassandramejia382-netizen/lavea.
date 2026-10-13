@@ -227,13 +227,6 @@
 @endpush
 
 @section('content')
-<!-- SIDEBAR -->
-   <!-- SIDEBAR -->
-
-    <!-- TOPBAR -->
-
-    <!-- MAIN -->
-
         <div class="page-header">
             <div>
                 <h2>Reports</h2>
@@ -249,39 +242,46 @@
                 Report Filter
             </div>
 
-            <div class="filter-row">
+            <form class="filter-row" method="GET" action="{{ route('admin.reports') }}">
 
                 <div class="form-group">
-                    <label>Report Type</label>
+                    <label for="report_type">Report Type</label>
 
-                    <select>
-                        <option>All Reports</option>
-                        <option>Orders Report</option>
-                        <option>Payments Report</option>
-                        <option>Services Report</option>
+                    <select id="report_type" name="report_type">
+                        @foreach(['all' => 'All Reports', 'orders' => 'Orders Report', 'payments' => 'Payments Report', 'services' => 'Services Report'] as $value => $label)
+                            <option value="{{ $value }}" @selected(old('report_type', $reportType) === $value)>{{ $label }}</option>
+                        @endforeach
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>From Date</label>
+                    <label for="from_date">From Date</label>
 
-                    <input type="date" min="{{ now()->toDateString() }}">
+                    <input id="from_date" name="from_date" type="date" value="{{ old('from_date', $fromDate) }}">
                 </div>
 
                 <div class="form-group">
-                    <label>To Date</label>
+                    <label for="to_date">To Date</label>
 
-                    <input type="date" min="{{ now()->toDateString() }}">
+                    <input id="to_date" name="to_date" type="date" value="{{ old('to_date', $toDate) }}">
                 </div>
 
-                <button class="btn btn-primary" type="button">
+                <button class="btn btn-primary" type="submit">
                     <i data-lucide="filter"></i>
                     Generate
                 </button>
 
-            </div>
+            </form>
 
         </div>
+
+        @if($errors->any())
+            <div class="filter-card" role="alert">
+                @foreach($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
 
         <!-- SUMMARY -->
         <div class="report-grid">
@@ -290,7 +290,7 @@
 
                 <div class="report-card-header">
                     <div>
-                        <h3>{{ \App\Models\Order::count() }}</h3>
+                        <h3>{{ $summary['orders'] }}</h3>
                         <p>Total Orders</p>
                     </div>
 
@@ -305,8 +305,8 @@
 
                 <div class="report-card-header">
                     <div>
-                        <h3>{{ \App\Models\Customer::count() }}</h3>
-                        <p>Total Customers</p>
+                        <h3>{{ $summary['customers'] }}</h3>
+                        <p>Customers with Orders</p>
                     </div>
 
                     <div class="report-card-icon">
@@ -320,8 +320,8 @@
 
                 <div class="report-card-header">
                     <div>
-                        <h3>{{ \App\Models\Service::count() }}</h3>
-                        <p>Total Services</p>
+                        <h3>{{ $summary['services'] }}</h3>
+                        <p>Services Used</p>
                     </div>
 
                     <div class="report-card-icon">
@@ -335,7 +335,7 @@
 
                 <div class="report-card-header">
                     <div>
-                        <h3>{{ \App\Models\Payment::count() }}</h3>
+                        <h3>{{ $summary['payments'] }}</h3>
                         <p>Total Payments</p>
                     </div>
 
@@ -348,96 +348,91 @@
 
         </div>
 
-        <!-- RECENT REPORT -->
-        <div class="table-card">
-
+        @if($orders !== null)
+        <section class="table-card" style="margin-bottom:24px" id="orders-report">
             <div class="table-header">
-                <h3>Recent Orders Report</h3>
-                <p>Latest laundry orders recorded in the system.</p>
+                <h3>Orders Report</h3>
+                <p>Filtered by order date. Order value: &#8369;{{ number_format($summary['order_value'], 2) }}.</p>
             </div>
-
-            @php
-                $orders = \App\Models\Order::with([
-                    'customer',
-                    'service'
-                ])
-                ->latest()
-                ->take(10)
-                ->get();
-            @endphp
-
-            @if($orders->count() > 0)
-
+            <div class="table-wrap">
                 <table>
-
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Service</th>
-                            <th>Order Date</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-
+                    <thead><tr><th>Order ID</th><th>Customer</th><th>Service</th><th>Assigned Staff</th><th>Order Date</th><th>Status</th><th>Total</th></tr></thead>
                     <tbody>
-
-                        @foreach($orders as $order)
-
+                        @forelse($orders as $order)
                             <tr>
-
-                                <td>
-                                    #{{ $order->id }}
-                                </td>
-
-                                <td>
-                                    {{ $order->customer->name ?? 'N/A' }}
-                                </td>
-
-                                <td>
-                                    {{ $order->service->service_name ?? 'N/A' }}
-                                </td>
-
-                                <td>
-                                    {{ $order->order_date?->format('M d, Y') ?? 'N/A' }}
-                                </td>
-
-                                <td>
-
-                                    @php
-                                        $statusClass = match($order->status) {
-                                            'Completed' => 'completed',
-                                            'Cancelled' => 'cancelled',
-                                            default => 'pending',
-                                        };
-                                    @endphp
-
-                                    <span class="status {{ $statusClass }}">
-                                        {{ $order->status }}
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    ₱{{ number_format($order->total ?? 0, 2) }}
-                                </td>
-
+                                <td><a href="{{ route('admin.orders.show', $order) }}">#{{ $order->id }}</a></td>
+                                <td>{{ $order->customer?->name ?? 'N/A' }}</td>
+                                <td>{{ $order->service?->service_name ?? 'N/A' }}</td>
+                                <td>{{ $order->staff?->name ?? 'Not assigned' }}</td>
+                                <td>{{ $order->order_date?->format('M d, Y') ?? 'N/A' }}</td>
+                                <td><span class="status {{ $order->status === 'Completed' ? 'completed' : ($order->status === 'Cancelled' ? 'cancelled' : 'pending') }}">{{ $order->status }}</span></td>
+                                <td>&#8369;{{ number_format($order->total, 2) }}</td>
                             </tr>
-
-                        @endforeach
-
+                        @empty
+                            <tr><td colspan="7" class="empty">No orders match the selected date range.</td></tr>
+                        @endforelse
                     </tbody>
-
                 </table>
-
-            @else
-
-                <div class="empty">
-                    No orders available for the report.
-                </div>
-
-            @endif
-
-        </div>
+            </div>
+            {{ $orders->links() }}
+        </section>
+        @endif
+        @if($payments !== null)
+        <section class="table-card" style="margin-bottom:24px" id="payments-report">
+            <div class="table-header">
+                <h3>Payments Report</h3>
+                <p>Filtered by payment date. Confirmed income: &#8369;{{ number_format($summary['income'], 2) }}. Pending and Rejected payments are excluded from income.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Payment ID</th><th>Order ID</th><th>Customer</th><th>Payment Date</th><th>Method</th><th>Reference</th><th>Status</th><th>Amount</th></tr></thead>
+                    <tbody>
+                        @forelse($payments as $payment)
+                            <tr>
+                                <td><a href="{{ route('admin.payments.show', $payment) }}">#{{ $payment->id }}</a></td>
+                                <td>#{{ $payment->order_id }}</td>
+                                <td>{{ $payment->order?->customer?->name ?? 'N/A' }}</td>
+                                <td>{{ $payment->payment_date?->format('M d, Y') ?? 'N/A' }}</td>
+                                <td>{{ $payment->payment_method }}</td>
+                                <td>{{ $payment->reference_number ?: 'N/A' }}</td>
+                                <td><span class="status {{ $payment->status === 'Confirmed' ? 'completed' : ($payment->status === 'Rejected' ? 'cancelled' : 'pending') }}">{{ $payment->status }}</span></td>
+                                <td>&#8369;{{ number_format($payment->amount, 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="empty">No payments match the selected date range.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            {{ $payments->links() }}
+        </section>
+        @endif
+        @if($services !== null)
+        <section class="table-card" id="services-report">
+            <div class="table-header">
+                <h3>Services Report</h3>
+                <p>Service usage for orders in the selected order-date range. Order value is separate from confirmed income.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Service</th><th>Price</th><th>Availability</th><th>Orders</th><th>Quantity</th><th>Order Value</th></tr></thead>
+                    <tbody>
+                        @forelse($services as $service)
+                            <tr>
+                                <td>{{ $service->service_name }}</td>
+                                <td>&#8369;{{ number_format($service->price, 2) }} / {{ $service->billingUnit() }}</td>
+                                <td>{{ $service->is_active ? 'Active' : 'Inactive' }}</td>
+                                <td>{{ $service->report_order_count }}</td>
+                                <td>{{ number_format($service->report_quantity ?? 0, 2) }} {{ $service->billingUnit() }}</td>
+                                <td>&#8369;{{ number_format($service->report_order_value ?? 0, 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="empty">No services available for the report.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            {{ $services->links() }}
+        </section>
+        @endif
 @endsection

@@ -121,21 +121,6 @@
     align-items: center;
     gap: 11px;
 }
-.lavea-admin-content .customer-avatar {
-    width: 38px;
-    height: 38px;
-    background: #e8eefb;
-    color: #4169c8;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.lavea-admin-content .customer-avatar svg {
-    width: 17px;
-    height: 17px;
-}
 .lavea-admin-content .customer-name {
     font-weight: 600;
     color: #172554;
@@ -249,10 +234,6 @@
                                     <td>
 
                                         <div class="customer">
-
-                                            <div class="customer-avatar">
-                                                <i data-lucide="user"></i>
-                                            </div>
 
                                             <div>
 

@@ -161,7 +161,7 @@ html[data-lavea-theme="dark"] .staff-services .service-footer {
 
 <div class="service-grid staff-services">
     @forelse ($services as $service)
-        <a href="{{ route('staff.services.show', $service) }}" class="card service-card">
+        <a href="{{ route('manager.services.show', $service) }}" class="card service-card">
             <div class="service-media">
                 @if ($imageUrl = $service->imageUrl())
                     <img src="{{ $imageUrl }}" alt="{{ $service->service_name }}" loading="lazy">

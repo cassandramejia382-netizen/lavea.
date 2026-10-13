@@ -1,5 +1,5 @@
 @php
-    $dashboardBackRole = in_array(auth()->user()->role, ['customer', 'user'], true) ? 'customer' : auth()->user()->role;
+    $dashboardBackRole = in_array(auth()->user()->role, ['customer'], true) ? 'customer' : auth()->user()->role;
     $dashboardBackUrl = route($dashboardBackRole.'.dashboard', [], false);
 @endphp
 <script>

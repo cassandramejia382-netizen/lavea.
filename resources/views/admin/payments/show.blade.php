@@ -78,7 +78,7 @@
     font-size: 11px;
     font-weight: 600;
 }
-.lavea-admin-content .completed {
+.lavea-admin-content .confirmed {
     background: #e5f8ef;
     color: #168458;
 }
@@ -86,7 +86,7 @@
     background: #fff4d6;
     color: #a56a00;
 }
-.lavea-admin-content .failed {
+.lavea-admin-content .rejected {
     background: #ffe9ec;
     color: #d14a5b;
 }
@@ -146,12 +146,19 @@
     margin-top: 25px;
 }
 .lavea-admin-content .edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     background: #4169c8;
     color: white;
     padding: 11px 19px;
     border-radius: 8px;
     text-decoration: none;
     font-size: 13px;
+}
+.lavea-admin-content .edit-btn svg {
+    width: 16px;
+    height: 16px;
 }
 .lavea-admin-content .edit-btn:hover {
     background: #3459b1;
@@ -165,6 +172,11 @@
 @endpush
 
 @section('content')
+@if ($errors->any())
+    <div class="error-list no-print" role="alert" style="margin-bottom:16px">
+        @foreach ($errors->all() as $message)<p>{{ $message }}</p>@endforeach
+    </div>
+@endif
 <div class="page-header">
 
             <div>
@@ -178,10 +190,10 @@
             </div>
 
             <a
-                href="{{ auth()->user()->role === 'staff' ? route('staff.orders.index') : route('admin.payments.index') }}"
-                class="back-btn"
+                href="{{ auth()->user()->role === 'manager' ? route('manager.orders.index') : route('admin.payments.index') }}"
+                class="lavea-back-link"
             >
-                {{ auth()->user()->role === 'staff' ? 'Back to Orders' : 'Back to Payments' }}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>{{ auth()->user()->role === 'manager' ? 'Back to Orders' : 'Back to Payments' }}
             </a>
 
         </div>
@@ -314,22 +326,44 @@
             </div>
 
             @if ($payment->status === 'Pending')
+                @if ($duplicatePayments->isNotEmpty() || $payment->amount > $remainingBalance)
+                    <div class="notes-content no-print" role="alert" style="margin-bottom:16px">
+                        <strong>Payment #{{ $payment->id }} is still Pending and needs correction.</strong>
+                        @if ($duplicatePayments->isNotEmpty())
+                            <p style="margin-top:8px">This reference is already used by:
+                                @foreach ($duplicatePayments as $duplicate)
+                                    <a href="{{ route('admin.payments.show', $duplicate) }}">Confirmed Payment #{{ $duplicate->id }} (Order #{{ $duplicate->order_id }})</a>{{ $loop->last ? '.' : ', ' }}
+                                @endforeach
+                            </p>
+                        @endif
+                        @if ($payment->amount > $remainingBalance)
+                            <p style="margin-top:8px">Submitted amount: &#8369;{{ number_format($payment->amount, 2) }}. Remaining order balance: &#8369;{{ number_format($remainingBalance, 2) }}.</p>
+                        @endif
+                        <p style="margin-top:8px">Reject with a reason so the Manager can correct the amount, reference, and proof, then resubmit for review.</p>
+                    </div>
+                @endif
                 <div class="actions">
-                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}">@csrf @method('PATCH')<input type="hidden" name="status" value="Completed"><button class="edit-btn" type="submit">Confirm Payment</button></form>
-                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}" onsubmit="return confirm('Mark this payment as failed?')">@csrf @method('PATCH')<input type="hidden" name="status" value="Failed"><button class="back-btn" type="submit">Mark Failed</button></form>
+                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}">@csrf @method('PATCH')<input type="hidden" name="status" value="Confirmed"><button class="edit-btn" type="submit" @disabled($duplicatePayments->isNotEmpty() || $payment->amount > $remainingBalance)>Confirm Payment</button></form>
+                    <form method="POST" action="{{ route('admin.payments.review', $payment) }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                        @csrf @method('PATCH')<input type="hidden" name="status" value="Rejected">
+                        <label for="rejection_reason">Rejection reason</label>
+                        <input id="rejection_reason" name="rejection_reason" maxlength="2000" value="{{ old('rejection_reason') }}" required style="padding:10px;border:1px solid #dfe5ef;border-radius:8px;max-width:100%;min-width:0">
+                        <button class="back-btn" type="submit">Reject Payment</button>
+                        @error('rejection_reason')<span class="error">{{ $message }}</span>@enderror
+                    </form>
                 </div>
             @endif
 
-            @if ($payment->status === 'Completed')
+            @can('print-receipt', $payment)
                 <div class="actions">
-                    <button type="button" class="edit-btn" onclick="window.print()">Print Receipt</button>
+                    <a class="edit-btn" href="{{ route('payments.receipt', $payment) }}" target="_blank" rel="noopener"><i data-lucide="printer" aria-hidden="true"></i>Print Receipt</a>
                 </div>
 
-            @endif
+            @endcan
 
         </div>
 @include('partials.payment-proof', ['payment' => $payment])
-@if ($payment->status === 'Completed')
+@can('print-receipt', $payment)
     @include('partials.payment-receipt', ['payment' => $payment])
-@endif
+@endcan
 @endsection

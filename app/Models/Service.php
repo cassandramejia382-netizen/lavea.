@@ -15,6 +15,7 @@ class Service extends Model
         'description',
         'image',
         'is_active',
+        'required_job_position',
     ];
 
     protected $attributes = ['is_active' => true];
@@ -52,9 +53,11 @@ class Service extends Model
     /** @return list<string> */
     public function quantityRules(): array
     {
-        return $this->billingUnit() === 'kg'
-            ? ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9']
-            : ['required', 'integer', 'min:1'];
+        return match ($this->billingUnit()) {
+            'kg' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9'],
+            'set' => ['required', 'numeric', 'decimal:0,2', 'min:1'],
+            default => ['required', 'integer', 'min:1'],
+        };
     }
 
     public function imageUrl(): ?string

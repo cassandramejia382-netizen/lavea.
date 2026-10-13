@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'Add Schedule | LAVEA'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'Add Schedule | LAVEA'])
 
 @push('styles')
 
@@ -123,6 +123,7 @@
 @endpush
 
 @section('content')
+<div class="lavea-admin-content">
 @php($routePrefix = 'admin.schedules')
 
     <!-- SIDEBAR -->
@@ -366,4 +367,5 @@
 
             </div>
 
+</div>
 @endsection

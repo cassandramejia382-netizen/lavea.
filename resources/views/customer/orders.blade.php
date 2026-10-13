@@ -126,7 +126,12 @@
 }
 </style>
 <div class="customer-records">
-    <div class="page-head"><div><h1>Records</h1><div class="muted">Review your laundry order and payment statuses.</div></div></div>
+    <div class="page-head record-page-header">
+        <div><h1>Records</h1><div class="muted">Review your laundry order and payment statuses.</div></div>
+        <a class="lavea-back-link" href="{{ route('customer.dashboard') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span>Back to Dashboard</span>
+        </a>
+    </div>
 
     <div class="customer-record-stats">
         <div class="customer-record-stat"><div class="customer-record-stat-icon"><i data-lucide="loader-circle"></i></div><div><strong>{{ $recordStats['processing'] }}</strong><span>Processing</span></div></div>

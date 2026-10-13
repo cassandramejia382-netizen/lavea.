@@ -6,7 +6,7 @@
         <h1>{{ $service->service_name }}</h1>
         <div class="muted">Service details and pricing</div>
     </div>
-    <a class="btn secondary" href="{{ route('staff.services.index') }}">&larr; Back to Services</a>
+    <a href="{{ route('manager.services.index') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back to Services</a>
 </div>
 
 <article class="card" style="display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:30px;align-items:center;max-width:1050px;padding:28px">
@@ -25,9 +25,30 @@
         <div class="muted" style="font-size:12px;margin-bottom:4px">PRICE</div>
         <strong style="font-size:24px;color:#12214a">₱{{ number_format($service->price, 2) }} / {{ $service->billingUnit() }}</strong>
     </div>
+    <form class="field" style="grid-column:1/-1" method="POST" action="{{ route('manager.services.assignment-position', $service) }}">
+        @csrf @method('PATCH')
+        @include('partials.service-job-position')
+        <button type="submit" class="btn assignment-position-save">Save Job Position</button>
+        <small>Existing assignments are preserved. This setting controls new assignments.</small>
+    </form>
 </article>
 
 <style>
+.content .assignment-position-save {
+    align-self: flex-start;
+    width: auto;
+    max-width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: background-color 160ms ease;
+}
+.content .assignment-position-save:hover { background: #3558ad; }
+.content .assignment-position-save:focus-visible { outline: 2px solid #7393e6; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+    .content .assignment-position-save { transition: none; }
+}
 @media (max-width: 700px) {
     .content article.card[style*="grid-template-columns"] {
         grid-template-columns: minmax(0, 1fr) !important;

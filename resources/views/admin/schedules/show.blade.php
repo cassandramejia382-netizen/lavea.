@@ -1,4 +1,4 @@
-@extends('admin.layout', ['title' => 'View Schedule - LAVEA'])
+@extends(auth()->user()->role === 'manager' ? 'staff.layout' : 'admin.layout', ['title' => 'View Schedule - LAVEA'])
 
 @push('styles')
 
@@ -151,6 +151,7 @@
 @endpush
 
 @section('content')
+<div class="lavea-admin-content">
 <!-- SIDEBAR -->
 
     <!-- TOPBAR -->
@@ -166,12 +167,9 @@
 
             <div class="header-actions">
 
-                <a href="{{ route($routePrefix.'.index') }}" class="btn btn-back">
-                    <i data-lucide="arrow-left"></i>
-                    Back
-                </a>
+                <a href="{{ route($routePrefix.'.index') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back</a>
 
-                @if (auth()->user()->role === 'staff')
+                @if (auth()->user()->role === 'manager')
                     <a href="{{ route($routePrefix.'.edit', $schedule->id) }}" class="btn btn-edit">
                         <i data-lucide="pencil"></i>
                         Edit Schedule
@@ -331,4 +329,5 @@
             </div>
 
         </div>
+</div>
 @endsection

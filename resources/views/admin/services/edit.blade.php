@@ -62,6 +62,7 @@ html[data-lavea-theme="dark"] .lavea-admin-content .back {
     margin-bottom: 8px;
 }
 .lavea-admin-content input,
+.lavea-admin-content select,
 .lavea-admin-content textarea {
     width: 100%;
     padding: 12px;
@@ -75,6 +76,7 @@ html[data-lavea-theme="dark"] .lavea-admin-content .back {
     resize: vertical;
 }
 .lavea-admin-content input:focus,
+.lavea-admin-content select:focus,
 .lavea-admin-content textarea:focus {
     border-color: #4169c8;
 }
@@ -122,9 +124,7 @@ html[data-lavea-theme="dark"] .lavea-admin-content .back {
 @section('content')
 <div class="container">
 
-    <a href="{{ route('admin.services.index') }}" class="back">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span>Back to Services</span>
-    </a>
+    <a href="{{ route('admin.services.index') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span>Back to Services</span></a>
 
     <h1>Edit Service</h1>
 
@@ -177,7 +177,9 @@ html[data-lavea-theme="dark"] .lavea-admin-content .back {
 
             </div>
 
-            <div class="form-group">
+            @include('partials.service-job-position')
+
+<div class="form-group">
 
                 <label>Description</label>
 

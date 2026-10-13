@@ -267,10 +267,10 @@ html[data-lavea-theme="dark"] .customer-overview .overview-stat[data-kind="payme
 <div class="customer-overview">
     <header class="overview-heading">
         <div><h1>Welcome, {{ auth()->user()->name }}</h1><p>Track your laundry, payments, and services in one place.</p></div>
-        <div class="overview-date"><i data-lucide="calendar-days" aria-hidden="true"></i>{{ now()->format('F d, Y') }}</div>
+        @include('admin.partials.current-date')
     </header>
     <div class="overview-stats">
-        @foreach ([['Total Orders', $stats['total'], 'clipboard-list', 'total', 'All orders'], ['Pending Orders', $stats['pending'], 'clock-3', 'pending', 'Awaiting service'], ['Completed Orders', $stats['completed'], 'circle-check', 'completed', 'Finished laundry'], ['Total Payments', "\u{20B1}".number_format($stats['payments'], 2), 'credit-card', 'payments', 'Completed payments']] as [$label, $value, $icon, $kind, $caption])
+        @foreach ([['Total Orders', $stats['total'], 'clipboard-list', 'total', 'All orders'], ['Pending Orders', $stats['pending'], 'clock-3', 'pending', 'Awaiting service'], ['Completed Orders', $stats['completed'], 'circle-check', 'completed', 'Finished laundry'], ['Total Payments', "\u{20B1}".number_format($stats['payments'], 2), 'credit-card', 'payments', 'Confirmed payments']] as [$label, $value, $icon, $kind, $caption])
             <div class="overview-stat" data-kind="{{ $kind }}">
                 <div class="stat-top"><span class="stat-symbol"><i data-lucide="{{ $icon }}" aria-hidden="true"></i></span><span class="stat-caption">{{ $caption }}</span></div>
                 <span class="stat-label">{{ $label }}</span><strong class="stat-value">{{ $value }}</strong>

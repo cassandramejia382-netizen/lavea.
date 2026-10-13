@@ -81,4 +81,4 @@ a {
 @if(session('status'))<div class="msg">{{ session('status') }}</div>@endif
 @if($errors->any())<div class="err">{{ $errors->first() }}</div>@endif
 <form method="POST" action="{{ route('password.code.send') }}">@csrf<label for="email">Email</label><input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required><button type="submit">Send Reset Code</button></form>
-<p><a href="{{ route('login') }}">Back to Sign In</a></p></main></body></html>
+<p><a href="{{ route('login') }}" class="lavea-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Back to Sign In</a></p></main></body></html>

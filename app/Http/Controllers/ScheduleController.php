@@ -10,10 +10,7 @@ class ScheduleController extends Controller
 {
     public function staffIndex()
     {
-        $staff = auth()->user()->staffProfile;
         $schedules = Schedule::with(['order.customer', 'order.service'])
-            ->when($staff, fn ($query) => $query->whereHas('order', fn ($orders) => $orders->where('staff_id', $staff->id)))
-            ->when(! $staff, fn ($query) => $query->whereRaw('1 = 0'))
             ->orderBy('schedule_date')->orderBy('schedule_time')->get();
 
         return view('staff.schedules.index', compact('schedules'));
@@ -30,7 +27,7 @@ class ScheduleController extends Controller
             ->orderBy('schedule_time')
             ->get();
 
-        $routePrefix = auth()->user()->role === 'staff' ? 'staff.schedules' : 'admin.schedules';
+        $routePrefix = auth()->user()->role === 'manager' ? 'manager.schedules' : 'admin.schedules';
 
         return view('admin.schedules.index', compact('schedules', 'routePrefix'));
     }
@@ -44,7 +41,7 @@ class ScheduleController extends Controller
             ->latest()
             ->get();
 
-        $routePrefix = 'staff.schedules';
+        $routePrefix = auth()->user()->role.'.schedules';
 
         return view('admin.schedules.create', compact('orders', 'routePrefix'));
     }
@@ -69,7 +66,7 @@ class ScheduleController extends Controller
             'notes' => $request->notes,
         ]);
 
-        return redirect()->route('staff.schedules.index')->with('success', 'Schedule added successfully.');
+        return redirect()->route(auth()->user()->role.'.schedules.index')->with('success', 'Schedule added successfully.');
     }
 
     public function show(Schedule $schedule)
@@ -80,7 +77,7 @@ class ScheduleController extends Controller
             'order.staff',
         ]);
 
-        $routePrefix = auth()->user()->role === 'staff' ? 'staff.schedules' : 'admin.schedules';
+        $routePrefix = auth()->user()->role === 'manager' ? 'manager.schedules' : 'admin.schedules';
 
         return view('admin.schedules.show', compact('schedule', 'routePrefix'));
     }
@@ -94,7 +91,7 @@ class ScheduleController extends Controller
             ->latest()
             ->get();
 
-        $routePrefix = 'staff.schedules';
+        $routePrefix = auth()->user()->role.'.schedules';
 
         return view('admin.schedules.edit', compact(
             'schedule',
@@ -123,7 +120,7 @@ class ScheduleController extends Controller
             'notes' => $request->notes,
         ]);
 
-        return redirect()->route('staff.schedules.index')->with('success', 'Schedule updated successfully.');
+        return redirect()->route(auth()->user()->role.'.schedules.index')->with('success', 'Schedule updated successfully.');
     }
 
     public function destroy(Schedule $schedule)
@@ -131,7 +128,7 @@ class ScheduleController extends Controller
         $schedule->delete();
 
         return redirect()
-            ->route('admin.schedules.index')
+            ->route(auth()->user()->role.'.schedules.index')
             ->with('success', 'Schedule deleted successfully.');
     }
 }

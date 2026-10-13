@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, ...$roles)
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! auth()->check()) {
             return redirect()->route('login');
@@ -15,7 +17,7 @@ class RoleMiddleware
 
         $user = auth()->user();
 
-        if (in_array($user->role, $roles) || ($user->role === 'user' && in_array('customer', $roles))) {
+        if (in_array($user->role, $roles, true) && in_array($user->role, User::LOGIN_ROLES, true)) {
             return $next($request);
         }
 
@@ -23,11 +25,11 @@ class RoleMiddleware
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user->role === 'staff') {
-            return redirect()->route('staff.dashboard');
+        if ($user->role === 'manager') {
+            return redirect()->route('manager.dashboard');
         }
 
-        if ($user->role === 'customer' || $user->role === 'user') {
+        if ($user->role === 'customer') {
             return redirect()->route('customer.dashboard');
         }
 

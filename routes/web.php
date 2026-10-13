@@ -4,14 +4,17 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerDashboardController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\ManagerDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffController;
-use App\Http\Controllers\StaffDashboardController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -95,6 +98,16 @@ Route::post('/notifications/read-all', [NotificationController::class, 'markAllA
     ->name('notifications.read-all');
 Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof'])
     ->middleware(['auth', 'no-cache'])->name('payments.proof');
+
+Route::get('/payments/{payment}/receipt', [PaymentController::class, 'receipt'])
+    ->whereNumber('payment')->middleware(['auth', 'no-cache'])->name('payments.receipt');
+
+Route::get('/staff/{path?}', function (?string $path = null): RedirectResponse {
+    $destination = url('manager/'.($path ?? 'dashboard'));
+    $query = request()->getQueryString();
+
+    return redirect()->to($destination.($query ? '?'.$query : ''));
+})->where('path', '.*')->middleware(['auth', 'no-cache', 'role:manager']);
 /*
 |--------------------------------------------------------------------------
 | Customer Routes
@@ -248,8 +261,7 @@ Route::middleware(['auth', 'no-cache', 'role:admin'])
         | Staff
         |--------------------------------------------------------------------------
         */
-        Route::post('/staff/{staff}/invitation', [StaffController::class, 'sendInvitation'])
-            ->name('staff.invitation');
+        Route::resource('managers', ManagerController::class)->except(['show', 'destroy']);
         Route::resource('staff', StaffController::class)
             ->names('staff');
         /*
@@ -291,8 +303,7 @@ Route::middleware(['auth', 'no-cache', 'role:admin'])
         | Reports
         |--------------------------------------------------------------------------
         */
-        Route::get('/reports', fn () => view('admin.reports.index')
-        )->name('reports');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports');
         /*
         |--------------------------------------------------------------------------
         | Settings
@@ -302,6 +313,8 @@ Route::middleware(['auth', 'no-cache', 'role:admin'])
             ->name('settings');
         Route::post('/settings/shop-information', [SettingsController::class, 'updateShopInformation'])
             ->name('settings.shop');
+        Route::post('/settings/gcash', [SettingsController::class, 'updateGCash'])
+            ->name('settings.gcash');
         Route::post('/settings/admin-profile', [SettingsController::class, 'updateAdminProfile'])
             ->name('settings.profile');
         Route::post('/settings/password', [SettingsController::class, 'updatePassword'])
@@ -313,23 +326,23 @@ Route::middleware(['auth', 'no-cache', 'role:admin'])
     });
 /*
 |--------------------------------------------------------------------------
-| Staff Routes
+| Manager Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'no-cache', 'role:staff'])
-    ->prefix('staff')
-    ->name('staff.')
+Route::middleware(['auth', 'no-cache', 'role:manager'])
+    ->prefix('manager')
+    ->name('manager.')
     ->group(function (): void {
-        Route::get('/dashboard', [StaffDashboardController::class, 'index'])
+        Route::get('/dashboard', [ManagerDashboardController::class, 'index'])
             ->name('dashboard');
         /*
         |--------------------------------------------------------------------------
-        | Staff Profile
+        | Manager Profile
         |--------------------------------------------------------------------------
         */
-        Route::get('/profile', [SettingsController::class, 'staffProfile'])
+        Route::get('/profile', [SettingsController::class, 'managerProfile'])
             ->name('profile');
-        Route::post('/profile', [SettingsController::class, 'updateStaffProfile'])
+        Route::post('/profile', [SettingsController::class, 'updateManagerProfile'])
             ->name('profile.update');
         /*
         |--------------------------------------------------------------------------
@@ -343,10 +356,12 @@ Route::middleware(['auth', 'no-cache', 'role:staff'])
         | Services
         |--------------------------------------------------------------------------
         */
-        Route::get('/services', [ServiceController::class, 'staffIndex'])
+        Route::get('/services', [ServiceController::class, 'managerIndex'])
             ->name('services.index');
-        Route::get('/services/{service}', [ServiceController::class, 'staffShow'])
+        Route::get('/services/{service}', [ServiceController::class, 'managerShow'])
             ->name('services.show');
+        Route::get('/services/{service}/staff-options', [ServiceController::class, 'staffOptions'])->name('services.staff-options');
+        Route::patch('/services/{service}/assignment-position', [ServiceController::class, 'updateAssignmentPosition'])->name('services.assignment-position');
         /*
         |--------------------------------------------------------------------------
         | Orders
@@ -362,15 +377,13 @@ Route::middleware(['auth', 'no-cache', 'role:staff'])
         Route::resource('payments', PaymentController::class)
             ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
             ->names('payments');
-        Route::patch('/payments/{payment}/review', [PaymentController::class, 'reviewCustomerPayment'])
-            ->name('payments.review');
         /*
         |--------------------------------------------------------------------------
         | Schedules
         |--------------------------------------------------------------------------
         */
-        Route::get('/schedules', [ScheduleController::class, 'staffIndex'])
-            ->name('schedules.index');
+        Route::resource('staff', StaffController::class)->names('staff');
+        Route::resource('schedules', ScheduleController::class)->names('schedules');
         /*
         |--------------------------------------------------------------------------
         | Settings

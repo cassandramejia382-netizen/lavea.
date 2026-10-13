@@ -3,27 +3,51 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\Staff;
+use App\OrderStaffAssignment;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
 
 class ServiceController extends Controller
 {
-    public function staffIndex(): View
+    public function managerIndex(): View
     {
         $services = Service::orderBy('service_name')->get();
 
         return view('staff.services.index', compact('services'));
     }
 
-    public function staffShow(Service $service): View
+    public function managerShow(Service $service): View
     {
         return view('staff.services.show', compact('service'));
+    }
+
+    public function updateAssignmentPosition(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->role === 'manager', 403);
+        $details = $request->validate(['required_job_position' => ['required', Rule::in(Staff::LAUNDRY_JOB_POSITIONS)]]);
+        $service->update($details);
+
+        return redirect()->route('manager.services.show', $service)->with('success', 'Required job position saved. Existing order assignments were preserved.');
+    }
+
+    public function staffOptions(Request $request, Service $service, OrderStaffAssignment $assignment): JsonResponse
+    {
+        abort_unless($request->user()->role === 'manager', 403);
+
+        return response()->json([
+            'position' => $service->required_job_position,
+            'staff' => $service->is_active ? $assignment->options($service) : [],
+            'active' => $service->is_active,
+        ])->header('Cache-Control', 'no-store');
     }
 
     /**
@@ -60,6 +84,7 @@ class ServiceController extends Controller
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'required_job_position' => ['nullable', Rule::in(Staff::LAUNDRY_JOB_POSITIONS)],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
         ], [
             'image.uploaded' => $this->imageUploadErrorMessage($request),
@@ -113,6 +138,7 @@ class ServiceController extends Controller
             'service_name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'required_job_position' => ['nullable', Rule::in(Staff::LAUNDRY_JOB_POSITIONS)],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
         ], [
             'image.uploaded' => $this->imageUploadErrorMessage($request),

@@ -19,8 +19,8 @@
             @php
                 $notificationUrl = $notification->data['url'] ?? null;
                 $notificationPath = $notificationUrl ? parse_url($notificationUrl, PHP_URL_PATH) : null;
-                if (auth()->user()->role === 'staff' && is_string($notificationPath) && preg_match('#^/admin/(orders|payments)/(\d+)$#', $notificationPath, $matches)) {
-                    $notificationUrl = route('staff.'.$matches[1].'.show', $matches[2]);
+                if (auth()->user()->role === 'manager' && is_string($notificationPath) && preg_match('#^/admin/(orders|payments)/(\d+)$#', $notificationPath, $matches)) {
+                    $notificationUrl = route('manager.'.$matches[1].'.show', $matches[2]);
                 }
             @endphp
             <div class="lavea-notification-item {{ $notification->read_at ? '' : 'is-unread' }}" @if (! $notification->read_at) data-read-url="{{ route('notifications.read', $notification->id) }}" @endif>

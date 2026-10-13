@@ -1,4 +1,4 @@
-@extends('staff.layout', ['title' => 'Dashboard'])
+@extends('staff.layout', ['title' => 'Manager Dashboard'])
 
 @section('content')
 <style>
@@ -296,8 +296,8 @@ html[data-lavea-theme="dark"] .staff-overview .overview-panel th,
 </style>
 <div class="staff-overview">
     <header class="overview-header">
-        <div><span class="overview-eyebrow">Staff overview</span><h1>Welcome, {{ auth()->user()->name }}</h1><p>Keep track of your shop's records and payments.</p></div>
-        <div class="overview-date"><i data-lucide="calendar-days" aria-hidden="true"></i>{{ now()->format('D, M d, Y') }}</div>
+        <div><span class="overview-eyebrow">Manager Dashboard</span><h1>Welcome, {{ auth()->user()->name }}</h1><p>Keep track of your shop's records and payments.</p></div>
+        @include('admin.partials.current-date')
     </header>
     <div class="overview-stats">
         @foreach ([['Total Records', $stats['total'], 'clipboard-list', '#edf3ff', '#4169c8', 'All laundry records'], ['Pending Records', $stats['pending'], 'clock-3', '#fff6e7', '#a57321', 'Waiting to be processed'], ['Processing Records', $stats['processing'], 'washing-machine', '#f2edff', '#8060c9', 'Currently in progress'], ['Completed Records', $stats['completed'], 'circle-check', '#edf8f2', '#25805a', 'Finished laundry records']] as [$label, $value, $icon, $background, $color, $caption])
@@ -308,7 +308,7 @@ html[data-lavea-theme="dark"] .staff-overview .overview-panel th,
         @endforeach
     </div>
     <section class="overview-panel">
-        <div class="overview-panel-head"><div><h2>Recent Records</h2><p>The latest laundry activity</p></div><a class="overview-link" href="{{ route('staff.orders.index') }}">View all records <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+        <div class="overview-panel-head"><div><h2>Recent Records</h2><p>The latest laundry activity</p></div><a class="overview-link" href="{{ route('manager.orders.index') }}">View all records <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
         @include('staff.partials.orders-table', ['orders' => $recentOrders])
     </section>
     <div class="overview-bottom">
@@ -317,9 +317,9 @@ html[data-lavea-theme="dark"] .staff-overview .overview-panel th,
             @include('staff.partials.orders-table', ['orders' => $todayOrders])
         </section>
         <section class="overview-panel">
-            <div class="overview-panel-head"><div><h2>Today's Payments</h2><p>Recent payment activity</p></div><a class="overview-link" href="{{ route('staff.payments.index') }}">View all <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+            <div class="overview-panel-head"><div><h2>Today's Payments</h2><p>Recent payment activity</p></div><a class="overview-link" href="{{ route('manager.payments.index') }}">View all <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
             @forelse($recentPayments as $payment)
-                <a class="overview-payment" href="{{ route('staff.payments.show', $payment) }}"><span class="overview-payment-icon"><i data-lucide="credit-card" aria-hidden="true"></i></span><div class="overview-payment-copy"><strong>Payment #{{ $payment->id }}</strong><span>{{ $payment->order->customer->name ?? 'Customer' }}</span></div><span class="overview-payment-amount">&#8369;{{ number_format($payment->amount, 2) }}</span></a>
+                <a class="overview-payment" href="{{ route('manager.payments.show', $payment) }}"><span class="overview-payment-icon"><i data-lucide="credit-card" aria-hidden="true"></i></span><div class="overview-payment-copy"><strong>Payment #{{ $payment->id }}</strong><span>{{ $payment->order->customer->name ?? 'Customer' }}</span></div><span class="overview-payment-amount">&#8369;{{ number_format($payment->amount, 2) }}</span></a>
             @empty
                 <div class="empty">No payments recorded today.</div>
             @endforelse

@@ -11,12 +11,12 @@
                 <td>₱{{ number_format($order->total, 2) }}</td>
                 <td>
                     @if($order->canCustomerModify())
-                        <div class="actions">
-                            <a class="btn secondary" href="{{ route('customer.orders.edit', $order) }}">Edit</a>
+                        <div class="record-icon-actions">
+                            <a class="record-action record-edit" href="{{ route('customer.orders.edit', $order) }}" title="Edit order" aria-label="Edit order {{ $order->id }}"><i data-lucide="pencil" aria-hidden="true"></i></a>
                             <form method="POST" action="{{ route('customer.orders.cancel', $order) }}" onsubmit="return confirm('Cancel this order?')">
                                 @csrf
                                 @method('PATCH')
-                                <button class="btn danger" type="submit">Cancel</button>
+                                <button class="record-action record-delete" type="submit" title="Cancel order" aria-label="Cancel order {{ $order->id }}"><i data-lucide="circle-x" aria-hidden="true"></i></button>
                             </form>
                         </div>
                     @else

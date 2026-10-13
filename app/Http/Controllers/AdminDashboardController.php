@@ -28,9 +28,8 @@ class AdminDashboardController extends Controller
         // Total Staff
         $totalStaff = Staff::count();
 
-        // Total Income from completed orders
-        $totalIncome = Order::where('status', 'Completed')
-            ->sum('total');
+        // Total Income from confirmed payments
+        $totalIncome = Payment::where('status', 'Confirmed')->sum('amount');
 
         // Order Status
         $pendingOrders = Order::where('status', 'Pending')->count();
@@ -115,7 +114,7 @@ class AdminDashboardController extends Controller
         }
 
         $endDate = now()->endOfDay();
-        $salesByDate = Payment::where('status', 'Completed')
+        $salesByDate = Payment::where('status', 'Confirmed')
             ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->selectRaw('payment_date, SUM(amount) as total')
             ->groupBy('payment_date')

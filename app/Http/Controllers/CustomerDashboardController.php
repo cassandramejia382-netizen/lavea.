@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\DeliveryStaffAssignment;
+use App\GCashAccount;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\SystemNotification;
+use App\PaymentSubmission;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +23,8 @@ use Throwable;
 
 class CustomerDashboardController extends Controller
 {
+    public function __construct(private DeliveryStaffAssignment $deliveryAssignment) {}
+
     public function index(Request $request): View
     {
         $orders = $this->customerOrders($request);
@@ -29,7 +34,7 @@ class CustomerDashboardController extends Controller
                 'total' => (clone $orders)->count(),
                 'pending' => (clone $orders)->where('status', 'Pending')->count(),
                 'completed' => (clone $orders)->where('status', 'Completed')->count(),
-                'payments' => $this->customerPayments($request)->where('status', 'Completed')->sum('amount'),
+                'payments' => $this->customerPayments($request)->where('status', 'Confirmed')->sum('amount'),
             ],
             'recentOrders' => $orders->with(['service', 'payments'])->latest('order_date')->latest('id')->take(6)->get(),
             'services' => Service::orderBy('service_name')->take(6)->get(),
@@ -72,7 +77,7 @@ class CustomerDashboardController extends Controller
     {
         $order = $this->customerOrders($request)
             ->with(['service', 'payments' => function (HasMany $query): void {
-                $query->whereIn('status', ['Completed', 'Pending']);
+                $query->whereIn('status', ['Confirmed', 'Pending']);
             }])
             ->findOrFail($order);
 
@@ -104,18 +109,17 @@ class CustomerDashboardController extends Controller
 
     public function updateOrder(Request $request, int $order): RedirectResponse
     {
-        $service = $this->customerOrders($request)->with('service')->findOrFail($order)->service;
-        $details = $request->validate([
-            'quantity' => $service?->quantityRules() ?? ['required', 'numeric', 'min:1', 'max:9'],
-            'pickup_date' => ['required', 'date', 'after_or_equal:today'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $record = $this->customerOrders($request)->with('service')->findOrFail($order);
+        $details = $this->validateOrderDetails($request, $record->service, $record);
 
         DB::transaction(function () use ($request, $order, $details): void {
             $record = $this->customerOrders($request)->with(['service', 'payments'])->lockForUpdate()->findOrFail($order);
             abort_unless($record->canCustomerModify(), 403, 'Only pending, unpaid orders without active payments can be changed.');
             abort_if($record->service === null, 409, 'This service is no longer available.');
-            $record->update([...$details, 'total' => round($record->service->price * $details['quantity'], 2)]);
+            $riderId = $details['fulfillment_method'] === 'Delivery'
+                ? $this->deliveryAssignment->assign($record->delivery_rider_id)
+                : null;
+            $record->update([...$details, 'delivery_rider_id' => $riderId, 'total' => round($record->service->price * $details['quantity'], 2)]);
         });
 
         return redirect()->route('customer.orders.index')->with('success', 'Your order was updated successfully.');
@@ -135,13 +139,16 @@ class CustomerDashboardController extends Controller
     public function storeOrderPayment(Request $request, int $order): RedirectResponse
     {
         $order = $this->loadCustomerPayableOrder($request, $order);
+        if ($request->input('payment_method') === 'GCash' && ! GCashAccount::details()['available']) {
+            throw ValidationException::withMessages(['payment_method' => 'GCash payment is currently unavailable']);
+        }
         $balance = $this->paymentBalance($order);
         abort_if($balance <= 0, 403, 'There is no remaining balance to pay for this order.');
 
         $details = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999.99'],
             'payment_method' => ['required', 'in:Cash,GCash,Card,Bank Transfer'],
-            'proof_image' => ['exclude_if:payment_method,Cash', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'proof_image' => ['exclude_if:payment_method,Cash', 'required_if:payment_method,GCash,Bank Transfer', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'extensions:jpg,jpeg,png,webp', 'max:10240'],
             'reference_number' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -151,7 +158,7 @@ class CustomerDashboardController extends Controller
         }
 
         if (in_array($details['payment_method'], ['GCash', 'Bank Transfer'], true) && blank($details['reference_number'] ?? null)) {
-            return back()->withErrors(['reference_number' => 'Enter the transfer reference number so staff can verify your payment.'])->withInput();
+            return back()->withErrors(['reference_number' => 'Enter the transfer reference number so Admin can verify your payment.'])->withInput();
         }
 
         $proofPath = $request->input('payment_method') !== 'Cash' && $request->hasFile('proof_image')
@@ -162,7 +169,7 @@ class CustomerDashboardController extends Controller
         }
 
         try {
-            $payment = Payment::create([
+            $payment = PaymentSubmission::submit($order, [
                 'order_id' => $order->id,
                 'amount' => $details['amount'],
                 'payment_method' => $details['payment_method'],
@@ -173,7 +180,7 @@ class CustomerDashboardController extends Controller
                 'proof_image_path' => $proofPath,
             ]);
         } catch (Throwable $exception) {
-            if ($proofPath !== null) {
+            if ($proofPath !== null && ! Payment::where('proof_image_path', $proofPath)->exists()) {
                 Storage::disk('local')->delete($proofPath);
             }
             throw $exception;
@@ -187,15 +194,15 @@ class CustomerDashboardController extends Controller
             ));
         }
 
-        if ($assignedStaffUser = $order->staff?->user) {
-            $assignedStaffUser->notify(new SystemNotification(
+        foreach (User::where('role', 'manager')->get() as $manager) {
+            $manager->notify(new SystemNotification(
                 'Customer Payment Submitted',
                 $order->customer->name.' submitted a payment for order #'.$order->id.'.',
-                route('staff.payments.show', $payment->id)
+                route('manager.payments.show', $payment->id)
             ));
         }
 
-        return redirect()->route('customer.payments.show', $payment)->with('success', 'Your payment was submitted for staff verification. You can print your receipt below.');
+        return redirect()->route('customer.payments.show', $payment)->with('success', 'Your payment was submitted for Admin approval. Your receipt will be available once payment is confirmed.');
     }
 
     public function services(): View
@@ -215,23 +222,23 @@ class CustomerDashboardController extends Controller
         $customer = $request->user()->customerProfile;
         abort_if($customer === null, 404);
 
-        $details = $request->validate([
-            'quantity' => $service?->quantityRules() ?? ['required', 'numeric', 'min:1', 'max:9'],
-            'pickup_date' => ['required', 'date', 'after_or_equal:today'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $details = $this->validateOrderDetails($request, $service);
 
-        $order = Order::create([
+        $order = DB::transaction(fn (): Order => Order::create([
             'customer_id' => $customer->id,
             'service_id' => $service->id,
             'quantity' => $details['quantity'],
             'order_date' => today(),
             'pickup_date' => $details['pickup_date'],
+            'delivery_date' => $details['delivery_date'],
+            'fulfillment_method' => $details['fulfillment_method'],
+            'delivery_address' => $details['delivery_address'],
+            'delivery_rider_id' => $details['fulfillment_method'] === 'Delivery' ? $this->deliveryAssignment->assign() : null,
             'status' => 'Pending',
             'payment_status' => 'Unpaid',
             'total' => $service->price * $details['quantity'],
             'notes' => $details['notes'] ?? null,
-        ]);
+        ]));
 
         foreach (User::where('role', 'admin')->get() as $admin) {
             $admin->notify(new SystemNotification(
@@ -241,15 +248,34 @@ class CustomerDashboardController extends Controller
             ));
         }
 
-        foreach (User::where('role', 'staff')->get() as $staffUser) {
-            $staffUser->notify(new SystemNotification(
+        foreach (User::where('role', 'manager')->get() as $manager) {
+            $manager->notify(new SystemNotification(
                 'New Customer Order',
                 $customer->name.' ordered '.$service->service_name.' (order #'.$order->id.').',
-                route('staff.orders.show', $order->id)
+                route('manager.orders.show', $order->id)
             ));
         }
 
         return redirect()->route('customer.services.show', $service)->with('success', 'Your order was placed successfully.');
+    }
+
+    /** @return array{quantity: mixed, fulfillment_method: string, pickup_date: ?string, delivery_date: ?string, delivery_address: ?string, notes?: ?string} */
+    private function validateOrderDetails(Request $request, ?Service $service, ?Order $order = null): array
+    {
+        if (! $request->has('fulfillment_method')) {
+            $request->merge(['fulfillment_method' => $order?->fulfillmentMethod() ?? 'Pickup']);
+        }
+        $details = $request->validate([
+            'quantity' => $service?->quantityRules() ?? ['required', 'numeric', 'min:1', 'max:9'],
+            'fulfillment_method' => ['required', 'in:Pickup,Delivery'],
+            'pickup_date' => ['exclude_unless:fulfillment_method,Pickup', 'required', 'date', 'after_or_equal:today'],
+            'delivery_date' => ['exclude_unless:fulfillment_method,Delivery', 'required', 'date', 'after_or_equal:today'],
+            'delivery_address' => ['exclude_unless:fulfillment_method,Delivery', 'required', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        return [...$details, 'pickup_date' => $details['pickup_date'] ?? null,
+            'delivery_date' => $details['delivery_date'] ?? null, 'delivery_address' => $details['delivery_address'] ?? null];
     }
 
     public function payments(Request $request): View
@@ -274,14 +300,14 @@ class CustomerDashboardController extends Controller
             });
         }
 
-        if (in_array($status, ['Completed', 'Pending', 'Failed'], true)) {
+        if (in_array($status, ['Confirmed', 'Pending', 'Rejected'], true)) {
             $payments->where('status', $status);
         }
 
         $payableOrders = $this->customerOrders($request)
             ->where('payment_status', '!=', 'Paid')
             ->with(['service', 'payments' => function (HasMany $query): void {
-                $query->whereIn('status', ['Completed', 'Pending']);
+                $query->whereIn('status', ['Confirmed', 'Pending']);
             }])
             ->latest('order_date')
             ->get();
@@ -291,7 +317,7 @@ class CustomerDashboardController extends Controller
             'search' => $search,
             'status' => $status,
             'paymentCount' => $this->customerPayments($request)->count(),
-            'completedTotal' => $this->customerPayments($request)->where('status', 'Completed')->sum('amount'),
+            'completedTotal' => $this->customerPayments($request)->where('status', 'Confirmed')->sum('amount'),
             'pendingTotal' => $this->customerPayments($request)->where('status', 'Pending')->sum('amount'),
             'payableOrders' => $payableOrders,
         ]);
@@ -316,7 +342,7 @@ class CustomerDashboardController extends Controller
             'confirm_deletion' => ['accepted'],
         ]);
         $user = $request->user();
-        abort_unless(in_array($user->role, ['customer', 'user'], true), 403);
+        abort_unless(in_array($user->role, ['customer'], true), 403);
         $photo = $user->profile_photo_path;
 
         DB::transaction(function () use ($user): void {
@@ -402,8 +428,8 @@ class CustomerDashboardController extends Controller
     private function loadCustomerPayableOrder(Request $request, int $orderId): Order
     {
         return $this->customerOrders($request)
-            ->with(['customer', 'service', 'staff.user', 'payments' => function (HasMany $query): void {
-                $query->whereIn('status', ['Completed', 'Pending']);
+            ->with(['customer', 'service', 'staff', 'payments' => function (HasMany $query): void {
+                $query->whereIn('status', ['Confirmed', 'Pending']);
             }])
             ->findOrFail($orderId);
     }

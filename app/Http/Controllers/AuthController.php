@@ -36,6 +36,7 @@ class AuthController extends Controller
         ]);
 
         $credentials['email'] = $this->accountEmail($credentials['email']);
+        $credentials['role'] = User::LOGIN_ROLES;
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()
@@ -58,6 +59,21 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $this->normalizeEmail($request);
+
+        $credentials = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'password' => ['required', 'string', 'confirmed', 'min:8'],
+        ]);
+        $existingCustomer = User::where('role', 'customer')->whereNull('email_verified_at')
+            ->whereRaw('LOWER(TRIM(email)) = ?', [$credentials['email']])->first();
+
+        if ($existingCustomer && Hash::check($credentials['password'], $existingCustomer->password)) {
+            Auth::login($existingCustomer);
+            $request->session()->regenerate();
+
+            return redirect()->route('verification.notice')->with('status',
+                'Your account is already created. Enter your 6-digit verification code, or request a new code if it has expired.');
+        }
 
         $details = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -133,13 +149,17 @@ class AuthController extends Controller
 
         foreach (User::where('role', 'admin')->get() as $admin) {
 
-            $admin->notify(
-                new SystemNotification(
-                    'New Customer',
-                    $user->name.' created a customer account.',
-                    route('admin.customers.index')
-                )
-            );
+            try {
+                $admin->notify(
+                    new SystemNotification(
+                        'New Customer',
+                        $user->name.' created a customer account.',
+                        route('admin.customers.index')
+                    )
+                );
+            } catch (Exception $exception) {
+                report($exception);
+            }
         }
 
         /*
@@ -674,16 +694,13 @@ class AuthController extends Controller
                 ->route('admin.dashboard');
         }
 
-        if ($user->role === 'staff') {
+        if ($user->role === 'manager') {
 
             return redirect()
-                ->route('staff.dashboard');
+                ->route('manager.dashboard');
         }
 
-        if (
-            $user->role === 'customer' ||
-            $user->role === 'user'
-        ) {
+        if ($user->role === 'customer') {
 
             if (! $user->hasVerifiedEmail()) {
 

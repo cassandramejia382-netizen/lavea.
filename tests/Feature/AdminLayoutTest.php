@@ -19,7 +19,7 @@ test('an existing authenticated session redirects login submission to its role d
         ->assertRedirect(route(($role === 'user' ? 'customer' : $role).'.dashboard'));
 
     $this->assertAuthenticatedAs($user);
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('customer login preserves email verification for both new and existing sessions', function (bool $isAlreadyAuthenticated): void {
     $user = User::factory()->unverified()->create(['role' => 'customer', 'password' => 'Verification-test-password-123']);
@@ -37,13 +37,13 @@ test('homepage login link returns authenticated accounts to their dashboard', fu
         ->assertSee('href="'.route('login').'" class="signin-btn"', false);
 
     $this->get(route('login'))->assertRedirect(route(($role === 'user' ? 'customer' : $role).'.dashboard'));
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('login form submits and authenticates each role without history protection', function (string $role): void {
     $user = User::factory()->create(['role' => $role, 'password' => 'Login-test-password-123']);
     $this->get(route('login'))->assertOk()
         ->assertSee('action="'.route('login.submit').'" method="POST"', false)
-        ->assertSee('<button type="submit">Sign In</button>', false)
+        ->assertSee('<button class="sign-in-button" type="submit">Sign In</button>', false)
         ->assertDontSee('session-history.js');
 
     $this->post(route('login.submit'), ['email' => $user->email, 'password' => 'Login-test-password-123'])
@@ -51,7 +51,7 @@ test('login form submits and authenticates each role without history protection'
         ->assertSessionHasNoErrors();
 
     $this->assertAuthenticatedAs($user);
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('guest and email verification routes do not use protected page cache middleware', function (string $routeName): void {
     $middleware = Route::getRoutes()->getByName($routeName)->gatherMiddleware();
@@ -97,7 +97,7 @@ test('logout destroys the session and protected pages redirect to login for ever
         $this->get(route($prefix.'.'.$pageName))->assertRedirect(route('login'));
     }
     $this->get(route('login'))->assertOk();
-})->with(['admin', 'staff', 'customer', 'user']);
+})->with(['admin', 'manager', 'customer']);
 
 test('dashboard greeting follows Philippine time regardless of the server timezone', function (string $utcTime, string $greeting): void {
     config(['app.timezone' => 'UTC']);
@@ -179,6 +179,7 @@ test('every admin page renders the dashboard navigation and topbar once', functi
     'customer details' => ['customers.show', 'customer'],
     'staff' => ['staff.index', null],
     'create staff' => ['staff.create', null],
+    'edit staff' => ['staff.edit', 'staff'],
     'staff details' => ['staff.show', 'staff'],
     'services' => ['services.index', null],
     'create service' => ['services.create', null],
@@ -227,11 +228,11 @@ test('all account profiles share the modern design and retain their own save rou
     if ($role === 'customer') {
         CustomerFactory::new()->create(['email' => $user->email, 'phone' => '09123456789']);
     }
-    if ($role === 'staff') {
+    if ($role === 'manager') {
         StaffFactory::new()->create(['email' => $user->email, 'phone' => '09123456789']);
     }
     $this->actingAs($user)->get(route($role.'.profile'))->assertOk()
         ->assertSee('class="profile-account-badge"', false)->assertSee($badge)
         ->assertSee('Personal information')->assertSee('Change photo')
         ->assertSee('action="'.route($role.'.profile.update').'"', false);
-})->with([['admin', 'Administrator'], ['staff', 'Staff Account'], ['customer', 'Customer Account']]);
+})->with([['admin', 'Administrator'], ['manager', 'Manager Account'], ['customer', 'Customer Account']]);

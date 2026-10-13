@@ -3,14 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Staff;
-use App\Models\User;
-use App\Notifications\LaveaPasswordResetNotification;
-use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StaffController extends Controller
@@ -18,130 +14,78 @@ class StaffController extends Controller
     public function index(Request $request): View
     {
         $search = trim($request->query('search', ''));
-        $staff = Staff::with('user')
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
-                    $query->where('name', 'like', '%'.$search.'%')
-                        ->orWhere('email', 'like', '%'.$search.'%')
-                        ->orWhere('phone', 'like', '%'.$search.'%');
-                });
-            })->latest()->get();
+        $staff = Staff::query()->when($search !== '', function (Builder $query) use ($search): void {
+            $query->where(function (Builder $query) use ($search): void {
+                $query->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
+            });
+        })->latest()->get();
 
         return view('admin.staff.index', compact('staff', 'search'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.staff.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $details = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:staff,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'role' => ['required', 'string', 'max:100'],
-            'status' => ['required', 'in:Active,Inactive'],
-        ]);
+        Staff::create($this->validateWorker($request));
 
-        DB::transaction(function () use ($details) {
-            $user = User::create([
-                'name' => $details['name'],
-                'email' => $details['email'],
-                'password' => Hash::make($details['password']),
-                'role' => 'staff',
-                'email_verified_at' => now(),
-            ]);
-
-            Staff::create([
-                'name' => $details['name'],
-                'email' => $details['email'],
-                'phone' => $details['phone'] ?? null,
-                'role' => $details['role'],
-                'status' => $details['status'],
-            ]);
-
-        });
-
-        return redirect()->route('admin.staff.index')
-            ->with('success', 'Staff added successfully.');
+        return redirect()->route($this->routePrefix().'.index')->with('success', 'Staff added successfully.');
     }
 
-    public function show(Staff $staff)
+    public function show(Staff $staff): View
     {
         return view('admin.staff.show', compact('staff'));
     }
 
-    public function edit(Staff $staff)
+    public function edit(Staff $staff): View
     {
         return view('admin.staff.edit', compact('staff'));
     }
 
-    public function update(Request $request, Staff $staff)
+    public function update(Request $request, Staff $staff): RedirectResponse
     {
-        $user = User::where('email', $staff->email)->where('role', 'staff')->first();
+        $staff->update($this->validateWorker($request, $staff));
 
+        return redirect()->route($this->routePrefix().'.index')->with('success', 'Staff updated successfully.');
+    }
+
+    public function destroy(Staff $staff): RedirectResponse
+    {
+        if ($staff->orders()->exists() || $staff->deliveryOrders()->exists()) {
+            return back()->with('error', 'Staff with order history cannot be deleted. Set their status to Inactive instead.');
+        }
+        $staff->delete();
+
+        return redirect()->route($this->routePrefix().'.index')->with('success', 'Staff deleted successfully.');
+    }
+
+    /** @return array{name: string, email?: ?string, phone?: ?string, role: string, status: string} */
+    private function validateWorker(Request $request, ?Staff $staff = null): array
+    {
+        if ($request->input('role') === 'Other' && is_string($request->input('custom_position'))) {
+            $request->merge(['custom_position' => trim($request->input('custom_position'))]);
+        }
         $details = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.($user->id ?? 0), 'unique:staff,email,'.$staff->id],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('staff', 'email')->ignore($staff)],
             'phone' => ['nullable', 'string', 'max:20'],
-            'role' => ['required', 'string', 'max:100'],
-            'status' => ['required', 'in:Active,Inactive'],
+            'role' => ['required', 'string', Rule::in(array_filter([...Staff::JOB_POSITIONS, 'Other', $staff?->role]))],
+            'custom_position' => ['exclude_unless:role,Other', 'required', 'string', 'max:100'],
+            'status' => ['required', Rule::in(['Active', 'Inactive'])],
         ]);
-
-        if ($user) {
-            $user->update([
-                'name' => $details['name'],
-                'email' => $details['email'],
-            ]);
+        if ($details['role'] === 'Other') {
+            $details['role'] = $details['custom_position'];
         }
+        unset($details['custom_position']);
 
-        $staff->update($details);
-
-        return redirect()->route('admin.staff.index')->with('success', 'Staff updated successfully.');
+        return $details;
     }
 
-    public function destroy(Staff $staff)
+    private function routePrefix(): string
     {
-        $user = User::where('email', $staff->email)->where('role', 'staff')->first();
-
-        DB::transaction(function () use ($staff, $user) {
-            if ($user) {
-                $user->delete();
-            }
-
-            $staff->delete();
-        });
-
-        return redirect()->route('admin.staff.index')->with('success', 'Staff deleted successfully.');
-    }
-
-    public function sendInvitation(Staff $staff)
-    {
-        $user = User::where('email', $staff->email)->where('role', 'staff')->first();
-
-        if (! $user) {
-            return back()->with('email_error', 'This staff record does not have a login account.');
-        }
-
-        if ($this->sendInvitationEmail($user)) {
-            return back()->with('success', 'A password setup link has been emailed.');
-        }
-
-        return back()->with('email_error', 'We could not send the email. Please try again later.');
-    }
-
-    private function sendInvitationEmail($user)
-    {
-        try {
-            $token = Password::broker()->createToken($user);
-            $user->notify(new LaveaPasswordResetNotification($token));
-
-            return true;
-        } catch (Exception $exception) {
-            return false;
-        }
+        return auth()->user()->role.'.staff';
     }
 }
