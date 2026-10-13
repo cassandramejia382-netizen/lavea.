@@ -86,6 +86,59 @@
 .lavea-admin-content .btn-primary:hover {
     background: #3558ad;
 }
+.lavea-admin-content nav[aria-label="Pagination"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    font-size: 14px;
+}
+.lavea-admin-content nav[aria-label="Pagination"] .btn,
+.lavea-admin-content nav[aria-label="Pagination"] > span:first-child,
+.lavea-admin-content nav[aria-label="Pagination"] > span:last-child {
+    padding: 10px 16px;
+    border: 1px solid #dbe5ff;
+    border-radius: 8px;
+    font-weight: 600;
+    line-height: 20px;
+}
+.lavea-admin-content nav[aria-label="Pagination"] .btn {
+    background: #edf2ff;
+    color: #4169c8;
+    transition: background .2s ease, border-color .2s ease;
+}
+.lavea-admin-content nav[aria-label="Pagination"] .btn:hover {
+    background: #dfe8ff;
+    border-color: #4169c8;
+}
+.lavea-admin-content nav[aria-label="Pagination"] .btn:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 3px;
+}
+.lavea-admin-content nav[aria-label="Pagination"] > span {
+    color: #6b7280;
+}
+.lavea-admin-content nav[aria-label="Pagination"] > span:first-child,
+.lavea-admin-content nav[aria-label="Pagination"] > span:last-child {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}
+html[data-lavea-theme="dark"] .lavea-admin-content nav[aria-label="Pagination"] .btn {
+    background: var(--lavea-blue-background);
+    color: var(--lavea-blue-text);
+    border-color: var(--lavea-border);
+}
+html[data-lavea-theme="dark"] .lavea-admin-content nav[aria-label="Pagination"] > span {
+    color: var(--lavea-text);
+}
+html[data-lavea-theme="dark"] .lavea-admin-content nav[aria-label="Pagination"] > span:first-child,
+html[data-lavea-theme="dark"] .lavea-admin-content nav[aria-label="Pagination"] > span:last-child {
+    background: var(--lavea-surface);
+    border-color: var(--lavea-border);
+    opacity: .65;
+}
 .lavea-admin-content .report-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -374,7 +427,7 @@
                     </tbody>
                 </table>
             </div>
-            {{ $orders->links() }}
+            {{ $orders->links('customer.pagination') }}
         </section>
         @endif
         @if($payments !== null)
@@ -404,7 +457,7 @@
                     </tbody>
                 </table>
             </div>
-            {{ $payments->links() }}
+            {{ $payments->links('customer.pagination') }}
         </section>
         @endif
         @if($services !== null)
@@ -421,7 +474,7 @@
                             <tr>
                                 <td>{{ $service->service_name }}</td>
                                 <td>&#8369;{{ number_format($service->price, 2) }} / {{ $service->billingUnit() }}</td>
-                                <td>{{ $service->is_active ? 'Active' : 'Inactive' }}</td>
+                                <td><span class="status {{ $service->is_active ? 'completed' : 'cancelled' }}">{{ $service->is_active ? 'Active' : 'Inactive' }}</span></td>
                                 <td>{{ $service->report_order_count }}</td>
                                 <td>{{ number_format($service->report_quantity ?? 0, 2) }} {{ $service->billingUnit() }}</td>
                                 <td>&#8369;{{ number_format($service->report_order_value ?? 0, 2) }}</td>
@@ -432,7 +485,7 @@
                     </tbody>
                 </table>
             </div>
-            {{ $services->links() }}
+            {{ $services->links('customer.pagination') }}
         </section>
         @endif
 @endsection

@@ -1,5 +1,5 @@
 @if ($paginator->hasPages())
-    <nav class="actions" aria-label="Pagination" style="flex-wrap:wrap">
+    <nav class="actions lavea-pagination" aria-label="Pagination" style="flex-wrap:wrap">
         @if ($paginator->onFirstPage())
             <span class="muted">Previous</span>
         @else

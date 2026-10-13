@@ -3,6 +3,7 @@
 use App\Models\Service;
 use App\Models\User;
 use Database\Factories\ServiceFactory;
+use Database\Seeders\ServiceCatalogSeeder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Exceptions;
@@ -38,6 +39,24 @@ beforeEach(function (): void {
     });
 
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
+});
+
+test('service catalog seeds bundled images and preserves existing identities on repeat runs', function (): void {
+    Storage::fake('public');
+    $existing = ServiceFactory::new()->create(['service_name' => 'Ironing', 'price' => 1]);
+    $custom = ServiceFactory::new()->create(['service_name' => 'Custom Service']);
+
+    $this->seed(ServiceCatalogSeeder::class);
+    $this->seed(ServiceCatalogSeeder::class);
+
+    $this->assertDatabaseCount('services', 9);
+    $this->assertDatabaseHas('services', ['id' => $existing->id, 'service_name' => 'Ironing', 'price' => 80, 'required_job_position' => 'Ironing Attendant']);
+    $this->assertModelExists($custom);
+
+    foreach (Service::where('id', '!=', $custom->id)->get() as $service) {
+        Storage::disk('public')->assertExists($service->image);
+        expect($service->imageUrl())->not->toBeNull();
+    }
 });
 
 test('services api preserves the public collection response and all existing service fields', function (): void {

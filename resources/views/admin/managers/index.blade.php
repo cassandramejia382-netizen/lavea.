@@ -11,6 +11,6 @@
 <section class="settings-card manager-accounts">
 <form class="manager-search" method="GET" action="{{ route('admin.managers.index') }}"><input type="search" name="search" value="{{ $search }}" placeholder="Search name or email" aria-label="Search managers"><button class="btn btn-primary" type="submit">Search</button></form>
 <div class="table-wrap"><table class="manager-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Login Role</th><th>Actions</th></tr></thead><tbody>@forelse($managers as $manager)<tr><td>{{ $manager->name }}</td><td>{{ $manager->email }}</td><td>{{ $manager->phone ?: '?' }}</td><td>Manager</td><td><div class="manager-actions"><a class="lavea-back-link" href="{{ route('admin.managers.edit', $manager) }}">Edit Account</a></div></td></tr>@empty<tr><td colspan="5">No manager accounts found.</td></tr>@endforelse</tbody></table></div>
-{{ $managers->links() }}
+{{ $managers->links('customer.pagination') }}
 </section>
 @endsection
