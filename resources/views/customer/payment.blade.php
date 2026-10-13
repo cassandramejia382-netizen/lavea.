@@ -15,7 +15,7 @@
         @foreach([
             ['Order', '#LVE-'.str_pad($payment->order_id, 4, '0', STR_PAD_LEFT)],
             ['Service', $payment->order?->service?->service_name ?? 'Unavailable service'],
-            ['Weight', ($payment->order?->quantity ?? '—').' kg'],
+            [$payment->order?->service?->quantityLabel() ?? 'Quantity', ($payment->order?->quantity ?? '—').' '.($payment->order?->service?->billingUnit() ?? 'kg')],
             ['Order total', '₱'.number_format($payment->order?->total ?? 0, 2)],
             ['Amount paid', '₱'.number_format($payment->amount, 2)],
             ['Method', $payment->payment_method],

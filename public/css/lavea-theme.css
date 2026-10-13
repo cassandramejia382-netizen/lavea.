@@ -20,18 +20,15 @@
         --lavea-purple-background: #352653;
         --lavea-purple-text: #ddd6fe;
     }
-
     body {
         background: var(--lavea-background) !important;
         color: var(--lavea-text) !important;
     }
-
     /* Inline page styles also contain fixed light-mode text colors. */
     body * {
         color: var(--lavea-text) !important;
         border-color: var(--lavea-border) !important;
     }
-
     body :is(
         .card, .settings-card, .settings-nav, .service-card, .navbar,
         .hero, .about, .services, .contact, footer, .container,
@@ -42,20 +39,16 @@
     ) {
         background-color: var(--lavea-surface) !important;
     }
-
     body :is(.main, .content) {
         background-color: var(--lavea-background) !important;
     }
-
     body :is(.sidebar, .brand) {
         background-color: #111d38 !important;
     }
-
     body :is(h1, h2, h3, h4, h5, h6, strong, b, .title, .value,
         .detail-value, .stat-number, .customer-name, .payment-id, .price) {
         color: #f3f4f6 !important;
     }
-
     body :is(.muted, .subtitle, .description, .label, .detail-label,
         .stat-title, .stat-sub, .activity-time, .customer-email, .email,
         .reference, .empty, .date, .date strong, .bar-label, .theme-status, .settings-note,
@@ -65,174 +58,141 @@
         .lavea-notification-item small, .lavea-notification-empty) {
         color: var(--lavea-muted) !important;
     }
-
     body :is(a, .order-number, .total, .view-all),
     body .amount-box .amount {
         color: #bfdbfe !important;
     }
-
     body a:hover {
         color: #dbeafe !important;
     }
-
     body :is(svg, svg *, i[data-lucide]) {
         color: inherit !important;
     }
-
     body .stat-card > :is(svg, i[data-lucide]) {
         color: var(--lavea-blue-text) !important;
     }
-
     body :is(.overview-stat-icon, .payment-overview-icon, .customer-record-stat-icon,
         .checkout-service-icon, .checkout-method-icon, .customer-checkout-heading-icon,
         .logout-dialog-icon, .customer-view, .service-image-frame) {
         background: var(--lavea-blue-background) !important;
         color: var(--lavea-blue-text) !important;
     }
-
     body .overview-stat:nth-child(2) .overview-stat-icon {
         background: var(--lavea-amber-background) !important;
         color: var(--lavea-amber-text) !important;
     }
-
     body :is(.record-edit, .overview-stat:nth-child(3) .overview-stat-icon) {
         background: var(--lavea-purple-background) !important;
         color: var(--lavea-purple-text) !important;
     }
-
     body :is(.overview-payment-icon, .overview-stat:nth-child(4) .overview-stat-icon,
         .payment-overview-card:nth-child(2) .payment-overview-icon) {
         background: var(--lavea-green-background) !important;
         color: var(--lavea-green-text) !important;
     }
-
     body .payment-overview-card:nth-child(3) .payment-overview-icon {
         background: var(--lavea-amber-background) !important;
         color: var(--lavea-amber-text) !important;
     }
-
     body :is(.record-delete, .customer-delete) {
         background: var(--lavea-red-background) !important;
         color: var(--lavea-red-text) !important;
     }
-
     body :is(.overview-stat-icon, .overview-payment-icon, .payment-overview-icon,
         .customer-record-stat-icon, .checkout-service-icon, .checkout-method-icon,
         .customer-checkout-heading-icon, .record-action, .customer-action,
         .logout-dialog-icon) :is(svg, svg *, i[data-lucide]) {
         color: inherit !important;
     }
-
     body :is(.avatar, .customer-avatar, .staff-avatar, .profile-icon,
         .lavea-admin-avatar, .activity-icon, .report-card-icon,
         .stat-icon.blue, .no-image, .service-placeholder) {
         background-color: var(--lavea-blue-background) !important;
         color: var(--lavea-blue-text) !important;
     }
-
     body .service-image {
         background-color: var(--lavea-raised) !important;
     }
-
     body .stat-icon.green {
         background-color: var(--lavea-green-background) !important;
         color: var(--lavea-green-text) !important;
     }
-
     body .stat-icon.purple {
         background-color: var(--lavea-purple-background) !important;
         color: var(--lavea-purple-text) !important;
     }
-
     body .stat-icon.orange {
         background-color: var(--lavea-amber-background) !important;
         color: var(--lavea-amber-text) !important;
     }
-
     body :is(.search, .search-box, .lavea-search-box, .notes-content,
         .total-box, .amount-box, .donut-center, .theme-options,
         .lavea-notification-item.is-unread) {
         background-color: var(--lavea-raised) !important;
     }
-
     body .hero-image::before {
         background: var(--lavea-raised);
     }
-
     body th {
         background: var(--lavea-raised) !important;
         color: #cbd5e1 !important;
     }
-
     body td {
         background-color: var(--lavea-surface) !important;
     }
-
     body tbody tr:hover td {
         background-color: var(--lavea-raised) !important;
     }
-
     body :is(input, select, textarea, option, .filter) {
         background-color: var(--lavea-background) !important;
         color: #f3f4f6 !important;
         accent-color: #93c5fd;
     }
-
     body :is(input, textarea)::placeholder {
         color: var(--lavea-muted) !important;
         opacity: 1;
     }
-
     body :is(input, select, textarea):focus {
         border-color: #93c5fd !important;
         outline-color: #93c5fd;
     }
-
     body :is(a, button, input, select, textarea):focus-visible {
         outline: 2px solid #93c5fd;
         outline-offset: 3px;
     }
-
     body input[type="file"]::file-selector-button {
         background: var(--lavea-raised);
         color: var(--lavea-text);
         border: 1px solid var(--lavea-border);
     }
-
     body :is(button, input[type="submit"], input[type="button"],
         .btn, .btn-primary, .add-btn, .save-btn, .edit-btn,
         .btn-edit, .update, a.edit) {
         background-color: #3558ad !important;
         color: #ffffff !important;
     }
-
     body :is(button, .btn, .btn-primary, .add-btn, .save-btn,
         .edit-btn, .btn-edit, .update):hover {
         background-color: #4169c8 !important;
     }
-
     body :is(.btn.secondary, .back-btn, .btn-back, .cancel-btn,
         .btn-cancel, a.cancel, .theme-button) {
         background-color: var(--lavea-raised) !important;
         color: var(--lavea-text) !important;
     }
-
     body :is(.btn.secondary, .back-btn, .btn-back, .cancel-btn,
         .btn-cancel, a.cancel, .theme-button):hover {
         background-color: #374151 !important;
     }
-
     body .theme-button.active {
         background-color: #3558ad !important;
         color: #ffffff !important;
     }
-
     body :is(.action, .action-btn, .btn-view, .btn-edit, .btn-delete,
         .badge, .status, .status-badge, .pill) {
         background-color: var(--lavea-raised) !important;
         color: var(--lavea-text) !important;
     }
-
     body :is(.action.view, .action-btn.view-btn, .btn-view,
         .status.processing, .status-scheduled, .status-on-time,
         .badge-progress, .pill[data-status="Processing"],
@@ -240,20 +200,17 @@
         background-color: var(--lavea-blue-background) !important;
         color: var(--lavea-blue-text) !important;
     }
-
     body :is(.action.edit, .btn-edit, .status.ready,
         .pill[data-status="Ready"], .pill[data-status="Ready for Pickup"]) {
         background-color: var(--lavea-purple-background) !important;
         color: var(--lavea-purple-text) !important;
     }
-
     body :is(.status.pending, .status.partial, .badge-pending,
         .action-btn.edit-btn, .pill[data-status="Pending"],
         .pill[data-status="Partial"]) {
         background-color: var(--lavea-amber-background) !important;
         color: var(--lavea-amber-text) !important;
     }
-
     body :is(.status.completed, .status.paid, .status-completed,
         .badge-completed, .active-badge, .pill[data-status="Completed"],
         .pill[data-status="Paid"], .pill[data-status="Active"],
@@ -261,7 +218,6 @@
         background-color: var(--lavea-green-background) !important;
         color: var(--lavea-green-text) !important;
     }
-
     body :is(.status.cancelled, .status.failed, .status.unpaid,
         .status-cancelled, .badge-cancelled, .inactive-badge, .pill[data-status="Cancelled"],
         .pill[data-status="Failed"], .pill[data-status="Unpaid"],
@@ -270,25 +226,20 @@
         background-color: var(--lavea-red-background) !important;
         color: var(--lavea-red-text) !important;
     }
-
     body :is(.paid, .stat-change) {
         color: var(--lavea-green-text) !important;
     }
-
     body .partial {
         color: var(--lavea-amber-text) !important;
     }
-
     body :is(.unpaid, .error, .err, .field-error, .error-list,
         .error-list *, label > span) {
         color: var(--lavea-red-text) !important;
     }
-
     body :is(.msg, .notice) {
         background-color: var(--lavea-blue-background) !important;
         color: var(--lavea-blue-text) !important;
     }
-
     /* Nested labels and Lucide strokes follow their control's semantic color. */
     body :is(a, button, .btn, .action, .action-btn, .badge, .status,
         .status-badge, .pill, .stat-icon, .activity-icon, .report-card-icon,
@@ -296,92 +247,74 @@
         .email-error) * {
         color: inherit !important;
     }
-
     body .menu a {
         color: #dce5f7 !important;
     }
-
     body .menu a.active {
         background-color: #4169c8 !important;
         color: #ffffff !important;
     }
-
     body :is(.menu a:hover, .settings-nav a:hover) {
         background-color: #273f68 !important;
         color: #ffffff !important;
     }
-
     body :is(.lavea-notification-button, .lavea-notification-read,
         .lavea-search-box button, .search button) {
         background-color: transparent !important;
         color: var(--lavea-blue-text) !important;
     }
-
     body :is(.lavea-notification-count, .notification-dot) {
         background-color: #b91c1c !important;
         color: #ffffff !important;
     }
-
     body :is(button, input, select, textarea):disabled {
         background-color: var(--lavea-raised) !important;
         color: var(--lavea-muted) !important;
         opacity: 1;
     }
-
     /* Home has a gradient hero and outlined links separate from portal buttons. */
     body.home-page .navbar {
         background: var(--lavea-surface) !important;
     }
-
     body.home-page .hero {
         background: linear-gradient(90deg, #111827 0%, #111827 43%, #1f2937 100%) !important;
     }
-
     body.home-page :is(.services, footer) {
         background: var(--lavea-background) !important;
     }
-
     body.home-page .contact {
         background: #111d38 !important;
     }
-
     body.home-page :is(.hero-description, .section-description, .service-card p,
         .feature-text small, .logo span, .contact p, footer) {
         color: var(--lavea-muted) !important;
     }
-
     body.home-page :is(.logo h1, .hero h2, .hero h2 span, .section-title,
         .service-card h3, .contact h2, .small-title, .section-label) {
         color: #f3f4f6 !important;
     }
-
     body.home-page :is(.feature-icon, .service-icon) {
         background: var(--lavea-raised) !important;
         color: var(--lavea-blue-text) !important;
         border-color: #93c5fd !important;
     }
-
     body.home-page :is(.btn-secondary, .signup-btn) {
         background: var(--lavea-raised) !important;
         color: #f3f4f6 !important;
         border-color: #93c5fd !important;
     }
-
     body.home-page :is(.btn-primary, .signin-btn, .contact-btn,
         .btn-secondary:hover, .signup-btn:hover) {
         background: #3558ad !important;
         color: #ffffff !important;
     }
-
     body.home-page :is(.btn-primary, .signin-btn, .contact-btn):hover {
         background: #4169c8 !important;
         color: #ffffff !important;
     }
-
     body.home-page .service-card:hover {
         border-color: #93c5fd !important;
     }
-
     body.home-page a:focus-visible {
         outline-color: #93c5fd;
     }

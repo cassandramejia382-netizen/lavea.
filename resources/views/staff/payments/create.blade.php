@@ -7,7 +7,7 @@
 <div class="field"><label for="payment_method">Payment Method *</label><select id="payment_method" name="payment_method" required>@foreach(['Cash','GCash','Card','Bank Transfer'] as $method)<option @selected(old('payment_method','Cash')===$method)>{{ $method }}</option>@endforeach</select></div>
 <div class="field"><label for="reference_number">Reference Number</label><input id="reference_number" name="reference_number" value="{{ old('reference_number') }}"></div>
 <div class="field"><label for="payment_date">Payment Date *</label><input id="payment_date" type="date" name="payment_date" max="{{ today()->toDateString() }}" required value="{{ old('payment_date',today()->toDateString()) }}"></div>
-<div class="field"><label for="status">Payment Status *</label><select id="status" name="status" required>@foreach(['Completed','Pending','Failed'] as $status)<option @selected(old('status','Completed')===$status)>{{ $status }}</option>@endforeach</select></div>
+<div class="field"><label for="status">Payment Status *</label><select id="status" name="status" required>@foreach(['Completed','Pending','Failed'] as $status)<option @selected(old('status','Pending')===$status)>{{ $status }}</option>@endforeach</select></div>
 <div class="field full"><label for="notes">Notes</label><textarea id="notes" name="notes">{{ old('notes') }}</textarea></div>
 <div class="actions field full"><button class="btn">Save Payment</button><a class="btn secondary" href="{{ route('staff.payments.index') }}">Cancel</a></div></form>
 @endsection

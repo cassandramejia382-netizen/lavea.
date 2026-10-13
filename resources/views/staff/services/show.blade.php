@@ -19,20 +19,20 @@
     @endif
 
     <div>
-        <span class="pill" data-status="Active">Service</span>
+        <span class="pill" data-status="{{ $service->is_active ? 'Active' : 'Inactive' }}">{{ $service->is_active ? 'Active' : 'Inactive' }}</span>
         <h2 style="margin:14px 0 10px;color:#12214a">{{ $service->service_name }}</h2>
         <p class="muted" style="line-height:1.7;margin:0 0 22px">{{ $service->description ?: 'No description provided.' }}</p>
         <div class="muted" style="font-size:12px;margin-bottom:4px">PRICE</div>
-        <strong style="font-size:24px;color:#12214a">₱{{ number_format($service->price, 2) }}</strong>
+        <strong style="font-size:24px;color:#12214a">₱{{ number_format($service->price, 2) }} / {{ $service->billingUnit() }}</strong>
     </div>
 </article>
 
 <style>
-    @media (max-width: 700px) {
-        .content article.card[style*="grid-template-columns"] {
-            grid-template-columns: minmax(0, 1fr) !important;
-            gap: 20px !important;
-        }
+@media (max-width: 700px) {
+    .content article.card[style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 20px !important;
     }
+}
 </style>
 @endsection

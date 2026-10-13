@@ -12,9 +12,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
@@ -412,6 +415,85 @@ class AuthController extends Controller
         return view('auth.forgot-password');
     }
 
+    public function sendResetCode(Request $request): RedirectResponse
+    {
+        $this->normalizeEmail($request);
+        $details = $request->validate(['email' => ['required', 'email']]);
+        $email = $this->accountEmail($details['email']);
+        $limitKey = 'password-code:'.hash('sha256', strtolower($email));
+        if (RateLimiter::tooManyAttempts($limitKey, 1)) {
+            return back()->withErrors(['email' => 'Please wait one minute before requesting another code.'])->withInput();
+        }
+        RateLimiter::hit($limitKey, 60);
+        $code = (string) random_int(100000, 999999);
+        $request->session()->put('password_reset_code', [
+            'email' => $email, 'hash' => Hash::make($code),
+            'expires_at' => now()->addMinutes(10)->timestamp, 'attempts' => 0,
+        ]);
+        $request->session()->forget('password_reset_verified');
+        $user = User::where('email', $email)->first();
+        if ($user) {
+            try {
+                Mail::raw("Your LAVEA password reset code is: {$code}\n\nThis code expires in 10 minutes. Do not share it. If you did not request this, ignore this email.", function ($message) use ($email): void {
+                    $message->to($email)->subject('Your LAVEA password reset code');
+                });
+            } catch (Exception $exception) {
+                report($exception);
+                $request->session()->forget('password_reset_code');
+
+                return back()->withErrors(['email' => 'We could not send the code right now. Please try again later.'])->withInput();
+            }
+        }
+
+        return redirect()->route('password.code')->with('status', 'If an account exists, a reset code has been sent. Check your inbox and spam folder.');
+    }
+
+    public function showResetCode(Request $request): View|RedirectResponse
+    {
+        if (! $request->session()->has('password_reset_code')) {
+            return redirect()->route('password.request');
+        }
+
+        return view('auth.reset-code');
+    }
+
+    public function verifyResetCode(Request $request): RedirectResponse
+    {
+        $details = $request->validate(['code' => ['required', 'digits:6']]);
+        $challenge = $request->session()->get('password_reset_code');
+        if (! is_array($challenge) || $challenge['expires_at'] <= now()->timestamp || $challenge['attempts'] >= 5) {
+            $request->session()->forget('password_reset_code');
+
+            return redirect()->route('password.request')->withErrors(['email' => 'Code expired or attempt limit reached. Request a new code.']);
+        }
+        $challenge['attempts']++;
+        $request->session()->put('password_reset_code', $challenge);
+        $user = User::where('email', $challenge['email'])->first();
+        if (! Hash::check($details['code'], $challenge['hash']) || ! $user) {
+            return back()->withErrors(['code' => 'The code is invalid. Please check your email and try again.']);
+        }
+        $request->session()->forget('password_reset_code');
+
+        $request->session()->put('password_reset_verified', [
+            'email' => $user->email, 'token' => Password::createToken($user),
+            'expires_at' => now()->addMinutes(10)->timestamp,
+        ]);
+
+        return redirect()->route('password.code.new');
+    }
+
+    public function showNewPassword(Request $request): View|RedirectResponse
+    {
+        $verified = $request->session()->get('password_reset_verified');
+        if (! is_array($verified) || $verified['expires_at'] <= now()->timestamp) {
+            $request->session()->forget('password_reset_verified');
+
+            return redirect()->route('password.request')->withErrors(['email' => 'Please verify a new reset code first.']);
+        }
+
+        return view('auth.reset-password', ['email' => $verified['email'], 'token' => $verified['token']]);
+    }
+
     public function sendResetLink(Request $request): RedirectResponse
     {
         $this->normalizeEmail($request);
@@ -480,13 +562,24 @@ class AuthController extends Controller
             $details['email']
         );
 
+        $verified = $request->session()->get('password_reset_verified');
+        $verifiedByCode = is_array($verified)
+            && $verified['expires_at'] > now()->timestamp
+            && $verified['email'] === $details['email']
+            && hash_equals($verified['token'], $details['token']);
+
         $status = Password::reset(
             $details,
-            function ($user, $password) {
+            function ($user, $password) use ($verifiedByCode): void {
 
                 $user->password = $password;
 
                 $user->remember_token = Str::random(60);
+                if ($verifiedByCode) {
+                    $user->email_verified_at ??= now();
+                    $user->verification_code = null;
+                    $user->verification_code_expires_at = null;
+                }
 
                 $user->save();
 
@@ -494,6 +587,14 @@ class AuthController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
+            $request->session()->forget(['password_reset_verified', 'password_reset_code']);
+            if ($verifiedByCode) {
+                $user = User::where('email', $details['email'])->firstOrFail();
+                Auth::login($user);
+                $request->session()->regenerate();
+
+                return $this->redirectToDashboard($user)->with('success', 'Password updated successfully.');
+            }
 
             return redirect()
                 ->route('login')

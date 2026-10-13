@@ -62,7 +62,7 @@ class ServiceController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
         ], [
-            'image.uploaded' => 'The image upload failed. Please try again.',
+            'image.uploaded' => $this->imageUploadErrorMessage($request),
             'image.image' => 'The selected file must be a valid image.',
             'image.mimes' => 'Choose a JPG, JPEG, PNG or WEBP image.',
         ]);
@@ -115,7 +115,7 @@ class ServiceController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
         ], [
-            'image.uploaded' => 'The image upload failed. Please try again.',
+            'image.uploaded' => $this->imageUploadErrorMessage($request),
             'image.image' => 'The selected file must be a valid image.',
             'image.mimes' => 'Choose a JPG, JPEG, PNG or WEBP image.',
         ]);
@@ -158,6 +158,15 @@ class ServiceController extends Controller
             ->with('success', 'Service deleted successfully.');
     }
 
+    public function updateAvailability(Request $request, Service $service): RedirectResponse
+    {
+        $validated = $request->validate(['is_active' => ['required', 'boolean']]);
+        $service->update($validated);
+
+        return redirect()->route('admin.services.index')
+            ->with('success', $service->is_active ? 'Service activated.' : 'Service marked inactive.');
+    }
+
     private function storeImage(UploadedFile $image): string
     {
         $path = $image->store('services', 'public');
@@ -169,5 +178,17 @@ class ServiceController extends Controller
         }
 
         return $path;
+    }
+
+    private function imageUploadErrorMessage(Request $request): string
+    {
+        return match ($request->file('image')?->getError()) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'PHP rejected the image because it exceeds the active server upload limit. Restart Herd and select the image again.',
+            UPLOAD_ERR_PARTIAL => 'Only part of the image was uploaded. Select the image again and retry.',
+            UPLOAD_ERR_NO_TMP_DIR => 'PHP cannot find its temporary upload folder. Check the Herd upload_tmp_dir setting.',
+            UPLOAD_ERR_CANT_WRITE => 'PHP could not write the image to its temporary folder. Check folder permissions and free disk space.',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the image upload. Check the Herd PHP configuration.',
+            default => 'The image upload failed. Select the image again and retry.',
+        };
     }
 }

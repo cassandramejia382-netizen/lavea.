@@ -13,6 +13,7 @@ const base = 'http://127.0.0.1:9890';
 const chromePath = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const phpPath = process.env.PHP_BINARY || path.join(os.homedir(), '.config/herd/bin/php84/php.exe');
 let server, chrome, socket;
+const uploadedServiceImages = [];
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(check, label) {
     for (let attempt = 0; attempt < 150; attempt++) {
@@ -73,6 +74,23 @@ async function until(check, label) {
             await until(() => evaluate('!!document.querySelector("input[name=password]")'), 'login form');
             await evaluate(`document.querySelector('[name=email]').value = ${JSON.stringify(role + '@logout-browser.test')}; document.querySelector('[name=password]').value = 'Browser-test-password-123'; document.querySelector('[name=password]').form.requestSubmit();`);
             await until(() => evaluate(`location.pathname === '/${role}/dashboard' && document.readyState === 'complete'`), role + ' dashboard');
+            if (role === 'admin') {
+                await send('Page.navigate', { url: base + '/admin/services/1/edit' });
+                await until(() => evaluate(`location.pathname === '/admin/services/1/edit' && document.readyState === 'complete'`), 'service edit form');
+                const document = await send('DOM.getDocument');
+                const input = await send('DOM.querySelector', { nodeId: document.root.nodeId, selector: '#image' });
+                await send('DOM.setFileInputFiles', { nodeId: input.nodeId, files: [path.join(workspace, 'public/images/laundry-home.jpg')] });
+                await until(() => evaluate(`!document.getElementById('service-image-preview').hidden`), 'selected image preview');
+                await evaluate(`document.getElementById('image').form.requestSubmit()`);
+                await until(() => evaluate(`location.pathname === '/admin/services' && document.readyState === 'complete'`), 'service image saved');
+                const imagePath = await evaluate(`new URL(document.querySelector('img.service-image').src).pathname`);
+                assert(/^\/storage\/services\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(imagePath));
+                uploadedServiceImages.push(path.join(workspace, 'storage/app/public', imagePath.slice('/storage/'.length)));
+                assert(await evaluate(`(() => { const image = document.querySelector('img.service-image'); return image.complete && image.naturalWidth > 0; })()`), 'saved service image cannot be displayed');
+                console.log('Admin: select image → submit edit → save → display image PASSED');
+                await send('Page.navigate', { url: base + '/admin/dashboard' });
+                await until(() => evaluate(`location.pathname === '/admin/dashboard' && document.readyState === 'complete'`), 'admin dashboard');
+            }
             const responsivePages = role === 'admin'
                 ? ['dashboard', 'customers', 'customers/1', 'services', 'services/1', 'services/1/edit', 'staff', 'staff/1', 'orders', 'orders/1', 'payments', 'payments/1', 'settings', 'profile', 'services/create', 'staff/create', 'schedules', 'schedules/1', 'schedules/1/edit', 'schedules/create', 'reports']
                 : role === 'staff'
@@ -127,6 +145,10 @@ async function until(check, label) {
             console.log(role + ': Login → Dashboard → Sign Out → Back → login PASSED');
         }
     } finally {
+        for (const imagePath of uploadedServiceImages) {
+            const serviceRoot = path.resolve(workspace, 'storage/app/public/services') + path.sep;
+            if (path.resolve(imagePath).startsWith(serviceRoot) && fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+        }
         socket?.close();
         if (chrome) execFileSync('taskkill', ['/PID', String(chrome.pid), '/T', '/F'], { stdio: 'ignore' });
         if (server) execFileSync('taskkill', ['/PID', String(server.pid), '/T', '/F'], { stdio: 'ignore' });

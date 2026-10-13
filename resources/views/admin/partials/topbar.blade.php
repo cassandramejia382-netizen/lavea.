@@ -1,33 +1,5 @@
 <header class="lavea-admin-topbar">
-    @if (auth()->user()->role === 'admin' || !empty($hideSearch))
-        <div class="lavea-search-spacer" aria-hidden="true"></div>
-    @elseif (!empty($customerSearch))
-        <form class="lavea-search-box" method="GET" action="{{ route(auth()->user()->role === 'staff' ? 'staff.customers.index' : 'admin.customers.index') }}">
-            <button type="submit" aria-label="Search customers">
-                <i data-lucide="search"></i>
-            </button>
-            <input type="search" name="search" value="{{ request('search') }}" placeholder="Search here...">
-        </form>
-    @elseif (!empty($orderSearch))
-        <form class="lavea-search-box" method="GET" action="{{ route(($orderRoutePrefix ?? 'admin.orders').'.index') }}">
-            <button type="submit" aria-label="Search records">
-                <i data-lucide="search"></i>
-            </button>
-            <input type="search" name="search" value="{{ request('search') }}" placeholder="Search here...">
-        </form>
-    @elseif (!empty($paymentSearch))
-        <form class="lavea-search-box" method="GET" action="{{ route(auth()->user()->role === 'staff' ? 'staff.payments.index' : 'admin.payments.index') }}">
-            <button type="submit" aria-label="Search payments">
-                <i data-lucide="search"></i>
-            </button>
-            <input type="search" name="search" value="{{ request('search') }}" placeholder="Search here...">
-        </form>
-    @else
-        <div class="lavea-search-box">
-            <i data-lucide="search"></i>
-            <input type="text" placeholder="Search here...">
-        </div>
-    @endif
+    <div class="lavea-search-spacer" aria-hidden="true"></div>
 
     <div class="lavea-top-right">
         @include('admin.partials.notifications')

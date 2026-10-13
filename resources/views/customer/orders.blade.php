@@ -1,16 +1,129 @@
 @extends('customer.layout', ['title' => 'Records'])
 @section('content')
 <style>
-    .customer-records { max-width: 1120px; margin: 0 auto; }
-    .customer-record-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px; }
-    .customer-record-stat { display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid #e7ebf2;border-radius:10px;background:#fff; }
-    .customer-record-stat-icon { display:grid;place-items:center;width:36px;height:36px;border-radius:9px;background:#edf2ff;color:#4169c8; }
-    .customer-record-stat-icon svg { width:18px;height:18px; }
-    .customer-record-stat strong { display:block;color:#172554;font-size:18px; }
-    .customer-record-stat span { color:#7a879d;font-size:12px; }
-    .customer-record-filters { display:flex;flex-wrap:wrap;gap:9px;padding:14px;margin-bottom:13px;border:1px solid #e7ebf2;border-radius:10px;background:#fff; }
-    .customer-record-filters select { min-width:175px;padding:9px 11px;border:1px solid #dfe5ef;border-radius:7px;background:#fff;color:#263550;font:inherit; }
-    @media(max-width:680px) { .customer-record-stats { grid-template-columns:1fr;gap:8px; } }
+.customer-records {
+    width: 100%;
+    min-width: 0;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+.customer-records > .card {
+    min-width: 0;
+    max-width: 100%;
+}
+.customer-records .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.customer-records .table-wrap:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 3px;
+}
+.customer-records .table-wrap th {
+    white-space: nowrap;
+}
+.customer-record-stat {
+    min-width: 0;
+}
+.customer-record-stat-icon {
+    flex-shrink: 0;
+}
+.customer-record-stat strong {
+    overflow-wrap: anywhere;
+}
+.customer-record-filters > * {
+    max-width: 100%;
+}
+.customer-record-stats {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.customer-record-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid #e7ebf2;
+    border-radius: 10px;
+    background: #fff;
+}
+.customer-record-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: #edf2ff;
+    color: #4169c8;
+}
+.customer-record-stat-icon svg {
+    width: 18px;
+    height: 18px;
+}
+.customer-record-stat strong {
+    display: block;
+    color: #172554;
+    font-size: 18px;
+}
+.customer-record-stat span {
+    color: #7a879d;
+    font-size: 12px;
+}
+.customer-record-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 14px;
+    margin-bottom: 13px;
+    border: 1px solid #e7ebf2;
+    border-radius: 10px;
+    background: #fff;
+}
+.customer-record-filters select {
+    min-width: 175px;
+    padding: 9px 11px;
+    border: 1px solid #dfe5ef;
+    border-radius: 7px;
+    background: #fff;
+    color: #263550;
+    font: inherit;
+}
+@media(max-width:680px) {
+    .customer-record-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+@media(max-width:700px) {
+    .customer-records .customer-record-filters select {
+        flex: 1 1 100%;
+        min-width: 0;
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+    }
+    .customer-records .customer-record-filters .btn {
+        flex: 1 1 auto;
+        min-height: 44px;
+        justify-content: center;
+    }
+    .customer-records .page-head > div {
+        min-width: 0;
+    }
+    .customer-records .page-head .muted {
+        line-height: 1.5;
+    }
+    .customer-records .table-wrap td .actions {
+        flex-wrap: nowrap;
+    }
+    .customer-records .table-wrap td .btn {
+        white-space: nowrap;
+    }
+}
 </style>
 <div class="customer-records">
     <div class="page-head"><div><h1>Records</h1><div class="muted">Review your laundry order and payment statuses.</div></div></div>

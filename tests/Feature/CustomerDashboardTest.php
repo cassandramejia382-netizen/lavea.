@@ -46,6 +46,57 @@ beforeEach(function (): void {
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
 });
 
+test('staff edits and deletes payments while recalculating the order balance', function (): void {
+    Storage::fake('local');
+    $staff = User::factory()->create(['role' => 'staff']);
+    $order = OrderFactory::new()->create(['total' => 150, 'payment_status' => 'Paid']);
+    $payment = PaymentFactory::new()->for($order)->create(['amount' => 150, 'status' => 'Completed', 'proof_image_path' => 'payment-proofs/receipt.jpg']);
+    Storage::disk('local')->put('payment-proofs/receipt.jpg', 'proof');
+    $this->actingAs($staff)->get(route('staff.payments.index'))->assertOk()->assertSee(route('staff.payments.edit', $payment), false);
+    $this->get(route('staff.payments.edit', $payment))->assertOk()->assertSee('Edit Payment');
+    $details = ['amount' => 50, 'payment_method' => 'GCash', 'payment_date' => today()->toDateString(), 'status' => 'Completed', 'reference_number' => 'CORRECTED-123'];
+    $this->put(route('staff.payments.update', $payment), $details)->assertRedirect(route('staff.payments.index'))->assertSessionHasNoErrors();
+    expect($order->fresh()->payment_status)->toBe('Partial');
+    expect($payment->fresh()->reference_number)->toBe('CORRECTED-123');
+    $this->put(route('staff.payments.update', $payment), [...$details, 'status' => 'Pending'])->assertSessionHasNoErrors();
+    expect($order->fresh()->payment_status)->toBe('Unpaid');
+    $this->put(route('staff.payments.update', $payment), [...$details, 'amount' => 150])->assertSessionHasNoErrors();
+    expect($order->fresh()->payment_status)->toBe('Paid');
+    $this->delete(route('staff.payments.destroy', $payment))->assertRedirect(route('staff.payments.index'));
+    expect($order->fresh()->payment_status)->toBe('Unpaid');
+    $this->assertDatabaseMissing('payments', ['id' => $payment->id]);
+    $this->assertDatabaseHas('orders', ['id' => $order->id]);
+    Storage::disk('local')->assertMissing('payment-proofs/receipt.jpg');
+});
+
+test('payment corrections reject invalid amounts and customer access', function (): void {
+    $payment = PaymentFactory::new()->create();
+    $staff = User::factory()->create(['role' => 'staff']);
+    $this->actingAs($staff)->put(route('staff.payments.update', $payment), ['amount' => -1])->assertSessionHasErrors('amount');
+    $customer = User::factory()->create(['role' => 'customer']);
+    $this->actingAs($customer)->get(route('staff.payments.edit', $payment))->assertRedirect();
+    $this->put(route('staff.payments.update', $payment), ['amount' => 1])->assertRedirect();
+    $this->delete(route('staff.payments.destroy', $payment))->assertRedirect();
+    $this->assertDatabaseHas('payments', ['id' => $payment->id]);
+});
+
+test('inactive services cannot receive new orders and existing records remain accessible', function (): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create(['service_name' => 'Unavailable laundry', 'is_active' => false]);
+    $order = OrderFactory::new()->for($customer)->for($service)->create();
+
+    $this->actingAs($user)->get(route('customer.services.index'))->assertOk()->assertSee('Unavailable laundry')->assertSee('Inactive');
+    $this->get(route('customer.services.show', $service))->assertOk()->assertSee('Currently unavailable')->assertDontSee('Order this service');
+    $this->post(route('customer.services.order', $service), ['quantity' => 2])->assertForbidden();
+    $this->assertDatabaseCount('orders', 1);
+    $this->assertDatabaseHas('orders', ['id' => $order->id, 'service_id' => $service->id]);
+
+    $service->update(['is_active' => true]);
+    $this->get(route('customer.services.index'))->assertOk()->assertSee('Unavailable laundry');
+    $this->get(route('customer.services.show', $service))->assertOk();
+});
+
 test('dashboard totals and recent orders contain only the signed in customer data', function (): void {
     $user = User::factory()->create(['role' => 'customer', 'name' => 'Maria Santos']);
     $customer = CustomerFactory::new()->create(['email' => $user->email]);
@@ -402,3 +453,63 @@ test('customer record actions only allow editing and cancelling eligible orders'
         $response->assertDontSee(route('customer.payments.show', $payment), false);
     }
 })->with(['Unpaid', 'Pending', 'Completed', 'Cancelled']);
+
+test('service orders use sets and items instead of kilograms', function (string $name, string $unit): void {
+    $user = User::factory()->create(['role' => 'customer']);
+    CustomerFactory::new()->create(['email' => $user->email]);
+    $service = ServiceFactory::new()->create(['service_name' => $name, 'price' => 150]);
+    expect($service->billingUnit())->toBe($unit);
+    $this->actingAs($user)->get(route('customer.services.show', $service))->assertOk()
+        ->assertSee('per '.$unit)->assertSee('step="1"', false)->assertDontSee('Maximum: 9 kg');
+    $this->post(route('customer.services.order', $service), [
+        'quantity' => '1.2', 'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertSessionHasErrors('quantity');
+    $this->assertDatabaseCount('orders', 0);
+    $this->post(route('customer.services.order', $service), [
+        'quantity' => 2, 'pickup_date' => today()->addDays(3)->toDateString(),
+    ])->assertSessionHasNoErrors()->assertRedirect(route('customer.services.show', $service));
+    $this->assertDatabaseHas('orders', ['service_id' => $service->id, 'quantity' => 2, 'total' => 300]);
+})->with([
+    ['Bedsheet Cleaning', 'set'], ['Comforter Cleaning', 'set'], ['Curtain Cleaning', 'set'], ['Dry Cleaning', 'item'],
+]);
+
+test('customers can delete their account while preserving anonymized transaction history', function (bool $hasOrders): void {
+    Storage::fake('public');
+    Storage::disk('public')->put('customer-profiles/avatar.png', 'photo');
+    $user = User::factory()->create(['role' => 'customer', 'password' => 'Delete-password-123', 'profile_photo_path' => 'customer-profiles/avatar.png']);
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $other = User::factory()->create(['role' => 'customer']);
+    if ($hasOrders) {
+        $order = OrderFactory::new()->for($customer)->create();
+        $payment = PaymentFactory::new()->for($order)->create();
+    }
+    $this->actingAs($user)->delete(route('customer.profile.destroy'), ['password' => 'Delete-password-123', 'confirm_deletion' => 1, 'user_id' => $other->id])
+        ->assertRedirect(route('home'));
+    $this->assertGuest();
+    $this->assertModelMissing($user);
+    $this->assertModelExists($other);
+    Storage::disk('public')->assertMissing('customer-profiles/avatar.png');
+    if ($hasOrders) {
+        $this->assertDatabaseHas('customers', ['id' => $customer->id, 'name' => 'Deleted customer', 'email' => null, 'phone' => '', 'address' => null]);
+        $this->assertModelExists($order);
+        $this->assertModelExists($payment);
+    } else {
+        $this->assertModelMissing($customer);
+    }
+})->with([false, true]);
+
+test('account deletion requires the correct password and confirmation', function (array $payload): void {
+    $user = User::factory()->create(['role' => 'customer', 'password' => 'Delete-password-123']);
+    $this->actingAs($user)->delete(route('customer.profile.destroy'), $payload)->assertSessionHasErrorsIn('deleteAccount');
+    $this->assertModelExists($user);
+    $this->assertAuthenticatedAs($user);
+})->with([
+    [['password' => 'wrong', 'confirm_deletion' => 1]],
+    [['password' => 'Delete-password-123']],
+]);
+
+test('staff and admins cannot delete accounts through the customer endpoint', function (string $role): void {
+    $user = User::factory()->create(['role' => $role]);
+    $this->actingAs($user)->delete(route('customer.profile.destroy'), ['password' => 'password', 'confirm_deletion' => 1])->assertRedirect(route($role.'.dashboard'));
+    $this->assertModelExists($user);
+})->with(['admin', 'staff']);

@@ -1,5 +1,5 @@
 <section class="settings-card" id="profile-information" aria-labelledby="profile-heading">
-    <h3 id="profile-heading">Profile Information</h3>
+    <h3 id="profile-heading"><i data-lucide="user-round" aria-hidden="true"></i>Profile Information</h3>
     <p>Update the name, email, and contact details used for your {{ ucfirst($settingsRole) }} account.</p>
 
     <form method="POST" action="{{ route($settingsRole.'.settings.profile') }}">
@@ -47,7 +47,7 @@
 </section>
 
 <section class="settings-card" id="change-password" aria-labelledby="security-heading">
-    <h3 id="security-heading">Security</h3>
+    <h3 id="security-heading"><i data-lucide="shield-check" aria-hidden="true"></i>Security</h3>
     <p>Change your password using your current password.</p>
     <form method="POST" action="{{ route($settingsRole.'.settings.password') }}">
         @csrf
@@ -70,7 +70,7 @@
 </section>
 
 <section class="settings-card" id="appearance" aria-labelledby="appearance-heading">
-    <h3 id="appearance-heading">Appearance</h3>
+    <h3 id="appearance-heading"><i data-lucide="palette" aria-hidden="true"></i>Appearance</h3>
     <p>Choose Light Mode or Dark Mode for LAVEA on this browser.</p>
     <div class="theme-options" role="group" aria-label="Appearance theme">
         @foreach (['light' => ['sun', 'Light Mode'], 'dark' => ['moon', 'Dark Mode']] as $theme => [$icon, $label])
@@ -87,7 +87,7 @@
 </section>
 
 <section class="settings-card" id="notifications" aria-labelledby="notifications-heading">
-    <h3 id="notifications-heading">Notifications</h3>
+    <h3 id="notifications-heading"><i data-lucide="bell" aria-hidden="true"></i>Notifications</h3>
     <p>Choose how unread notifications appear in your topbar.</p>
     <form method="POST" action="{{ route($settingsRole.'.settings.notifications') }}">
         @csrf

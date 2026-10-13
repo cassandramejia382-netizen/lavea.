@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Notifications\SystemNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentController extends Controller
@@ -153,7 +155,51 @@ class PaymentController extends Controller
         return redirect()->route($paymentRoutePrefix.'.show', $payment)->with('success', 'Payment marked '.$details['status'].'.');
     }
 
-    private function updateOrderPaymentStatus($orderId)
+    public function edit(Payment $payment): View
+    {
+        $payment->load('order.customer', 'order.service');
+
+        return view('staff.payments.edit', compact('payment'));
+    }
+
+    public function update(Request $request, Payment $payment): RedirectResponse
+    {
+        $details = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01', 'decimal:0,2'],
+            'payment_method' => ['required', 'in:Cash,GCash,Card,Bank Transfer'],
+            'reference_number' => ['nullable', 'string', 'max:255'],
+            'payment_date' => ['required', 'date', 'before_or_equal:today'],
+            'status' => ['required', 'in:Completed,Pending,Failed'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($payment, $details): void {
+            Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
+            $payment->update($details);
+            $this->updateOrderPaymentStatus($payment->order_id);
+        });
+
+        return redirect()->route('staff.payments.index')->with('success', 'Payment updated successfully.');
+    }
+
+    public function destroy(Payment $payment): RedirectResponse
+    {
+        $proofPath = $payment->proof_image_path;
+        DB::transaction(function () use ($payment): void {
+            Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
+            $payment->delete();
+            $this->updateOrderPaymentStatus($payment->order_id);
+        });
+
+        if (is_string($proofPath) && preg_match('/\Apayment-proofs\/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)\z/i', $proofPath)
+            && ! Payment::where('proof_image_path', $proofPath)->exists()) {
+            Storage::disk('local')->delete($proofPath);
+        }
+
+        return redirect()->route('staff.payments.index')->with('success', 'Payment deleted successfully.');
+    }
+
+    private function updateOrderPaymentStatus(int $orderId): void
     {
         $order = Order::find($orderId);
 

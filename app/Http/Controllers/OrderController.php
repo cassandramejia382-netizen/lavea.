@@ -58,7 +58,7 @@ class OrderController extends Controller
     {
         $order = new Order;
         $customers = Customer::all();
-        $services = Service::all();
+        $services = Service::where('is_active', true)->get();
         $staff = Staff::where('status', 'Active')->orderBy('name')->get();
         $orderRoutePrefix = 'staff.orders';
 
@@ -78,7 +78,7 @@ class OrderController extends Controller
     {
         $details = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'service_id' => 'required|exists:services,id',
+            'service_id' => ['required', Rule::exists('services', 'id')->where('is_active', true)],
             'staff_id' => 'nullable|exists:staff,id',
             'quantity' => 'required|numeric|min:1',
             'order_date' => 'required|date',
@@ -89,6 +89,9 @@ class OrderController extends Controller
         ]);
 
         $service = Service::findOrFail($request->service_id);
+        if ($service->billingUnit() !== 'kg') {
+            $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
+        }
 
         $total = $service->price * $request->quantity;
 
@@ -142,7 +145,7 @@ class OrderController extends Controller
     public function edit(Order $order)
     {
         $customers = Customer::all();
-        $services = Service::all();
+        $services = Service::where('is_active', true)->orWhere('id', $order->service_id)->get();
         $staff = Staff::where('status', 'Active')->orderBy('name')->get();
         $orderRoutePrefix = 'staff.orders';
 
@@ -162,7 +165,7 @@ class OrderController extends Controller
     {
         $details = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'service_id' => 'required|exists:services,id',
+            'service_id' => ['required', Rule::exists('services', 'id')->where(fn ($query) => $query->where('is_active', true)->orWhere('id', $order->service_id))],
             'staff_id' => 'nullable|exists:staff,id',
             'quantity' => 'required|numeric|min:1',
             'order_date' => 'required|date',
@@ -173,6 +176,9 @@ class OrderController extends Controller
         ]);
 
         $service = Service::findOrFail($request->service_id);
+        if ($service->billingUnit() !== 'kg') {
+            $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
+        }
 
         $total = $service->price * $request->quantity;
 

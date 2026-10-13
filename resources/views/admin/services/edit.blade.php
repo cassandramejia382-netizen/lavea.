@@ -4,94 +4,118 @@
 
 <style>
 .lavea-admin-content .container {
-            max-width: 850px;
-            margin: 50px auto;
-            padding: 0 20px;
-        }
+    max-width: 850px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
 .lavea-admin-content .back {
-            color: #4169c8;
-            text-decoration: none;
-            font-size: 13px;
-        }
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border: 1px solid #dce6fa;
+    border-radius: 8px;
+    background: #edf3ff;
+    color: #4169c8;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+.lavea-admin-content .back svg {
+    width: 15px;
+    height: 15px;
+}
+.lavea-admin-content .back:hover {
+    background: #dfeaff;
+}
+.lavea-admin-content .back:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 3px;
+}
+html[data-lavea-theme="dark"] .lavea-admin-content .back {
+    background: #1e3a5f;
+    border-color: #34415a;
+    color: #bfdbfe;
+}
 .lavea-admin-content h1 {
-            margin-top: 20px;
-            margin-bottom: 7px;
-        }
+    margin-top: 20px;
+    margin-bottom: 7px;
+}
 .lavea-admin-content .subtitle {
-            color: #7a879d;
-            font-size: 13px;
-            margin-bottom: 25px;
-        }
+    color: #7a879d;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
 .lavea-admin-content .card {
-            background: white;
-            border: 1px solid #e5e9f1;
-            border-radius: 12px;
-            padding: 30px;
-        }
+    background: white;
+    border: 1px solid #e5e9f1;
+    border-radius: 12px;
+    padding: 30px;
+}
 .lavea-admin-content .form-group {
-            margin-bottom: 20px;
-        }
+    margin-bottom: 20px;
+}
 .lavea-admin-content label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
 .lavea-admin-content input,
 .lavea-admin-content textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dce2ec;
-            border-radius: 8px;
-            outline: none;
-            font-size: 13px;
-        }
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dce2ec;
+    border-radius: 8px;
+    outline: none;
+    font-size: 13px;
+}
 .lavea-admin-content textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+    min-height: 120px;
+    resize: vertical;
+}
 .lavea-admin-content input:focus,
 .lavea-admin-content textarea:focus {
-            border-color: #4169c8;
-        }
+    border-color: #4169c8;
+}
 .lavea-admin-content .current-image {
-            margin-bottom: 12px;
-        }
+    margin-bottom: 12px;
+}
 .lavea-admin-content .current-image img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid #e1e5ed;
-        }
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e1e5ed;
+}
 .lavea-admin-content .error {
-            color: #dc3545;
-            font-size: 11px;
-            margin-top: 5px;
-        }
+    color: #dc3545;
+    font-size: 11px;
+    margin-top: 5px;
+}
 .lavea-admin-content .buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 25px;
-        }
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+}
 .lavea-admin-content .cancel {
-            background: #eef1f6;
-            color: #44526d;
-            text-decoration: none;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-size: 13px;
-        }
+    background: #eef1f6;
+    color: #44526d;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+}
 .lavea-admin-content .update {
-            border: none;
-            background: #4169c8;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-        }
+    border: none;
+    background: #4169c8;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
 </style>
 @endpush
 
@@ -99,7 +123,7 @@
 <div class="container">
 
     <a href="{{ route('admin.services.index') }}" class="back">
-        â† Back to Services
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg><span>Back to Services</span>
     </a>
 
     <h1>Edit Service</h1>
@@ -107,7 +131,6 @@
     <p class="subtitle">
         Update the information of this laundry service.
     </p>
-
 
     <div class="card">
 
@@ -119,7 +142,6 @@
 
             @csrf
             @method('PUT')
-
 
             <div class="form-group">
 
@@ -136,7 +158,6 @@
                 @enderror
 
             </div>
-
 
             <div class="form-group">
 
@@ -156,7 +177,6 @@
 
             </div>
 
-
             <div class="form-group">
 
                 <label>Description</label>
@@ -168,7 +188,6 @@
                 @enderror
 
             </div>
-
 
             <div class="form-group">
 
@@ -195,7 +214,6 @@
 
             </div>
 
-
             <div class="form-group">
 
                 <label for="image">Change Image</label>
@@ -215,7 +233,6 @@
                 @enderror
 
             </div>
-
 
             <div class="buttons">
 

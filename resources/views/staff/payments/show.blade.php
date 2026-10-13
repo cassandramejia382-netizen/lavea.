@@ -13,7 +13,7 @@
         @foreach([
             ['Customer', $payment->order?->customer?->name ?? '—'],
             ['Service', $payment->order?->service?->service_name ?? '—'],
-            ['Quantity / Weight', ($payment->order?->quantity ?? '—').' kg'],
+            ['Quantity / Weight', ($payment->order?->quantity ?? '—').' '.($payment->order?->service?->billingUnit() ?? 'kg')],
             ['Order Total', '₱'.number_format($payment->order?->total ?? 0, 2)],
             ['Amount Paid', '₱'.number_format($payment->amount, 2)],
             ['Payment Method', $payment->payment_method],

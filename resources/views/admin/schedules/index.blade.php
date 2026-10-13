@@ -3,204 +3,199 @@
 @push('styles')
 
 <style>
-.lavea-admin-content * { margin: 0; padding: 0; }
-
+.lavea-admin-content * {
+    margin: 0;
+    padding: 0;
+}
 .lavea-admin-content .avatar {
-            width: 40px;
-            height: 40px;
-            background: #e9eefb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4169c8;
-        }
+    width: 40px;
+    height: 40px;
+    background: #e9eefb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4169c8;
+}
 .lavea-admin-content .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
 .lavea-admin-content .page-header h2 {
-            font-size: 24px;
-            color: #17233d;
-        }
+    font-size: 24px;
+    color: #17233d;
+}
 .lavea-admin-content .page-header p {
-            color: #8a94a6;
-            font-size: 13px;
-            margin-top: 5px;
-        }
+    color: #8a94a6;
+    font-size: 13px;
+    margin-top: 5px;
+}
 .lavea-admin-content .add-btn {
-            background: #4169c8;
-            color: white;
-            text-decoration: none;
-            border: none;
-            padding: 11px 17px;
-            border-radius: 7px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    background: #4169c8;
+    color: white;
+    text-decoration: none;
+    border: none;
+    padding: 11px 17px;
+    border-radius: 7px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .lavea-admin-content .add-btn:hover {
-            background: #355ab0;
-        }
+    background: #355ab0;
+}
 .lavea-admin-content .add-btn i {
-            width: 17px;
-        }
+    width: 17px;
+}
 .lavea-admin-content .alert {
-            background: #eaf7ef;
-            border: 1px solid #c9ead5;
-            color: #267344;
-            padding: 12px 15px;
-            border-radius: 7px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
+    background: #eaf7ef;
+    border: 1px solid #c9ead5;
+    color: #267344;
+    padding: 12px 15px;
+    border-radius: 7px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
 .lavea-admin-content .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            overflow: hidden;
-        }
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
 .lavea-admin-content .card-header {
-            padding: 20px 22px;
-            border-bottom: 1px solid #e5e7eb;
-        }
+    padding: 20px 22px;
+    border-bottom: 1px solid #e5e7eb;
+}
 .lavea-admin-content .card-header h3 {
-            font-size: 16px;
-            color: #17233d;
-        }
+    font-size: 16px;
+    color: #17233d;
+}
 .lavea-admin-content .card-header p {
-            font-size: 12px;
-            color: #8a94a6;
-            margin-top: 4px;
-        }
+    font-size: 12px;
+    color: #8a94a6;
+    margin-top: 4px;
+}
 .lavea-admin-content .table-wrapper {
-            overflow-x: auto;
-        }
+    overflow-x: auto;
+}
 .lavea-admin-content table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    width: 100%;
+    border-collapse: collapse;
+}
 .lavea-admin-content th {
-            background: #f8f9fc;
-            color: #697386;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            text-align: left;
-            padding: 14px 18px;
-            border-bottom: 1px solid #e5e7eb;
-            white-space: nowrap;
-        }
+    background: #f8f9fc;
+    color: #697386;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: left;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
 .lavea-admin-content td {
-            padding: 15px 18px;
-            border-bottom: 1px solid #eef0f4;
-            font-size: 13px;
-            color: #374151;
-            white-space: nowrap;
-        }
+    padding: 15px 18px;
+    border-bottom: 1px solid #eef0f4;
+    font-size: 13px;
+    color: #374151;
+    white-space: nowrap;
+}
 .lavea-admin-content tr:last-child td {
-            border-bottom: none;
-        }
+    border-bottom: none;
+}
 .lavea-admin-content tr:hover td {
-            background: #fafbfe;
-        }
+    background: #fafbfe;
+}
 .lavea-admin-content .customer-name {
-            font-weight: 600;
-            color: #17233d;
-        }
+    font-weight: 600;
+    color: #17233d;
+}
 .lavea-admin-content .order-number {
-            color: #4169c8;
-            font-weight: 600;
-        }
+    color: #4169c8;
+    font-weight: 600;
+}
 .lavea-admin-content .schedule-type {
-            font-weight: 600;
-        }
+    font-weight: 600;
+}
 .lavea-admin-content .status {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
 .lavea-admin-content .status-scheduled {
-            background: #fff5d9;
-            color: #9a6b00;
-        }
+    background: #fff5d9;
+    color: #9a6b00;
+}
 .lavea-admin-content .status-on-time {
-            background: #e7f0ff;
-            color: #315db8;
-        }
+    background: #e7f0ff;
+    color: #315db8;
+}
 .lavea-admin-content .status-completed {
-            background: #e8f7ee;
-            color: #267344;
-        }
+    background: #e8f7ee;
+    color: #267344;
+}
 .lavea-admin-content .status-cancelled {
-            background: #fdecec;
-            color: #b33a3a;
-        }
+    background: #fdecec;
+    color: #b33a3a;
+}
 .lavea-admin-content .actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 .lavea-admin-content .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-        }
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
 .lavea-admin-content .action-btn i {
-            width: 15px;
-            height: 15px;
-        }
+    width: 15px;
+    height: 15px;
+}
 .lavea-admin-content .view-btn {
-            background: #e9eefb;
-            color: #4169c8;
-        }
+    background: #e9eefb;
+    color: #4169c8;
+}
 .lavea-admin-content .edit-btn {
-            background: #fff4df;
-            color: #a66b00;
-        }
+    background: #fff4df;
+    color: #a66b00;
+}
 .lavea-admin-content .delete-btn {
-            background: #fdeaea;
-            color: #c23c3c;
-        }
+    background: #fdeaea;
+    color: #c23c3c;
+}
 .lavea-admin-content .action-btn:hover {
-            opacity: 0.8;
-        }
+    opacity: 0.8;
+}
 .lavea-admin-content .empty {
-            text-align: center;
-            padding: 45px 20px;
-            color: #8a94a6;
-            font-size: 13px;
-        }
+    text-align: center;
+    padding: 45px 20px;
+    color: #8a94a6;
+    font-size: 13px;
+}
 </style>
 @endpush
 
 @section('content')
 
-
     <!-- SIDEBAR -->
-    
-
 
     <!-- MAIN -->
-    
 
         <!-- TOPBAR -->
-        
-
 
         <!-- CONTENT -->
-        
 
             <div class="page-header">
 
@@ -221,13 +216,11 @@
 
             </div>
 
-
             @if(session('success'))
                 <div class="alert">
                     {{ session('success') }}
                 </div>
             @endif
-
 
             <div class="card">
 
@@ -374,9 +367,5 @@
                 </div>
 
             </div>
-
-        
-
-    
 
 @endsection

@@ -3,119 +3,121 @@
 @push('styles')
 
 <style>
-.lavea-admin-content * { margin: 0; padding: 0; }
-
+.lavea-admin-content * {
+    margin: 0;
+    padding: 0;
+}
 .lavea-admin-content .avatar {
-            width: 40px;
-            height: 40px;
-            background: #e9eefb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4169c8;
-        }
+    width: 40px;
+    height: 40px;
+    background: #e9eefb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4169c8;
+}
 .lavea-admin-content .page-header {
-            margin-bottom: 25px;
-        }
+    margin-bottom: 25px;
+}
 .lavea-admin-content .page-header h2 {
-            font-size: 24px;
-            color: #17233d;
-        }
+    font-size: 24px;
+    color: #17233d;
+}
 .lavea-admin-content .page-header p {
-            color: #8a94a6;
-            font-size: 13px;
-            margin-top: 5px;
-        }
+    color: #8a94a6;
+    font-size: 13px;
+    margin-top: 5px;
+}
 .lavea-admin-content .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 25px;
-            max-width: 900px;
-        }
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 25px;
+    max-width: 900px;
+}
 .lavea-admin-content .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
 .lavea-admin-content .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+    display: flex;
+    flex-direction: column;
+}
 .lavea-admin-content .form-group.full {
-            grid-column: 1 / -1;
-        }
+    grid-column: 1 / -1;
+}
 .lavea-admin-content label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-        }
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
 .lavea-admin-content label span {
-            color: #d64545;
-        }
+    color: #d64545;
+}
 .lavea-admin-content input,
 .lavea-admin-content select,
 .lavea-admin-content textarea {
-            width: 100%;
-            border: 1px solid #dfe3ea;
-            border-radius: 7px;
-            padding: 11px 12px;
-            font-size: 13px;
-            outline: none;
-            background: white;
-            color: #374151;
-        }
+    width: 100%;
+    border: 1px solid #dfe3ea;
+    border-radius: 7px;
+    padding: 11px 12px;
+    font-size: 13px;
+    outline: none;
+    background: white;
+    color: #374151;
+}
 .lavea-admin-content input:focus,
 .lavea-admin-content select:focus,
 .lavea-admin-content textarea:focus {
-            border-color: #4169c8;
-            box-shadow: 0 0 0 2px rgba(65,105,200,0.08);
-        }
+    border-color: #4169c8;
+    box-shadow: 0 0 0 2px rgba(65,105,200,0.08);
+}
 .lavea-admin-content textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+    resize: vertical;
+    min-height: 100px;
+}
 .lavea-admin-content .error {
-            color: #c23c3c;
-            font-size: 11px;
-            margin-top: 5px;
-        }
+    color: #c23c3c;
+    font-size: 11px;
+    margin-top: 5px;
+}
 .lavea-admin-content .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-        }
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
 .lavea-admin-content .btn {
-            border: none;
-            border-radius: 7px;
-            padding: 11px 18px;
-            font-size: 13px;
-            text-decoration: none;
-            cursor: pointer;
-        }
+    border: none;
+    border-radius: 7px;
+    padding: 11px 18px;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+}
 .lavea-admin-content .cancel-btn {
-            background: #eef1f5;
-            color: #4b5563;
-        }
+    background: #eef1f5;
+    color: #4b5563;
+}
 .lavea-admin-content .save-btn {
-            background: #4169c8;
-            color: white;
-        }
+    background: #4169c8;
+    color: white;
+}
 .lavea-admin-content .save-btn:hover {
-            background: #355ab0;
-        }
+    background: #355ab0;
+}
 @media (max-width: 800px) {
-.lavea-admin-content .form-grid {
-                grid-template-columns: 1fr;
-            }
-.lavea-admin-content .form-group.full {
-                grid-column: auto;
-            }
+    .lavea-admin-content .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .lavea-admin-content .form-group.full {
+        grid-column: auto;
+    }
 }
 </style>
 @endpush
@@ -123,18 +125,9 @@
 @section('content')
 @php($routePrefix = 'admin.schedules')
 
-
     <!-- SIDEBAR -->
-    
-
 
     <!-- MAIN -->
-    
-
-        
-
-
-        
 
             <div class="page-header">
 
@@ -145,7 +138,6 @@
                 </p>
 
             </div>
-
 
             <div class="card">
 
@@ -226,7 +218,6 @@
 
                         </div>
 
-
                         <!-- STATUS -->
                         <div class="form-group">
 
@@ -266,7 +257,6 @@
 
                         </div>
 
-
                         <!-- DATE -->
                         <div class="form-group">
 
@@ -290,7 +280,6 @@
 
                         </div>
 
-
                         <!-- TIME -->
                         <div class="form-group">
 
@@ -312,7 +301,6 @@
                             @enderror
 
                         </div>
-
 
                         <!-- NOTES -->
                         <div class="form-group full">
@@ -336,7 +324,6 @@
 
                     </div>
 
-
                     <div class="form-actions">
 
                         <a
@@ -358,9 +345,5 @@
                 </form>
 
             </div>
-
-        
-
-    
 
 @endsection

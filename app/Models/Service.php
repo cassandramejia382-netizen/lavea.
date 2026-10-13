@@ -14,11 +14,47 @@ class Service extends Model
         'price',
         'description',
         'image',
+        'is_active',
     ];
+
+    protected $attributes = ['is_active' => true];
+
+    protected function casts(): array
+    {
+        return ['is_active' => 'boolean'];
+    }
 
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function billingUnit(): string
+    {
+        $name = strtolower(preg_replace('/[^a-zA-Z]/', '', $this->service_name ?? ''));
+
+        return match ($name) {
+            'bedsheetcleaning', 'bedsheetscleaning', 'comfortercleaning', 'comforterscleaning', 'curtaincleaning', 'curtainscleaning' => 'set',
+            'drycleaning' => 'item',
+            default => 'kg',
+        };
+    }
+
+    public function quantityLabel(): string
+    {
+        return match ($this->billingUnit()) {
+            'set' => 'Number of sets',
+            'item' => 'Number of items',
+            default => 'Weight',
+        };
+    }
+
+    /** @return list<string> */
+    public function quantityRules(): array
+    {
+        return $this->billingUnit() === 'kg'
+            ? ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9']
+            : ['required', 'integer', 'min:1'];
     }
 
     public function imageUrl(): ?string

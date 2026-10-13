@@ -1,12 +1,41 @@
 @once
 <style>
-    .record-icon-actions { display:flex;align-items:center;gap:7px; }
-    .record-icon-actions .record-action { display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:0;border-radius:7px;text-decoration:none;cursor:pointer; }
-    .record-icon-actions .record-action svg { width:16px;height:16px; }
-    .record-icon-actions .record-edit { background:#f0eaff;color:#7545d0; }
-    .record-icon-actions .record-delete { background:#fff0f1;color:#e05263; }
-    .record-icon-actions .record-action:hover { filter:brightness(.96); }
-    .record-icon-actions .record-action:focus-visible { outline:2px solid #4169c8;outline-offset:3px; }
+.record-icon-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.record-icon-actions .record-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.record-icon-actions .record-action svg {
+    width: 16px;
+    height: 16px;
+}
+.record-icon-actions .record-edit {
+    background: #f0eaff;
+    color: #7545d0;
+}
+.record-icon-actions .record-delete {
+    background: #fff0f1;
+    color: #e05263;
+}
+.record-icon-actions .record-action:hover {
+    filter: brightness(.96);
+}
+.record-icon-actions .record-action:focus-visible {
+    outline: 2px solid #4169c8;
+    outline-offset: 3px;
+}
 </style>
 @endonce
 <div class="table-wrap"><table><thead><tr><th>Record</th><th>Customer</th><th>Service</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead><tbody>

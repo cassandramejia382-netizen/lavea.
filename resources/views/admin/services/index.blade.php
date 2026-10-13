@@ -3,237 +3,259 @@
 @push('styles')
 
 <style>
-.lavea-admin-content * { margin: 0; padding: 0; }
-
+.lavea-admin-content * {
+    margin: 0;
+    padding: 0;
+}
 .lavea-admin-content .avatar {
-            width: 38px;
-            height: 38px;
-            background: #e8eefb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    width: 38px;
+    height: 38px;
+    background: #e8eefb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .lavea-admin-content .avatar svg {
-            width: 18px;
-            height: 18px;
-        }
+    width: 18px;
+    height: 18px;
+}
 .lavea-admin-content .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
 .lavea-admin-content .page-header h1 {
-            font-size: 26px;
-            color: #10204a;
-        }
+    font-size: 26px;
+    color: #10204a;
+}
 .lavea-admin-content .page-header p {
-            color: #7a879d;
-            font-size: 13px;
-            margin-top: 6px;
-        }
+    color: #7a879d;
+    font-size: 13px;
+    margin-top: 6px;
+}
 .lavea-admin-content #services-page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 25px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 25px;
+}
 .lavea-admin-content #services-page-header h1 {
-            font-size: 26px;
-            color: #10204a;
-        }
+    font-size: 26px;
+    color: #10204a;
+}
 .lavea-admin-content #services-page-header p {
-            color: #7a879d;
-            font-size: 13px;
-            margin-top: 6px;
-        }
+    color: #7a879d;
+    font-size: 13px;
+    margin-top: 6px;
+}
 .lavea-admin-content .add-btn {
-            background: #4169c8;
-            color: white;
-            padding: 11px 17px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    background: #4169c8;
+    color: white;
+    padding: 11px 17px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .lavea-admin-content .add-btn:hover {
-            background: #3459b1;
-        }
+    background: #3459b1;
+}
 .lavea-admin-content .success {
-            background: #e6f8ef;
-            color: #168458;
-            padding: 13px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
+    background: #e6f8ef;
+    color: #168458;
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
 .lavea-admin-content .card {
-            background: white;
-            border: 1px solid #e7ebf2;
-            border-radius: 10px;
-            padding: 20px;
-        }
+    background: white;
+    border: 1px solid #e7ebf2;
+    border-radius: 10px;
+    padding: 20px;
+}
 .lavea-admin-content .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
 .lavea-admin-content .card-header h2 {
-            font-size: 19px;
-            color: #172554;
-        }
+    font-size: 19px;
+    color: #172554;
+}
 .lavea-admin-content .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            text-decoration: none;
-            cursor: pointer;
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
 .lavea-admin-content .btn svg {
-            width: 16px;
-            height: 16px;
-        }
+    width: 16px;
+    height: 16px;
+}
 .lavea-admin-content .btn-primary {
-            background: #4169c8;
-            color: white;
-        }
+    background: #4169c8;
+    color: white;
+}
 .lavea-admin-content .btn-primary:hover {
-            background: #3459b1;
-        }
+    background: #3459b1;
+}
 .lavea-admin-content .table-container {
-            overflow-x: auto;
-        }
+    overflow-x: auto;
+}
 .lavea-admin-content table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    width: 100%;
+    border-collapse: collapse;
+}
 .lavea-admin-content th {
-            background: #f8f9fc;
-            color: #718099;
-            font-size: 11px;
-            text-align: left;
-            padding: 13px;
-        }
+    background: #f8f9fc;
+    color: #718099;
+    font-size: 11px;
+    text-align: left;
+    padding: 13px;
+}
 .lavea-admin-content td {
-            padding: 14px 13px;
-            border-bottom: 1px solid #edf0f5;
-            font-size: 12px;
-            color: #44526d;
-        }
+    padding: 14px 13px;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 12px;
+    color: #44526d;
+}
 .lavea-admin-content .service-image-frame {
-            display: block;
-            width: 55px;
-            height: 55px;
-            overflow: hidden;
-            border-radius: 8px;
-            background: #eef2f8;
-        }
+    display: block;
+    width: 55px;
+    height: 55px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #eef2f8;
+}
 .lavea-admin-content .service-image {
-            display: block;
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
-            object-position: center;
-            animation: service-image-appear 450ms ease-out backwards;
-            transition: transform 250ms ease;
-        }
+    display: block;
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    object-position: center;
+    animation: service-image-appear 450ms ease-out backwards;
+    transition: transform 250ms ease;
+}
 .lavea-admin-content a:hover .service-image,
 .lavea-admin-content a:focus-visible .service-image {
-            transform: scale(1.08);
-        }
+    transform: scale(1.08);
+}
 @keyframes service-image-appear {
-            from { opacity: 0; transform: translateY(6px) scale(.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 @media (prefers-reduced-motion: reduce) {
-            .lavea-admin-content .service-image {
-                animation: none;
-                transition: none;
-            }
-            .lavea-admin-content a:hover .service-image,
+    .lavea-admin-content .service-image {
+        animation: none;
+        transition: none;
+    }
+    .lavea-admin-content a:hover .service-image,
             .lavea-admin-content a:focus-visible .service-image {
-                transform: none;
-            }
-        }
+        transform: none;
+    }
+}
 .lavea-admin-content .no-image {
-            width: 55px;
-            height: 55px;
-            border-radius: 8px;
-            background: #eef2f8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8995aa;
-        }
+    width: 55px;
+    height: 55px;
+    border-radius: 8px;
+    background: #eef2f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8995aa;
+}
 .lavea-admin-content .price {
-            font-weight: bold;
-            color: #172554;
-        }
+    font-weight: bold;
+    color: #172554;
+}
 .lavea-admin-content .description {
-            max-width: 280px;
-        }
+    max-width: 280px;
+}
 .lavea-admin-content .actions {
-            display: flex;
-            gap: 7px;
-        }
+    display: flex;
+    gap: 7px;
+}
 .lavea-admin-content .action {
-            width: 34px;
-            height: 34px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
 .lavea-admin-content .action svg {
-            width: 16px;
-        }
+    width: 16px;
+}
 .lavea-admin-content .view {
-            background: #edf3ff;
-            color: #3973e6;
-        }
+    background: #edf3ff;
+    color: #3973e6;
+}
 .lavea-admin-content .edit {
-            background: #f0eaff;
-            color: #7545d0;
-        }
+    background: #f0eaff;
+    color: #7545d0;
+}
 .lavea-admin-content .delete {
-            background: #fff0f1;
-            color: #e05263;
-            border: none;
-            cursor: pointer;
-        }
+    background: #fff0f1;
+    color: #e05263;
+    border: none;
+    cursor: pointer;
+}
 .lavea-admin-content .empty {
-            text-align: center;
-            padding: 50px 20px;
-            color: #8995aa;
-        }
+    text-align: center;
+    padding: 50px 20px;
+    color: #8995aa;
+}
+.service-availability {
+    border: 1px solid #bbf7d0;
+    border-radius: 999px;
+    padding: 7px 12px;
+    background: #f0fdf4;
+    color: #166534;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.service-availability[data-active="false"] {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.service-availability:hover {
+    filter: brightness(.95);
+}
+.service-availability:focus-visible {
+    outline: 2px solid #4365cf;
+    outline-offset: 3px;
+}
 </style>
 @endpush
 
 @section('content')
 
-
     <!-- SIDEBAR -->
 
-
-
     <!-- MAIN -->
-
-
-
-
-
-
 
             <div class="page-header" id="services-page-header">
                 <div>
@@ -244,7 +266,6 @@
                 @include('admin.partials.current-date')
             </div>
 
-
             <!-- SUCCESS MESSAGE -->
             @if(session('success'))
 
@@ -253,7 +274,6 @@
                 </div>
 
             @endif
-
 
             <!-- SERVICE TABLE -->
             @include('admin.partials.list-search', ['searchRoute' => 'admin.services.index', 'searchPlaceholder' => 'Service name or description', 'search' => $search])
@@ -277,6 +297,7 @@
                                 <th>Service</th>
                                 <th>Price</th>
                                 <th>Description</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -325,6 +346,16 @@
 
                                     <td>
 
+                                        <form method="POST" action="{{ route('admin.services.availability', $service) }}" style="margin-bottom:8px">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="is_active" value="{{ $service->is_active ? '0' : '1' }}">
+                                            <button type="submit" class="service-availability" data-active="{{ $service->is_active ? 'true' : 'false' }}" title="{{ $service->is_active ? 'Mark inactive' : 'Activate service' }}" aria-label="{{ $service->is_active ? 'Deactivate' : 'Activate' }} {{ $service->service_name }}">
+                                                {{ $service->is_active ? 'Active' : 'Inactive' }}
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>
                                         <div class="actions">
 
                                             <!-- VIEW -->
@@ -374,7 +405,7 @@
                             @empty
 
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="6">
 
                                         <div class="empty">
 

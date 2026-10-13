@@ -40,6 +40,24 @@ beforeEach(function (): void {
     $this->artisan('migrate', ['--no-interaction' => true])->assertExitCode(0);
 });
 
+test('admin can deactivate and reactivate a service', function (): void {
+    $service = ServiceFactory::new()->create();
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin)->patch(route('admin.services.availability', $service), ['is_active' => false])
+        ->assertRedirect(route('admin.services.index'))->assertSessionHasNoErrors();
+    expect($service->fresh()->is_active)->toBeFalse();
+    $this->get(route('admin.services.index'))->assertSee('Inactive');
+    $this->patch(route('admin.services.availability', $service), ['is_active' => true])->assertSessionHasNoErrors();
+    expect($service->fresh()->is_active)->toBeTrue();
+});
+
+test('customers cannot change service availability', function (): void {
+    $service = ServiceFactory::new()->create();
+    $customer = User::factory()->create(['role' => 'customer']);
+    $this->actingAs($customer)->patch(route('admin.services.availability', $service), ['is_active' => false])->assertRedirect();
+    expect($service->fresh()->is_active)->toBeTrue();
+});
+
 test('admin uploads supported images and sees them after reloading the list', function (string $extension): void {
     Storage::fake('public');
     $admin = User::factory()->create(['role' => 'admin']);
@@ -264,3 +282,17 @@ test('invalid database image paths cannot delete files outside service storage',
     $this->assertModelMissing($service);
     Storage::disk('public')->assertExists('private.png');
 });
+
+test('failed PHP image uploads explain the cause without creating a service', function (int $error, string $message): void {
+    Storage::fake('public');
+    $file = new UploadedFile('', 'photo.jpg', 'image/jpeg', $error, true);
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->post(route('admin.services.store'), [
+        'service_name' => 'Failed upload', 'price' => 150, 'image' => $file,
+    ])->assertSessionHasErrors(['image' => $message]);
+    $this->assertDatabaseCount('services', 0);
+    Storage::disk('public')->assertDirectoryEmpty('services');
+})->with([
+    [UPLOAD_ERR_PARTIAL, 'Only part of the image was uploaded. Select the image again and retry.'],
+    [UPLOAD_ERR_NO_TMP_DIR, 'PHP cannot find its temporary upload folder. Check the Herd upload_tmp_dir setting.'],
+    [UPLOAD_ERR_CANT_WRITE, 'PHP could not write the image to its temporary folder. Check folder permissions and free disk space.'],
+]);

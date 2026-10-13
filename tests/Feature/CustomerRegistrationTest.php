@@ -157,6 +157,40 @@ test('customer verification codes mark the account verified and allow the dashbo
     $this->get(route('customer.dashboard'))->assertOk();
 });
 
+test('email reset code unlocks password change and cannot be reused', function (): void {
+    $user = User::factory()->create(['role' => 'customer', 'email' => 'otp@example.com', 'email_verified_at' => null]);
+    $code = null;
+    Mail::shouldReceive('raw')->once()->withArgs(function (string $text, $callback) use (&$code): bool {
+        preg_match('/\b[0-9]{6}\b/', $text, $matches);
+        $code = $matches[0];
+
+        return true;
+    });
+    $this->post(route('password.code.send'), ['email' => $user->email])->assertRedirect(route('password.code'));
+    $this->post(route('password.code.verify'), ['code' => $code])->assertRedirect(route('password.code.new'));
+    $response = $this->get(route('password.code.new'))->assertOk()->assertViewIs('auth.reset-password')->assertSee('New Password')->assertSee('Confirm New Password');
+    $this->post(route('password.update'), ['email' => $user->email, 'token' => $response->viewData('token'), 'password' => 'New-password-123', 'password_confirmation' => 'New-password-123'])->assertRedirect(route('customer.dashboard'));
+    $this->assertAuthenticatedAs($user);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    expect(Hash::check('New-password-123', $user->fresh()->password))->toBeTrue();
+    expect(session()->has('password_reset_verified'))->toBeFalse();
+});
+
+test('expired or exhausted reset codes do not unlock password change', function (int $expiry, int $attempts): void {
+    $this->withSession(['password_reset_code' => ['email' => 'otp@example.com', 'hash' => Hash::make('123456'), 'expires_at' => $expiry, 'attempts' => $attempts]])
+        ->post(route('password.code.verify'), ['code' => '123456'])->assertRedirect(route('password.request'))->assertSessionMissing('password_reset_code');
+})->with([fn () => [now()->subMinute()->timestamp, 0], fn () => [now()->addMinutes(10)->timestamp, 5]]);
+
+test('password reset email uses the configured application address', function (): void {
+    config(['app.url' => 'http://lavea.test']);
+    $user = User::factory()->create();
+    $message = (new ResetPassword('test-reset-token'))->toMail($user);
+
+    expect($message->actionUrl)->toStartWith('http://lavea.test/reset-password/test-reset-token')
+        ->toContain('email=');
+    $this->get($message->actionUrl)->assertOk()->assertSee('test-reset-token');
+});
+
 test('password reset emails find existing accounts using normalized input', function (): void {
     $user = User::factory()->create(['role' => 'customer', 'email' => 'Existing@Example.com']);
     Notification::fake();

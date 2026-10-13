@@ -3,203 +3,194 @@
 @push('styles')
 
 <style>
-.lavea-admin-content * { margin: 0; padding: 0; }
-
+.lavea-admin-content * {
+    margin: 0;
+    padding: 0;
+}
 .lavea-admin-content .avatar {
-            width: 38px;
-            height: 38px;
-            background: #e8eefb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    width: 38px;
+    height: 38px;
+    background: #e8eefb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .lavea-admin-content .avatar svg {
-            width: 18px;
-            height: 18px;
-        }
+    width: 18px;
+    height: 18px;
+}
 .lavea-admin-content .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
 .lavea-admin-content .page-header h1 {
-            font-size: 26px;
-            color: #10204a;
-        }
+    font-size: 26px;
+    color: #10204a;
+}
 .lavea-admin-content .page-header p {
-            color: #7a879d;
-            font-size: 13px;
-            margin-top: 6px;
-        }
+    color: #7a879d;
+    font-size: 13px;
+    margin-top: 6px;
+}
 .lavea-admin-content .add-btn {
-            background: #4169c8;
-            color: white;
-            padding: 11px 17px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    background: #4169c8;
+    color: white;
+    padding: 11px 17px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .lavea-admin-content .add-btn:hover {
-            background: #3459b1;
-        }
+    background: #3459b1;
+}
 .lavea-admin-content .success {
-            background: #e6f8ef;
-            color: #168458;
-            padding: 13px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
+    background: #e6f8ef;
+    color: #168458;
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
 .lavea-admin-content .card {
-            background: white;
-            border: 1px solid #e7ebf2;
-            border-radius: 10px;
-            padding: 20px;
-        }
+    background: white;
+    border: 1px solid #e7ebf2;
+    border-radius: 10px;
+    padding: 20px;
+}
 .lavea-admin-content .table-container {
-            overflow-x: auto;
-        }
+    overflow-x: auto;
+}
 .lavea-admin-content table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 950px;
-        }
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 950px;
+}
 .lavea-admin-content th {
-            background: #f8f9fc;
-            color: #718099;
-            font-size: 11px;
-            text-align: left;
-            padding: 13px;
-        }
+    background: #f8f9fc;
+    color: #718099;
+    font-size: 11px;
+    text-align: left;
+    padding: 13px;
+}
 .lavea-admin-content td {
-            padding: 14px 13px;
-            border-bottom: 1px solid #edf0f5;
-            font-size: 12px;
-            color: #44526d;
-        }
+    padding: 14px 13px;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 12px;
+    color: #44526d;
+}
 .lavea-admin-content .customer-name {
-            font-weight: bold;
-            color: #172554;
-        }
+    font-weight: bold;
+    color: #172554;
+}
 .lavea-admin-content .service-name {
-            color: #44526d;
-        }
+    color: #44526d;
+}
 .lavea-admin-content .staff-name {
-            color: #44526d;
-        }
+    color: #44526d;
+}
 .lavea-admin-content .date {
-            white-space: nowrap;
-        }
+    white-space: nowrap;
+}
 .lavea-admin-content .price {
-            font-weight: bold;
-            color: #172554;
-            white-space: nowrap;
-        }
+    font-weight: bold;
+    color: #172554;
+    white-space: nowrap;
+}
 .lavea-admin-content .status {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-        }
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
 .lavea-admin-content .pending {
-            background: #fff4d6;
-            color: #a56a00;
-        }
+    background: #fff4d6;
+    color: #a56a00;
+}
 .lavea-admin-content .processing {
-            background: #e9f1ff;
-            color: #3565b8;
-        }
+    background: #e9f1ff;
+    color: #3565b8;
+}
 .lavea-admin-content .ready {
-            background: #e9e7ff;
-            color: #654bc4;
-        }
+    background: #e9e7ff;
+    color: #654bc4;
+}
 .lavea-admin-content .completed {
-            background: #e5f8ef;
-            color: #168458;
-        }
+    background: #e5f8ef;
+    color: #168458;
+}
 .lavea-admin-content .cancelled {
-            background: #ffe9ec;
-            color: #d14a5b;
-        }
+    background: #ffe9ec;
+    color: #d14a5b;
+}
 .lavea-admin-content .payment {
-            font-size: 11px;
-            font-weight: 600;
-        }
+    font-size: 11px;
+    font-weight: 600;
+}
 .lavea-admin-content .paid {
-            color: #168458;
-        }
+    color: #168458;
+}
 .lavea-admin-content .partial {
-            color: #a56a00;
-        }
+    color: #a56a00;
+}
 .lavea-admin-content .unpaid {
-            color: #d14a5b;
-        }
+    color: #d14a5b;
+}
 .lavea-admin-content .actions {
-            display: flex;
-            gap: 7px;
-        }
+    display: flex;
+    gap: 7px;
+}
 .lavea-admin-content .action {
-            width: 34px;
-            height: 34px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
 .lavea-admin-content .action svg {
-            width: 16px;
-            height: 16px;
-        }
+    width: 16px;
+    height: 16px;
+}
 .lavea-admin-content .view {
-            background: #edf3ff;
-            color: #3973e6;
-        }
+    background: #edf3ff;
+    color: #3973e6;
+}
 .lavea-admin-content .edit {
-            background: #f0eaff;
-            color: #7545d0;
-        }
+    background: #f0eaff;
+    color: #7545d0;
+}
 .lavea-admin-content .delete {
-            background: #fff0f1;
-            color: #e05263;
-            border: none;
-            cursor: pointer;
-        }
+    background: #fff0f1;
+    color: #e05263;
+    border: none;
+    cursor: pointer;
+}
 .lavea-admin-content .empty {
-            text-align: center;
-            padding: 50px 20px;
-            color: #8995aa;
-        }
+    text-align: center;
+    padding: 50px 20px;
+    color: #8995aa;
+}
 .lavea-admin-content .empty svg {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 10px;
-        }
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+}
 </style>
 @endpush
 
 @section('content')
 
-
     <!-- SIDEBAR -->
 
-    
-
-
     <!-- MAIN -->
-
-    
-
-        
-
-
-        
 
             <div class="page-header">
 
@@ -224,7 +215,6 @@
 
             </div>
 
-
             @if(session('success'))
 
                 <div class="success">
@@ -232,7 +222,6 @@
                 </div>
 
             @endif
-
 
             @include('admin.partials.list-search', ['searchRoute' => 'admin.orders.index', 'searchPlaceholder' => 'Order ID, customer, service, staff or status', 'search' => $search])
             <div class="card">
@@ -271,7 +260,6 @@
 
                         </thead>
 
-
                         <tbody>
 
                             @forelse($orders as $order)
@@ -286,7 +274,6 @@
 
                                     </td>
 
-
                                     <td>
 
                                         <span class="service-name">
@@ -294,7 +281,6 @@
                                         </span>
 
                                     </td>
-
 
                                     <td>
 
@@ -304,11 +290,9 @@
 
                                     </td>
 
-
                                     <td>
                                         {{ number_format($order->quantity, 2) }}
                                     </td>
-
 
                                     <td class="date">
 
@@ -319,7 +303,6 @@
 
                                     </td>
 
-
                                     <td class="date">
 
                                         {{ $order->pickup_date
@@ -328,7 +311,6 @@
                                         }}
 
                                     </td>
-
 
                                     <td class="date">
 
@@ -339,13 +321,11 @@
 
                                     </td>
 
-
                                     <td class="price">
 
                                         ₱{{ number_format($order->total, 2) }}
 
                                     </td>
-
 
                                     <td>
 
@@ -358,7 +338,6 @@
 
                                     </td>
 
-
                                     <td>
 
                                         <span class="payment
@@ -369,7 +348,6 @@
                                         </span>
 
                                     </td>
-
 
                                     <td>
 
@@ -388,7 +366,6 @@
                                                     <i data-lucide="pencil"></i>
                                                 </a>
                                             @endif
-
 
                                         </div>
 
@@ -423,9 +400,5 @@
                 </div>
 
             </div>
-
-        
-
-    
 
 @endsection

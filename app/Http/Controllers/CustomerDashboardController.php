@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -103,8 +104,9 @@ class CustomerDashboardController extends Controller
 
     public function updateOrder(Request $request, int $order): RedirectResponse
     {
+        $service = $this->customerOrders($request)->with('service')->findOrFail($order)->service;
         $details = $request->validate([
-            'quantity' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9'],
+            'quantity' => $service?->quantityRules() ?? ['required', 'numeric', 'min:1', 'max:9'],
             'pickup_date' => ['required', 'date', 'after_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -203,16 +205,18 @@ class CustomerDashboardController extends Controller
 
     public function showService(Service $service): View
     {
+
         return view('customer.service-detail', compact('service'));
     }
 
     public function storeServiceOrder(Request $request, Service $service): RedirectResponse
     {
+        abort_unless($service->is_active, 403, 'This service is currently unavailable.');
         $customer = $request->user()->customerProfile;
         abort_if($customer === null, 404);
 
         $details = $request->validate([
-            'quantity' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9'],
+            'quantity' => $service?->quantityRules() ?? ['required', 'numeric', 'min:1', 'max:9'],
             'pickup_date' => ['required', 'date', 'after_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -303,6 +307,41 @@ class CustomerDashboardController extends Controller
     public function profile(Request $request): View
     {
         return view('customer.profile', ['customer' => $request->user()->customerProfile]);
+    }
+
+    public function deleteAccount(Request $request): RedirectResponse
+    {
+        $request->validateWithBag('deleteAccount', [
+            'password' => ['required', 'current_password'],
+            'confirm_deletion' => ['accepted'],
+        ]);
+        $user = $request->user();
+        abort_unless(in_array($user->role, ['customer', 'user'], true), 403);
+        $photo = $user->profile_photo_path;
+
+        DB::transaction(function () use ($user): void {
+            $customer = $user->customerProfile;
+            if ($customer !== null) {
+                if ($customer->orders()->exists()) {
+                    $customer->update(['name' => 'Deleted customer', 'email' => null, 'phone' => '', 'address' => null]);
+                } else {
+                    $customer->delete();
+                }
+            }
+            $user->notifications()->delete();
+            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            Auth::logout();
+            $user->delete();
+        });
+
+        if (is_string($photo) && preg_match('/\A(?:staff|customer)-profiles\/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)\z/i', $photo)) {
+            Storage::disk('public')->delete($photo);
+        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home')->with('status', 'Your account has been deleted.');
     }
 
     public function updateProfile(Request $request): RedirectResponse
