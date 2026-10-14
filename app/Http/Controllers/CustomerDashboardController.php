@@ -394,6 +394,9 @@ class CustomerDashboardController extends Controller
         }
 
         $newPhoto = $request->file('profile_photo')?->store('customer-profiles', 'public');
+        if ($request->hasFile('profile_photo') && ! is_string($newPhoto)) {
+            throw ValidationException::withMessages(['profile_photo' => 'The photo could not be saved. Please try again.']);
+        }
         unset($details['profile_photo']);
 
         DB::transaction(function () use ($request, $customer, $details, $newPhoto): void {

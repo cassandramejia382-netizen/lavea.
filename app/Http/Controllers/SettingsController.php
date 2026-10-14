@@ -89,6 +89,9 @@ class SettingsController extends Controller
 
         $previousPhoto = $user->profile_photo_path;
         $newPhoto = $request->file('profile_photo')?->store('staff-profiles', 'public');
+        if ($request->hasFile('profile_photo') && ! is_string($newPhoto)) {
+            throw ValidationException::withMessages(['profile_photo' => 'The photo could not be saved. Please try again.']);
+        }
 
         $user->fill([
             'name' => $validated['name'],
@@ -130,6 +133,9 @@ class SettingsController extends Controller
 
         $previousPhoto = $user->profile_photo_path;
         $newPhoto = $request->file('profile_photo')?->store('staff-profiles', 'public');
+        if ($request->hasFile('profile_photo') && ! is_string($newPhoto)) {
+            throw ValidationException::withMessages(['profile_photo' => 'The photo could not be saved. Please try again.']);
+        }
 
         $user->fill([
             'name' => $validated['name'],

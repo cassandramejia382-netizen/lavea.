@@ -17,7 +17,7 @@
             <details class="staff-account-menu">
                 <summary class="lavea-admin-profile" aria-label="{{ ucfirst(auth()->user()->role) }} account menu">
                     <div class="lavea-admin-avatar" style="flex:0 0 39px;width:39px;height:39px;min-width:39px;min-height:39px;overflow:hidden">
-                        @if (auth()->user()->profile_photo_path)
+                        @if (auth()->user()->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists(auth()->user()->profile_photo_path))
                             <img src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="" style="width:100%;height:100%;object-fit:cover">
                         @else
                             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex:none;width:21px;height:21px">

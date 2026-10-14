@@ -349,7 +349,7 @@ html[data-lavea-theme="dark"] .profile-account-badge svg {
                 @endif
                 <div class="profile-photo-row">
                     <div class="profile-photo" aria-label="Profile photo preview">
-                        @if (auth()->user()->profile_photo_path)
+                        @if (auth()->user()->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists(auth()->user()->profile_photo_path))
                             <img id="profile-photo-preview" src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="Profile photo">
                         @else
                             <i id="profile-photo-placeholder" data-lucide="user-round"></i>
@@ -362,6 +362,7 @@ html[data-lavea-theme="dark"] .profile-account-badge svg {
                         <p>Choose a clear photo. JPG, PNG, or WebP up to 5 MB.</p>
                         <input class="profile-photo-input" id="profile_photo" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp">
                         <label class="profile-photo-edit" for="profile_photo"><i data-lucide="camera"></i>Change photo</label>
+                        <span class="profile-error" id="profile-photo-upload-error" role="alert" hidden></span>
                         @error('profile_photo')<span class="profile-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
@@ -405,12 +406,70 @@ html[data-lavea-theme="dark"] .profile-account-badge svg {
         const profilePhotoInput = document.getElementById('profile_photo');
         const profilePhotoPreview = document.getElementById('profile-photo-preview');
         const profilePhotoPlaceholder = document.getElementById('profile-photo-placeholder');
+        const profileSaveButton = document.querySelector('.profile-save');
 
-        profilePhotoInput?.addEventListener('change', (event) => {
-            const [photo] = event.target.files;
+        profilePhotoInput?.addEventListener('change', async (event) => {
+            const [selectedPhoto] = event.target.files;
+            const uploadError = document.getElementById('profile-photo-upload-error');
 
-            if (!photo) {
+            if (!selectedPhoto) {
                 return;
+            }
+
+            uploadError.hidden = true;
+
+            if (selectedPhoto.size > 5 * 1024 * 1024) {
+                uploadError.textContent = 'Choose an image smaller than 5 MB.';
+                uploadError.hidden = false;
+                profilePhotoInput.value = '';
+
+                return;
+            }
+
+            let photo = selectedPhoto;
+
+            if (selectedPhoto.size > 1.5 * 1024 * 1024) {
+                profileSaveButton.disabled = true;
+
+                try {
+                    const bitmap = await createImageBitmap(selectedPhoto);
+                    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(bitmap.width * scale);
+                    canvas.height = Math.round(bitmap.height * scale);
+                    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                    bitmap.close();
+
+                    let quality = 0.82;
+                    let compressed = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', quality));
+
+                    while (compressed && compressed.size > 1.5 * 1024 * 1024 && quality > 0.5) {
+                        quality -= 0.08;
+                        compressed = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', quality));
+                    }
+
+                    if (!compressed || compressed.size > 1.5 * 1024 * 1024) {
+                        throw new Error('Image compression failed. Choose a smaller photo.');
+                    }
+
+                    photo = new File([compressed], selectedPhoto.name.replace(/\.[^.]+$/, '.webp'), {
+                        type: 'image/webp',
+                        lastModified: Date.now(),
+                    });
+
+                    const transfer = new DataTransfer();
+                    transfer.items.add(photo);
+                    profilePhotoInput.files = transfer.files;
+                } catch (error) {
+                    uploadError.textContent = error.message || 'This photo could not be prepared. Choose another image.';
+                    uploadError.hidden = false;
+                    profilePhotoInput.value = '';
+                    profileSaveButton.disabled = false;
+
+                    return;
+                }
+
+                profileSaveButton.disabled = false;
             }
 
             profilePhotoPreview.src = URL.createObjectURL(photo);
