@@ -254,7 +254,7 @@ Route::middleware(['auth', 'no-cache', 'role:admin'])
         |--------------------------------------------------------------------------
         */
         Route::resource('customers', CustomerController::class)
-            ->only(['index', 'show'])
+            ->only(['index', 'show', 'edit', 'update', 'destroy'])
             ->names('customers');
         /*
         |--------------------------------------------------------------------------

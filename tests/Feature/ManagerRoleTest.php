@@ -44,6 +44,36 @@ beforeEach(function (): void {
     DB::table('shop_settings')->updateOrInsert(['id' => 1], ['shop_name' => 'Test Shop', 'gcash_number' => '09123456789', 'gcash_account_name' => 'Test Merchant']);
 });
 
+test('admin customer buttons edit save and delete without crossing into manager routes', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $customer = CustomerFactory::new()->create();
+    $this->actingAs($admin)->get(route('admin.customers.index'))->assertOk()
+        ->assertSee(route('admin.customers.edit', $customer), false)
+        ->assertSee(route('admin.customers.destroy', $customer), false);
+    $this->get(route('admin.customers.edit', $customer))->assertOk()
+        ->assertSee(route('admin.customers.update', $customer), false)
+        ->assertDontSee(route('manager.customers.update', $customer), false);
+    $this->put(route('admin.customers.update', $customer), [
+        'name' => 'Updated Customer', 'email' => $customer->email, 'phone' => $customer->phone, 'address' => 'New address',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('admin.customers.show', $customer));
+    $this->assertDatabaseHas('customers', ['id' => $customer->id, 'name' => 'Updated Customer', 'address' => 'New address']);
+    $this->delete(route('admin.customers.destroy', $customer))->assertRedirect(route('admin.customers.index'));
+    $this->assertDatabaseMissing('customers', ['id' => $customer->id]);
+});
+
+test('admin customer deletion preserves order history and editing preserves linked account email', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $user = User::factory()->create();
+    $customer = CustomerFactory::new()->create(['email' => $user->email]);
+    $order = OrderFactory::new()->for($customer)->create();
+    $this->actingAs($admin)->delete(route('admin.customers.destroy', $customer))
+        ->assertRedirect(route('admin.customers.index'))->assertSessionHas('error');
+    $this->assertDatabaseHas('orders', ['id' => $order->id]);
+    $this->put(route('admin.customers.update', $customer), ['name' => $customer->name, 'email' => 'different@example.com'])
+        ->assertSessionHasErrors('email');
+    expect($customer->fresh()->email)->toBe($user->email);
+});
+
 test('admin creates manager logins without creating worker records or accepting a different role', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->get(route('admin.managers.create'))->assertSee('Add Manager Account');

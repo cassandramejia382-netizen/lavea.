@@ -204,6 +204,9 @@
             @endif
 
             <!-- CUSTOMER TABLE -->
+            @if(session('error'))
+                <div role="alert" style="padding:13px 16px;margin-bottom:20px;border-radius:8px;background:#fff0f1;color:#e05263">{{ session('error') }}</div>
+            @endif
             <form class="customer-search" method="GET" action="{{ route('admin.customers.index') }}">
                 <input type="search" name="search" value="{{ $search }}" placeholder="Name, email or phone" aria-label="Search customers by name, email or phone">
                 <button type="submit">Search</button>
@@ -220,7 +223,7 @@
                                 <th>Customer</th>
                                 <th>Phone</th>
                                 <th>Address</th>
-                                <th>View</th>
+                                <th>Actions</th>
                             </tr>
 
                         </thead>
@@ -272,6 +275,13 @@
                                             >
                                                 <i data-lucide="eye"></i>
                                             </a>
+
+                                            <a href="{{ route('admin.customers.edit', $customer) }}" class="action edit" title="Edit customer" aria-label="Edit {{ $customer->name }}"><i data-lucide="pencil" aria-hidden="true"></i></a>
+                                            <form method="POST" action="{{ route('admin.customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer? Customers with order history cannot be deleted.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="action delete" title="Delete customer" aria-label="Delete {{ $customer->name }}"><i data-lucide="trash-2" aria-hidden="true"></i></button>
+                                            </form>
 
                                         </div>
 
