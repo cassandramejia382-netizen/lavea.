@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
@@ -62,24 +64,27 @@ class CustomerController extends Controller
         return view('admin.customers.show', compact('customer'));
     }
 
-    public function destroy(Customer $customer)
+    public function destroy(Customer $customer): RedirectResponse
     {
+        $routePrefix = request()->user()->role === 'admin' ? 'admin' : 'manager';
         if ($customer->orders()->exists()) {
-            return redirect()->route('manager.customers.index')
+            return redirect()->route($routePrefix.'.customers.index')
                 ->with('error', 'This customer has order history and cannot be deleted.');
         }
 
         $customer->delete();
 
-        return redirect()->route('manager.customers.index')->with('success', 'Customer deleted successfully.');
+        return redirect()->route($routePrefix.'.customers.index')->with('success', 'Customer deleted successfully.');
     }
 
-    public function edit(Customer $customer)
+    public function edit(Customer $customer): View
     {
-        return view('staff.customers.form', compact('customer'));
+        $routePrefix = request()->user()->role === 'admin' ? 'admin' : 'manager';
+
+        return view('staff.customers.form', compact('customer', 'routePrefix'));
     }
 
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request, Customer $customer): RedirectResponse
     {
         $details = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -88,8 +93,14 @@ class CustomerController extends Controller
             'address' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        if ($request->user()->role === 'admin' && $customer->user !== null && ($details['email'] ?? null) !== $customer->email) {
+            return back()->withErrors(['email' => 'The email of a linked login account cannot be changed here.'])->withInput();
+        }
+
         $customer->update($details);
 
-        return redirect()->route('manager.customers.show', $customer)->with('success', 'Customer updated.');
+        $routePrefix = $request->user()->role === 'admin' ? 'admin' : 'manager';
+
+        return redirect()->route($routePrefix.'.customers.show', $customer)->with('success', 'Customer updated.');
     }
 }
