@@ -595,3 +595,32 @@
     outline: 2px solid #4169c8;
     outline-offset: 3px;
 }
+.lavea-pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 14px;
+}
+.lavea-pagination .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border: 1px solid #dbe5ff;
+    border-radius: 8px;
+    background: #edf2ff;
+    color: #4169c8;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color .2s ease;
+}
+.lavea-pagination .btn:hover { background: #dfe8ff; }
+.lavea-pagination .btn:focus-visible { outline: 2px solid #4169c8; outline-offset: 3px; }
+.lavea-pagination > span { color: #6b7280; }
+html[data-lavea-theme="dark"] .lavea-pagination .btn {
+    background: var(--lavea-blue-background);
+    color: var(--lavea-blue-text);
+    border-color: var(--lavea-border);
+}
+html[data-lavea-theme="dark"] .lavea-pagination > span { color: var(--lavea-text); }

@@ -1,0 +1,66 @@
+[
+    {
+        "service_name": "Stain Removal",
+        "price": "180.00",
+        "description": "Removes stubborn stains from clothes, keeping them clean and fresh.",
+        "image": "services/27QYbd4jneLLDdHintF9aXvVRAGva72ogLhqFshs.jpg",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    },
+    {
+        "service_name": "Ironing",
+        "price": "80.00",
+        "description": "Professional ironing service.",
+        "image": "services/jSp4kAVoY7tEkyq4ZdxeOtAQPG44v5n91Que0PO0.jpg",
+        "is_active": true,
+        "required_job_position": "Ironing Attendant"
+    },
+    {
+        "service_name": "Wash & Fold",
+        "price": "150.00",
+        "description": "Washing, drying, and folding clothes to keep them fresh and clean.",
+        "image": "services/13vFQpa83J27RyHtfzTS5ykNJ9vGTvXXLu5N4MJ3.jpg",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    },
+    {
+        "service_name": "Bedsheet Cleaning",
+        "price": "150.00",
+        "description": "Cleaning bedsheets and pillowcases",
+        "image": "services/RgFCaAPr0lsEpS0HCvFAau2c9zJUZvO3Wz8IiATq.jpg",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    },
+    {
+        "service_name": "Dry Cleaning",
+        "price": "200.00",
+        "description": "Special cleaning for delicate clothes",
+        "image": "services/NzkREur9YHF2JABB3PbCnh3X6OXOnn8mEtLDldys.jpg",
+        "is_active": true,
+        "required_job_position": "Dry Cleaning Attendant"
+    },
+    {
+        "service_name": "Curtain Cleaning",
+        "price": "180.00",
+        "description": "Washing curtains to remove dust and dirt",
+        "image": "services/tvKT79Bo3BlZszDb5A7CBInqrhpBJLHVfM5bWNgV.jpg",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    },
+    {
+        "service_name": "Comforter Cleaning",
+        "price": "250.00",
+        "description": "Washing and drying comforters",
+        "image": "services/0wDH1f9j87hkhF22IzhBDAWRMlLZqgmuBlylj9UU.png",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    },
+    {
+        "service_name": "Express Laundry",
+        "price": "180.00",
+        "description": "Priority washing, drying, and folding",
+        "image": "services/k49lKAR0z1V1ZVrt7xo3dvMlVG5Fx9kISHAAeKSG.jpg",
+        "is_active": true,
+        "required_job_position": "Laundry Attendant"
+    }
+]

@@ -427,7 +427,8 @@ td {
                 $navigation = $isCustomerPortal
                     ? [['dashboard','layout-dashboard','Dashboard'],['orders','clipboard-list','Records'],['services','package','Services'],['payments','credit-card','Payments'],['profile','user-round','My Profile']]
                     : [['dashboard','layout-dashboard','Dashboard'],['customers','users','Customers'],['staff','user-round-cog','Staff'],['services','package','Services'],['orders','clipboard-list','Records'],['payments','credit-card','Payments'],['profile','user-round','My Profile']];
-                $portalPrefix = $isCustomerPortal ? 'customer' : 'manager';
+          
+                    $portalPrefix = $isCustomerPortal ? 'customer' : 'manager';
                 $navigation[] = ['settings', 'settings', $isCustomerPortal ? 'Account Settings' : 'Settings'];
             @endphp
             @foreach ($navigation as [$key,$icon,$label])
@@ -440,14 +441,6 @@ td {
         </nav>
     </aside>
     <main class="main">
-        @php
-            $customerSearch = request()->routeIs('manager.customers.*');
-            $orderSearch = request()->routeIs('manager.orders.*');
-            $paymentSearch = request()->routeIs('manager.payments.*');
-            $hideSearch = request()->routeIs('manager.customers.index', 'staff.orders.index', 'staff.payments.index')
-                || ! ($customerSearch || $orderSearch || $paymentSearch);
-            $orderRoutePrefix = 'manager.orders';
-        @endphp
         @include('admin.partials.topbar')
         <section class="content">
             @if (session('status'))<div class="flash" role="status">{{ session('status') }}</div>@endif

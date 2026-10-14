@@ -63,12 +63,10 @@ class OrderController extends Controller
         $order = new Order;
         $customers = Customer::all();
         $services = Service::where('is_active', true)->get();
-        $orderRoutePrefix = 'manager.orders';
 
         return view('staff.orders.form', compact(
             'customers',
             'services',
-            'orderRoutePrefix',
             'order'
         ));
     }
@@ -142,13 +140,11 @@ class OrderController extends Controller
         $order->load('staff');
         $customers = Customer::all();
         $services = Service::where('is_active', true)->orWhere('id', $order->service_id)->get();
-        $orderRoutePrefix = 'manager.orders';
 
         return view('staff.orders.form', compact(
             'order',
             'customers',
-            'services',
-            'orderRoutePrefix'
+            'services'
         ));
     }
 
